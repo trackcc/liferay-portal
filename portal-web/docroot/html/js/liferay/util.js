@@ -427,7 +427,7 @@
 
 					parentThemeDisplay = parentWindow.themeDisplay;
 
-					if (!parentThemeDisplay) {
+					if (!parentThemeDisplay || window.name === 'devicePreviewIframe') {
 						break;
 					}
 					else if (!parentThemeDisplay.isStatePopUp() || (parentWindow == parentWindow.parent)) {
@@ -548,7 +548,7 @@
 		},
 
 		randomInt: function() {
-			return (Math.ceil(Math.random() * (new Date).getTime()));
+			return (Math.ceil(Math.random() * (new Date()).getTime()));
 		},
 
 		randomMinMax: function(min, max) {
@@ -664,7 +664,7 @@
 
 				}
 				else {
-					document.selection.createRange().text='\t';
+					document.selection.createRange().text = '\t';
 				}
 
 				el.scrollTop = oldscroll;
@@ -988,7 +988,7 @@
 			var selector;
 
 			if (isArray(name)) {
-				selector = 'input[name='+ name.join('], input[name=') + STR_RIGHT_SQUARE_BRACKET;
+				selector = 'input[name=' + name.join('], input[name=') + STR_RIGHT_SQUARE_BRACKET;
 			}
 			else {
 				selector = 'input[name=' + name + STR_RIGHT_SQUARE_BRACKET;
@@ -1362,6 +1362,10 @@
 				ddmURL.setParameter('showGlobalScope', config.showGlobalScope);
 			}
 
+			if ('showHeader' in config) {
+				ddmURL.setParameter('showHeader', config.showHeader);
+			}
+
 			if ('showManageTemplates' in config) {
 				ddmURL.setParameter('showManageTemplates', config.showManageTemplates);
 			}
@@ -1422,6 +1426,29 @@
 			}
 		},
 		['aui-base']
+	);
+
+	Liferay.provide(
+		Util,
+		'openInDialog',
+		function(event) {
+			event.preventDefault();
+
+			var currentTarget = event.currentTarget;
+
+			var config = currentTarget.getData();
+
+			if (!config.uri) {
+				config.uri = currentTarget.getData('href') || currentTarget.attr('href');
+			}
+
+			if (!config.title) {
+				config.title = currentTarget.attr('title');
+			}
+
+			Liferay.Util.openWindow(config);
+		},
+		['aui-base', 'liferay-util-window']
 	);
 
 	Liferay.provide(
@@ -1714,15 +1741,15 @@
 		Util,
 		'selectFolder',
 		function(folderData, folderHref, namespace) {
-			A.byIdNS(namespace, folderData['idString']).val(folderData['idValue']);
+			A.byIdNS(namespace, folderData.idString).val(folderData.idValue);
 
-			var nameEl = A.byIdNS(namespace, folderData['nameString']);
+			var nameEl = A.byIdNS(namespace, folderData.nameString);
 
-			Liferay.Util.addParams(namespace + 'folderId=' + folderData['idValue'], folderHref);
+			Liferay.Util.addParams(namespace + 'folderId=' + folderData.idValue, folderHref);
 
 			nameEl.attr('href', folderHref);
 
-			nameEl.setContent(folderData['nameValue'] + '&nbsp;');
+			nameEl.setContent(folderData.nameValue + '&nbsp;');
 
 			var button = A.byIdNS(namespace, 'removeFolderButton');
 
@@ -2019,6 +2046,10 @@
 
 				if (checked) {
 					value = checkbox.val();
+
+					if (value == 'false') {
+						value = 'true';
+					}
 				}
 
 				checkbox.previous().val(value);

@@ -200,7 +200,6 @@ import com.liferay.portlet.social.util.FacebookUtil;
 import com.liferay.portlet.wiki.model.WikiPage;
 import com.liferay.util.Encryptor;
 import com.liferay.util.JS;
-import com.liferay.util.PwdGenerator;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -331,7 +330,7 @@ public class PortalImpl implements Portal {
 		String[] customSystemGroups = PropsUtil.getArray(
 			PropsKeys.SYSTEM_GROUPS);
 
-		if ((customSystemGroups == null) || (customSystemGroups.length == 0)) {
+		if (ArrayUtil.isEmpty(customSystemGroups)) {
 			_allSystemGroups = GroupConstants.SYSTEM_GROUPS;
 		}
 		else {
@@ -351,7 +350,7 @@ public class PortalImpl implements Portal {
 
 		String[] customSystemRoles = PropsUtil.getArray(PropsKeys.SYSTEM_ROLES);
 
-		if ((customSystemRoles == null) || (customSystemRoles.length == 0)) {
+		if (ArrayUtil.isEmpty(customSystemRoles)) {
 			_allSystemRoles = RoleConstants.SYSTEM_ROLES;
 		}
 		else {
@@ -371,9 +370,7 @@ public class PortalImpl implements Portal {
 		String[] customSystemOrganizationRoles = PropsUtil.getArray(
 			PropsKeys.SYSTEM_ORGANIZATION_ROLES);
 
-		if ((customSystemOrganizationRoles == null) ||
-			(customSystemOrganizationRoles.length == 0)) {
-
+		if (ArrayUtil.isEmpty(customSystemOrganizationRoles)) {
 			_allSystemOrganizationRoles =
 				RoleConstants.SYSTEM_ORGANIZATION_ROLES;
 		}
@@ -397,9 +394,7 @@ public class PortalImpl implements Portal {
 		String[] customSystemSiteRoles = PropsUtil.getArray(
 			PropsKeys.SYSTEM_SITE_ROLES);
 
-		if ((customSystemSiteRoles == null) ||
-			(customSystemSiteRoles.length == 0)) {
-
+		if (ArrayUtil.isEmpty(customSystemSiteRoles)) {
 			_allSystemSiteRoles = RoleConstants.SYSTEM_SITE_ROLES;
 		}
 		else {
@@ -468,6 +463,9 @@ public class PortalImpl implements Portal {
 
 		_reservedParams.add("saveLastPath");
 		_reservedParams.add("scroll");
+
+		_servletContextName =
+			PortalContextLoaderListener.getPortalServlerContextName();
 	}
 
 	@Override
@@ -842,7 +840,7 @@ public class PortalImpl implements Portal {
 			themeDisplay.isLifecycleResource() ||
 			themeDisplay.isStateExclusive()) {
 
-			return PwdGenerator.getPassword(PwdGenerator.KEY3, 4);
+			return StringUtil.randomId();
 		}
 		else {
 			return DeterminateKeyGenerator.generate(input);
@@ -3356,8 +3354,8 @@ public class PortalImpl implements Portal {
 	}
 
 	@Override
-	public Locale getLocale(RenderRequest renderRequest) {
-		return getLocale(getHttpServletRequest(renderRequest));
+	public Locale getLocale(PortletRequest portletRequest) {
+		return getLocale(getHttpServletRequest(portletRequest));
 	}
 
 	@Override
@@ -4617,6 +4615,11 @@ public class PortalImpl implements Portal {
 
 		return getSelectedUser(
 			getHttpServletRequest(portletRequest), checkPermission);
+	}
+
+	@Override
+	public String getServletContextName() {
+		return _servletContextName;
 	}
 
 	@Override
@@ -7306,7 +7309,7 @@ public class PortalImpl implements Portal {
 
 			String[] parameterValues = entry.getValue();
 
-			if ((parameterValues == null) || (parameterValues.length == 0) ||
+			if (ArrayUtil.isEmpty(parameterValues) ||
 				Validator.isNull(parameterValues[0])) {
 
 				continue;
@@ -7578,6 +7581,7 @@ public class PortalImpl implements Portal {
 		new ArrayList<PortalPortEventListener>();
 	private Set<String> _reservedParams;
 	private final AtomicInteger _securePortalPort = new AtomicInteger(-1);
+	private final String _servletContextName;
 	private String[] _sortedSystemGroups;
 	private String[] _sortedSystemOrganizationRoles;
 	private String[] _sortedSystemRoles;
