@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.search.NGramHolder;
 import com.liferay.portal.kernel.search.NGramHolderBuilderUtil;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
+import com.liferay.portal.kernel.search.SuggestionConstants;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.util.PortletKeys;
 
@@ -48,12 +49,30 @@ import org.apache.lucene.util.ReaderUtil;
 public class LuceneSpellCheckIndexWriter extends BaseSpellCheckIndexWriter {
 
 	@Override
-	public void clearDictionaryIndexes(SearchContext searchContext)
+	public void clearQuerySuggestionDictionaryIndexes(
+			SearchContext searchContext)
 		throws SearchException {
 
 		Term term = new Term(
-			com.liferay.portal.kernel.search.Field.PORTLET_ID,
-			PortletKeys.SEARCH);
+			com.liferay.portal.kernel.search.Field.TYPE,
+			SuggestionConstants.QUERY_SUGGESTION_TYPE);
+
+		try {
+			LuceneHelperUtil.deleteDocuments(
+				searchContext.getCompanyId(), term);
+		}
+		catch (IOException e) {
+			throw new SearchException(e);
+		}
+	}
+
+	@Override
+	public void clearSpellCheckerDictionaryIndexes(SearchContext searchContext)
+		throws SearchException {
+
+		Term term = new Term(
+			com.liferay.portal.kernel.search.Field.TYPE,
+			SuggestionConstants.SPELL_CHECKER_TYPE);
 
 		try {
 			LuceneHelperUtil.deleteDocuments(
@@ -92,15 +111,21 @@ public class LuceneSpellCheckIndexWriter extends BaseSpellCheckIndexWriter {
 	}
 
 	protected Document createDocument(
-			String localizedFieldName, String word, String languageId,
-			float weight)
+			long companyId, long groupId, String languageId,
+			String localizedFieldName, String word, float weight,
+			String typeFieldValue, int maxNGramLength)
 		throws SearchException {
 
 		Document document = new Document();
 
 		addField(
+			document, com.liferay.portal.kernel.search.Field.GROUP_ID,
+			String.valueOf(groupId), Field.Store.YES,
+			FieldInfo.IndexOptions.DOCS_ONLY, true);
+		addField(
 			document, com.liferay.portal.kernel.search.Field.LANGUAGE_ID,
-			languageId, Field.Store.NO, FieldInfo.IndexOptions.DOCS_ONLY, true);
+			languageId, Field.Store.YES, FieldInfo.IndexOptions.DOCS_ONLY,
+			true);
 		addField(
 			document, com.liferay.portal.kernel.search.Field.PORTLET_ID,
 			PortletKeys.SEARCH, Field.Store.YES,
@@ -110,10 +135,19 @@ public class LuceneSpellCheckIndexWriter extends BaseSpellCheckIndexWriter {
 			String.valueOf(weight), Field.Store.YES,
 			FieldInfo.IndexOptions.DOCS_ONLY, true);
 		addField(
+			document, com.liferay.portal.kernel.search.Field.TYPE,
+			typeFieldValue, Field.Store.YES, FieldInfo.IndexOptions.DOCS_ONLY,
+			true);
+		addField(
+			document, com.liferay.portal.kernel.search.Field.UID,
+			getUID(companyId, languageId, word), Field.Store.YES,
+			FieldInfo.IndexOptions.DOCS_ONLY, true);
+		addField(
 			document, localizedFieldName, word, Field.Store.YES,
 			FieldInfo.IndexOptions.DOCS_ONLY, true);
 
-		NGramHolder nGramHolder = NGramHolderBuilderUtil.buildNGramHolder(word);
+		NGramHolder nGramHolder = NGramHolderBuilderUtil.buildNGramHolder(
+			word, maxNGramLength);
 
 		addNGramFields(document, nGramHolder.getNGramEnds());
 
@@ -135,8 +169,10 @@ public class LuceneSpellCheckIndexWriter extends BaseSpellCheckIndexWriter {
 	}
 
 	@Override
-	protected void indexDictionary(
-			long companyId, String languageId, InputStream inputStream)
+	protected void indexKeywords(
+			long companyId, long groupId, String languageId,
+			InputStream inputStream, String keywordFieldName,
+			String typeFieldValue, int maxNGramLength)
 		throws Exception {
 
 		IndexAccessor indexAccessor = LuceneHelperUtil.getIndexAccessor(
@@ -146,8 +182,7 @@ public class LuceneSpellCheckIndexWriter extends BaseSpellCheckIndexWriter {
 
 		try {
 			String localizedFieldName = DocumentImpl.getLocalizedName(
-				languageId,
-				com.liferay.portal.kernel.search.Field.SPELL_CHECK_WORD);
+				languageId, keywordFieldName);
 
 			indexSearcher = LuceneHelperUtil.getSearcher(
 				indexAccessor.getCompanyId(), true);
@@ -180,8 +215,9 @@ public class LuceneSpellCheckIndexWriter extends BaseSpellCheckIndexWriter {
 				}
 
 				Document document = createDocument(
-					localizedFieldName, word, languageId,
-					dictionaryEntry.getWeight());
+					companyId, groupId, languageId, localizedFieldName, word,
+					dictionaryEntry.getWeight(), typeFieldValue,
+					maxNGramLength);
 
 				documents.add(document);
 			}

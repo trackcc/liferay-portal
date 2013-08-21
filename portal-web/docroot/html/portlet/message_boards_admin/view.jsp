@@ -103,9 +103,10 @@ if ((category != null) && layout.isTypeControlPanel()) {
 						modelResourceDescription="<%= HtmlUtil.escape(modelResourceDescription) %>"
 						resourcePrimKey="<%= resourcePrimKey %>"
 						var="permissionsURL"
+						windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 					/>
 
-					<aui:button href="<%= permissionsURL %>" value="permissions" />
+					<aui:button href="<%= permissionsURL %>" useDialog="<%= true %>" value="permissions" />
 				</c:if>
 			</div>
 		</c:if>
@@ -242,7 +243,6 @@ if ((category != null) && layout.isTypeControlPanel()) {
 							message = message.toEscapedModel();
 
 							row.setBold(!MBThreadFlagLocalServiceUtil.hasThreadFlag(themeDisplay.getUserId(), thread));
-							row.setObject(new Object[] {message});
 							row.setRestricted(!MBMessagePermission.contains(permissionChecker, message, ActionKeys.VIEW));
 							%>
 
@@ -351,7 +351,12 @@ if ((category != null) && layout.isTypeControlPanel()) {
 							<liferay-ui:search-container-column-status
 								href="<%= rowURL %>"
 								name="status"
+								status="<%= thread.getStatus() %>"
 							/>
+
+							<%
+							row.setObject(new Object[] {message});
+							%>
 
 							<liferay-ui:search-container-column-jsp
 								align="right"

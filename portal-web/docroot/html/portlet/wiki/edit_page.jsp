@@ -312,7 +312,12 @@ if (Validator.isNull(redirect)) {
 			<aui:fieldset>
 				<c:if test="<%= (attachmentsFileEntries != null) && !attachmentsFileEntries.isEmpty() || ((templatePage != null) && (templatePage.getAttachmentsFileEntriesCount() > 0)) %>">
 					<aui:field-wrapper label="attachments">
-						<c:if test="<%= templatePage != null %>">
+						<c:if test="<%= (templatePage != null) && (templatePage.getAttachmentsFileEntriesCount() > 0) %>">
+
+							<%
+							attachmentsFileEntries = templatePage.getAttachmentsFileEntries();
+							%>
+
 							<aui:input name="copyPageAttachments" type="checkbox" value="<%= copyPageAttachments %>" />
 						</c:if>
 
@@ -330,7 +335,7 @@ if (Validator.isNull(redirect)) {
 									<portlet:param name="fileName" value="<%= attachmentsFileEntry.getTitle() %>" />
 								</portlet:resourceURL>
 
-								<aui:a href="<%= getPageAttachmentURL %>"><%= attachmentsFileEntry.getTitle() %></aui:a> (<%= TextFormatter.formatStorageSize(attachmentsFileEntry.getSize(), locale) %>)<%= (i < (attachmentsFileEntries.size() - 1)) ? ", " : "" %>
+								<aui:a href="<%= (templatePage != null) && (templatePage.getAttachmentsFileEntriesCount() > 0) ? getPageAttachmentURL : null %>"><%= attachmentsFileEntry.getTitle() %></aui:a> (<%= TextFormatter.formatStorageSize(attachmentsFileEntry.getSize(), locale) %>)<%= (i < (attachmentsFileEntries.size() - 1)) ? ", " : "" %>
 
 							<%
 							}
