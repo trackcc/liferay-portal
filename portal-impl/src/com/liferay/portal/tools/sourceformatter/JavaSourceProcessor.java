@@ -687,8 +687,8 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			if (requiresEmptyLine) {
 				if (!content.contains("\n\n" + javaTermContent)) {
 					return StringUtil.replace(
-						content,
-						"\n" + javaTermContent, "\n\n" + javaTermContent);
+						content, "\n" + javaTermContent,
+						"\n\n" + javaTermContent);
 				}
 			}
 			else if (content.contains("\n\n" + javaTermContent)) {
@@ -986,7 +986,9 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			oldContent = newContent;
 		}
 
-		if (isAutoFix() && (newContent != null) && !content.equals(newContent)) {
+		if (isAutoFix() && (newContent != null) &&
+			!content.equals(newContent)) {
+
 			fileUtil.write(file, newContent);
 
 			sourceFormatterHelper.printError(fileName, file);
@@ -1303,6 +1305,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 					if ((trimmedLine.startsWith("private ") ||
 						 trimmedLine.startsWith("protected ") ||
 						 trimmedLine.startsWith("public ")) &&
+						!line.contains(StringPool.EQUAL) &&
 						line.contains(" (")) {
 
 						line = StringUtil.replace(line, " (", "(");
@@ -1750,7 +1753,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 					pos = linePart.length();
 				}
 
-				if (previousLineLength + pos < 80) {
+				if ((previousLineLength + pos) < 80) {
 					if (linePart.contains(StringPool.SPACE)) {
 						return new Tuple(
 							previousLine + StringPool.SPACE,
