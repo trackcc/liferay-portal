@@ -514,9 +514,7 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 
 	protected abstract void format() throws Exception;
 
-	protected String format(String fileName)
-		throws Exception {
-
+	protected String format(String fileName) throws Exception {
 		return null;
 	}
 
@@ -615,6 +613,71 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		return null;
 	}
 
+	protected Properties getExclusionsProperties(String fileName)
+		throws IOException {
+
+		InputStream inputStream = null;
+
+		int level = 0;
+
+		if (portalSource) {
+			ClassLoader classLoader =
+				BaseSourceProcessor.class.getClassLoader();
+
+			String sourceFormatterExclusions = System.getProperty(
+				"source-formatter-exclusions",
+				"com/liferay/portal/tools/dependencies/" + fileName);
+
+			URL url = classLoader.getResource(sourceFormatterExclusions);
+
+			if (url == null) {
+				return null;
+			}
+
+			inputStream = url.openStream();
+		}
+		else {
+			try {
+				inputStream = new FileInputStream(fileName);
+			}
+			catch (FileNotFoundException fnfe) {
+			}
+
+			if (inputStream == null) {
+				try {
+					inputStream = new FileInputStream("../" + fileName);
+
+					level = 1;
+				}
+				catch (FileNotFoundException fnfe) {
+				}
+			}
+
+			if (inputStream == null) {
+				try {
+					inputStream = new FileInputStream("../../" + fileName);
+
+					level = 2;
+				}
+				catch (FileNotFoundException fnfe) {
+					return null;
+				}
+			}
+		}
+
+		Properties properties = new Properties();
+
+		properties.load(inputStream);
+
+		inputStream.close();
+
+		if (level > 0) {
+			properties = stripTopLevelDirectories(properties, level);
+		}
+
+		return properties;
+	}
+
 	protected List<String> getFileNames(
 		String basedir, String[] excludes, String[] includes) {
 
@@ -624,6 +687,11 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 
 		excludes = ArrayUtil.append(
 			excludes, _excludes, new String[] {"**\\.git\\**", "**\\tmp\\**"});
+
+		if (portalSource) {
+			excludes = ArrayUtil.append(
+				excludes, new String[] {"**\\webapps\\**"});
+		}
 
 		directoryScanner.setExcludes(excludes);
 
@@ -713,71 +781,6 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 		}
 
 		return _oldCopyright;
-	}
-
-	protected Properties getExclusionsProperties(String fileName)
-		throws IOException {
-
-		InputStream inputStream = null;
-
-		int level = 0;
-
-		if (portalSource) {
-			ClassLoader classLoader =
-				BaseSourceProcessor.class.getClassLoader();
-
-			String sourceFormatterExclusions = System.getProperty(
-				"source-formatter-exclusions",
-				"com/liferay/portal/tools/dependencies/" + fileName);
-
-			URL url = classLoader.getResource(sourceFormatterExclusions);
-
-			if (url == null) {
-				return null;
-			}
-
-			inputStream = url.openStream();
-		}
-		else {
-			try {
-				inputStream = new FileInputStream(fileName);
-			}
-			catch (FileNotFoundException fnfe) {
-			}
-
-			if (inputStream == null) {
-				try {
-					inputStream = new FileInputStream("../" + fileName);
-
-					level = 1;
-				}
-				catch (FileNotFoundException fnfe) {
-				}
-			}
-
-			if (inputStream == null) {
-				try {
-					inputStream = new FileInputStream("../../" + fileName);
-
-					level = 2;
-				}
-				catch (FileNotFoundException fnfe) {
-					return null;
-				}
-			}
-		}
-
-		Properties properties = new Properties();
-
-		properties.load(inputStream);
-
-		inputStream.close();
-
-		if (level > 0) {
-			properties = stripTopLevelDirectories(properties, level);
-		}
-
-		return properties;
 	}
 
 	protected boolean hasMissingParentheses(String s) {
