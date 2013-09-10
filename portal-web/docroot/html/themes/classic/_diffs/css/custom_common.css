@@ -5,6 +5,8 @@
 @import "aui/font-awesome/scss/mixins";
 @import "aui/font-awesome/scss/variables";
 
+@import url(custom_responsive.css);
+
 .aui {
 	body {
 		color: #555;
@@ -65,10 +67,6 @@
 		min-width: 100%;
 	}
 
-	form .accordion-heading .accordion-toggle {
-		padding-left: 0;
-	}
-
 	input[type="color"], input[type="date"], input[type="datetime"], input[type="datetime-local"], input[type="email"], input[type="month"], input[type="number"], input[type="password"], input[type="search"], input[type="tel"], input[type="text"], input[type="time"], input[type="url"], input[type="week"], select, textarea, .uneditable-input {
 		border: 1px solid #DDD;
 		color: #8D8D8D;
@@ -95,14 +93,14 @@
 		font-weight: 200;
 	}
 
+	li {
+		line-height: 27px;
+	}
+
 	select:focus {
 		border: 1px solid rgba(0, 172, 255, 0.8);
 		outline: 5px auto rgba(82, 168, 236, 0.6);
 		outline-offset: -2px;
-	}
-
-	li {
-		line-height: 27px;
 	}
 
 	.form-search, .lfr-translation-manager-selector {
@@ -139,8 +137,10 @@
 		margin-bottom: 30px;
 	}
 
-	.lfr-ddm-container .control-group {
-		margin-bottom: 15px;
+	.lfr-ddm-container, .portlet-staging-bar {
+		.control-group {
+			margin-bottom: 15px;
+		}
 	}
 
 	.input-append {
@@ -209,9 +209,28 @@
 	/* ---------- Dockbar ---------- */
 
 	.dockbar-split {
-		.dockbar .navbar-inner {
-			background: none;
-			visibility: hidden;
+		.dockbar {
+			.nav {
+				li.dropdown {
+					> .dropdown-toggle {
+						@extend %dockbar-caret;
+					}
+
+					&.open, &.active, &.open.active {
+						> .dropdown-toggle {
+							background-color: transparent;
+							color: #FFF;
+
+							@extend %dockbar-caret;
+						}
+					}
+				}
+			}
+
+			.navbar-inner {
+				background: none;
+				visibility: hidden;
+			}
 		}
 
 		&.dockbar-ready .dockbar .navbar-inner {
@@ -271,16 +290,17 @@
 					}
 				}
 
-				.dropdown-menu {
+				.dropdown-menu , .site-administration-menu {
 					background: #009AE5;
 					border-width: 0;
 					left: 0;
 					margin: 0;
 					right: auto;
 
-					li a {
+					> li > a {
 						color: #FFF;
 						font-size: 0.9em;
+						font-weight: 300;
 
 						&:hover {
 							background: #2FA4F5;
@@ -313,10 +333,6 @@
 					right: 0;
 					left: auto;
 				}
-
-				.user-avatar-image {
-					width: 27px;
-				}
 			}
 		}
 
@@ -333,6 +349,19 @@
 	}
 
 	.navbar {
+		.container .btn-navbar {
+			background: transparent;
+			border-color: #DDD;
+
+			&:hover, &:focus, &:active, &.active, &.disabled, &[disabled] {
+				background-color: #DDD;
+			}
+
+			.icon-bar {
+				background: #656565;
+			}
+		}
+
 		.icon-caret-down {
 			background: #27A7EB;
 			background: rgba(255, 255, 255, 0.2);
@@ -456,6 +485,16 @@
 		border-width: 1px 0;
 	}
 
+	.accordion .accordion-group {
+		.accordion-heading .accordion-toggle {
+			padding-left: 15px;
+		}
+
+		.toggler-content-expanded {
+			border-width: 1px 0 0 0;
+		}
+	}
+
 	.accordion-group {
 		border-width: 0;
 
@@ -521,18 +560,20 @@
 
 					.accordion-toggle {
 						color: #999;
-						font-size: 11px;
-						font-weight: bold;
 						padding-left: 8px;
-						text-transform: uppercase;
 
 						&:after, &:before {
-							display: none;
+							float: right;
+							font-size: 22px;
 						}
 					}
 				}
 			}
 		}
+	}
+
+	.accordion-heading .accordion-toggle {
+		padding-left: 0;
 	}
 
 	.toggler-content-collapsed {
@@ -612,8 +653,20 @@
 
 					.accordion-toggle {
 						background-position: 100% 0;
+
+						&:before {
+							display: none;
+						}
 					}
 				}
+
+				.toggler-header-expanded .accordion-toggle:before {
+					display: none;
+				}
+			}
+
+			.toggler-content-expanded {
+				border-width: 0;
 			}
 		}
 	}
@@ -703,6 +756,12 @@
 	}
 
 	.navbar {
+		.container .btn-navbar {
+			&, .icon-bar {
+				@include box-shadow(0 1px 0 #FFF);
+			}
+		}
+
 		.icon-caret-down {
 			@include border-radius(50%);
 		}
@@ -712,6 +771,10 @@
 				@include box-shadow(inset 0 3px 8px rgba(0, 0, 0, 0.125));
 			}
 		}
+	}
+
+	.dockbar .container .btn-navbar {
+		@include box-shadow(none);
 	}
 
 	body.yui3-skin-sam .yui3-widget-mask {

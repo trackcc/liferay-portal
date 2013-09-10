@@ -60,6 +60,10 @@
 			Liferay.Util.addInputType(node);
 		}
 	);
+
+	if (A.UA.mobile) {
+		Liferay.Util.addInputCancel();
+	}
 </aui:script>
 
 <%
@@ -146,7 +150,7 @@ if (layout != null) {
 				}
 			);
 
-			var navBlock = A.one('#navigation');
+			var navBlock = A.one(Liferay.Data.NAV_SELECTOR);
 
 			if (navBlock) {
 				navBlock.once(

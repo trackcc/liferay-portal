@@ -1269,9 +1269,9 @@ public class HookHotDeployListener
 		throws Exception {
 
 		if (eventName.equals(APPLICATION_STARTUP_EVENTS)) {
-			SimpleAction simpleAction =
-				(SimpleAction)portletClassLoader.loadClass(
-					eventClassName).newInstance();
+			Class<?> clazz = portletClassLoader.loadClass(eventClassName);
+
+			SimpleAction simpleAction = (SimpleAction)clazz.newInstance();
 
 			simpleAction = new InvokerSimpleAction(
 				simpleAction, portletClassLoader);
@@ -1296,8 +1296,9 @@ public class HookHotDeployListener
 		}
 
 		if (_propsKeysEvents.contains(eventName)) {
-			Action action = (Action)portletClassLoader.loadClass(
-				eventClassName).newInstance();
+			Class<?> clazz = portletClassLoader.loadClass(eventClassName);
+
+			Action action = (Action)clazz.newInstance();
 
 			action = new InvokerAction(action, portletClassLoader);
 
@@ -1307,9 +1308,9 @@ public class HookHotDeployListener
 		}
 
 		if (_propsKeysSessionEvents.contains(eventName)) {
-			SessionAction sessionAction =
-				(SessionAction)portletClassLoader.loadClass(
-					eventClassName).newInstance();
+			Class<?> clazz = portletClassLoader.loadClass(eventClassName);
+
+			SessionAction sessionAction = (SessionAction)clazz.newInstance();
 
 			sessionAction = new InvokerSessionAction(
 				sessionAction, portletClassLoader);
@@ -2295,7 +2296,7 @@ public class HookHotDeployListener
 			for (Element dispatcherElement : dispatcherElements) {
 				String dispatcher = dispatcherElement.getTextTrim();
 
-				dispatcher = dispatcher.toUpperCase();
+				dispatcher = StringUtil.toUpperCase(dispatcher);
 
 				dispatchers.add(dispatcher);
 			}
@@ -2373,7 +2374,8 @@ public class HookHotDeployListener
 
 		for (String key : _PROPS_VALUES_BOOLEAN) {
 			String fieldName = StringUtil.replace(
-				key.toUpperCase(), CharPool.PERIOD, CharPool.UNDERLINE);
+				StringUtil.toUpperCase(key), CharPool.PERIOD,
+				CharPool.UNDERLINE);
 
 			if (!containsKey(portalProperties, key)) {
 				continue;
@@ -2395,7 +2397,8 @@ public class HookHotDeployListener
 
 		for (String key : _PROPS_VALUES_INTEGER) {
 			String fieldName = StringUtil.replace(
-				key.toUpperCase(), CharPool.PERIOD, CharPool.UNDERLINE);
+				StringUtil.toUpperCase(key), CharPool.PERIOD,
+				CharPool.UNDERLINE);
 
 			if (!containsKey(portalProperties, key)) {
 				continue;
@@ -2417,7 +2420,8 @@ public class HookHotDeployListener
 
 		for (String key : _PROPS_VALUES_LONG) {
 			String fieldName = StringUtil.replace(
-				key.toUpperCase(), CharPool.PERIOD, CharPool.UNDERLINE);
+				StringUtil.toUpperCase(key), CharPool.PERIOD,
+				CharPool.UNDERLINE);
 
 			if (!containsKey(portalProperties, key)) {
 				continue;
@@ -2439,7 +2443,8 @@ public class HookHotDeployListener
 
 		for (String key : _PROPS_VALUES_STRING) {
 			String fieldName = StringUtil.replace(
-				key.toUpperCase(), CharPool.PERIOD, CharPool.UNDERLINE);
+				StringUtil.toUpperCase(key), CharPool.PERIOD,
+				CharPool.UNDERLINE);
 
 			if (!containsKey(portalProperties, key)) {
 				continue;
@@ -2515,7 +2520,8 @@ public class HookHotDeployListener
 
 		for (String key : propsValuesStringArray) {
 			String fieldName = StringUtil.replace(
-				key.toUpperCase(), CharPool.PERIOD, CharPool.UNDERLINE);
+				StringUtil.toUpperCase(key), CharPool.PERIOD,
+				CharPool.UNDERLINE);
 
 			if (!containsKey(portalProperties, key)) {
 				continue;
