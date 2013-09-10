@@ -1,4 +1,3 @@
-<%--
 /**
  * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
  *
@@ -12,10 +11,28 @@
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  */
---%>
 
-<%@ include file="/html/taglib/aui/nav_bar/init.jsp" %>
+package com.liferay.portal.kernel.search;
 
-		</div>
-	</div>
-</div>
+/**
+ * @author Eudaldo Alonso
+ */
+public abstract class BaseSearcher extends BaseIndexer {
+
+	@Override
+	public void postProcessSearchQuery(
+			BooleanQuery searchQuery, SearchContext searchContext)
+		throws Exception {
+
+		for (String className : getClassNames()) {
+			Indexer indexer = IndexerRegistryUtil.getIndexer(className);
+
+			if (indexer == null) {
+				continue;
+			}
+
+			indexer.postProcessSearchQuery(searchQuery, searchContext);
+		}
+	}
+
+}

@@ -154,7 +154,7 @@ public class ServiceBuilder {
 
 				String name = element.attributeValue("name");
 
-				entityElements.put(name.toLowerCase(), element);
+				entityElements.put(StringUtil.toLowerCase(name), element);
 			}
 			else if (elementName.equals("exceptions")) {
 				element.detach();
@@ -4039,8 +4039,9 @@ public class ServiceBuilder {
 				String indexSpec =
 					entityMapping.getTable() + " (" + colDBName + ");";
 
-				String indexHash = StringUtil.toHexString(
-					indexSpec.hashCode()).toUpperCase();
+				String indexHash = StringUtil.toHexString(indexSpec.hashCode());
+
+				indexHash = StringUtil.toUpperCase(indexHash);
 
 				String indexName = "IX_" + indexHash;
 
@@ -4834,7 +4835,7 @@ public class ServiceBuilder {
 
 		String alias = TextFormatter.format(ejbName, TextFormatter.I);
 
-		if (_badAliasNames.contains(alias.toLowerCase())) {
+		if (_badAliasNames.contains(StringUtil.toLowerCase(alias))) {
 			alias += StringPool.UNDERLINE;
 		}
 
