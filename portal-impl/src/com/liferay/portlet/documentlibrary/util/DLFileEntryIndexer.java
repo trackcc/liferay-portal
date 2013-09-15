@@ -437,19 +437,17 @@ public class DLFileEntryIndexer extends BaseIndexer {
 				}
 			}
 
-			if (!dlFileVersion.isInTrash() &&
-				dlFileVersion.isInTrashContainer()) {
-
-				DLFolder folder = dlFileVersion.getTrashContainer();
+			if (!dlFileEntry.isInTrash() && dlFileEntry.isInTrashContainer()) {
+				DLFolder dlFolder = dlFileEntry.getTrashContainer();
 
 				addTrashFields(
-					document, DLFolder.class.getName(), folder.getFolderId(),
+					document, DLFolder.class.getName(), dlFolder.getFolderId(),
 					null, null, DLFileEntryAssetRendererFactory.TYPE);
 
 				document.addKeyword(
 					Field.ROOT_ENTRY_CLASS_NAME, DLFolder.class.getName());
 				document.addKeyword(
-					Field.ROOT_ENTRY_CLASS_PK, folder.getFolderId());
+					Field.ROOT_ENTRY_CLASS_PK, dlFolder.getFolderId());
 				document.addKeyword(
 					Field.STATUS, WorkflowConstants.STATUS_IN_TRASH);
 			}
@@ -505,7 +503,7 @@ public class DLFileEntryIndexer extends BaseIndexer {
 
 		DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
 
-		if (!dlFileVersion.isApproved() && !dlFileVersion.isInTrash()) {
+		if (!dlFileVersion.isApproved() && !dlFileEntry.isInTrash()) {
 			return;
 		}
 
