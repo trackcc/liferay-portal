@@ -75,7 +75,7 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 		}
 
 		revision = parseVersion(
-			getUserAgent(request), _revisionLeadings, _revisionSeparators);
+			getUserAgent(request), revisionLeadings, revisionSeparators);
 
 		request.setAttribute(WebKeys.BROWSER_SNIFFER_REVISION, revision);
 
@@ -91,8 +91,14 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 			return version;
 		}
 
-		version = parseVersion(
-			getUserAgent(request), _versionLeadings, _versionSeparators);
+		String userAgent = getUserAgent(request);
+
+		version = parseVersion(userAgent, versionLeadings, versionSeparators);
+
+		if (version.isEmpty()) {
+			version = parseVersion(
+				userAgent, revisionLeadings, revisionSeparators);
+		}
 
 		request.setAttribute(WebKeys.BROWSER_SNIFFER_VERSION, version);
 
@@ -361,6 +367,79 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 		return false;
 	}
 
+	protected static String parseVersion(
+		String userAgent, String[] leadings, char[] separators) {
+
+		leading:
+		for (String leading : leadings) {
+			int index = 0;
+
+			version:
+			while (true) {
+				index = userAgent.indexOf(leading, index);
+
+				if ((index < 0) ||
+					(((index += leading.length()) + 2) > userAgent.length())) {
+
+					continue leading;
+				}
+
+				char c1 = userAgent.charAt(index);
+				char c2 = userAgent.charAt(++index);
+
+				if (((c2 >= '0') && (c2 <= '9')) || (c2 == '.')) {
+					for (char separator : separators) {
+						if (c1 == separator) {
+							break version;
+						}
+					}
+				}
+			}
+
+			// Major
+
+			int majorStart = index;
+			int majorEnd = index + 1;
+
+			for (int i = majorStart; i < userAgent.length(); i++) {
+				char c = userAgent.charAt(i);
+
+				if ((c < '0') || (c > '9')) {
+					majorEnd = i;
+
+					break;
+				}
+			}
+
+			String major = userAgent.substring(majorStart, majorEnd);
+
+			if (userAgent.charAt(majorEnd) != '.') {
+				return major;
+			}
+
+			// Minor
+
+			int minorStart = majorEnd + 1;
+			int minorEnd = userAgent.length();
+
+			for (int i = minorStart; i < userAgent.length(); i++) {
+				char c = userAgent.charAt(i);
+
+				if ((c < '0') || (c > '9')) {
+					minorEnd = i;
+
+					break;
+				}
+			}
+
+			String minor = userAgent.substring(minorStart, minorEnd);
+
+			return major.concat(StringPool.PERIOD).concat(minor);
+		}
+
+		return StringPool.BLANK;
+	}
+
 	protected String getAccept(HttpServletRequest request) {
 		String accept = StringPool.BLANK;
 
@@ -424,78 +503,13 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 		return false;
 	}
 
-	protected String parseVersion(
-		String userAgent, String[] leadings, char[] separators) {
-
-		leading:
-		for (String leading : leadings) {
-			int index = 0;
-
-			version:
-			while (true) {
-				index = userAgent.indexOf(leading, index);
-
-				if ((index < 0) ||
-					(((index += leading.length()) + 2) > userAgent.length())) {
-
-					continue leading;
-				}
-
-				char c1 = userAgent.charAt(index);
-				char c2 = userAgent.charAt(++index);
-
-				if (((c2 > '0') && (c2 < '9')) || (c2 == '.')) {
-					for (char separator : separators) {
-						if (c1 == separator) {
-							break version;
-						}
-					}
-				}
-			}
-
-			// Major
-
-			int majorStart = index;
-			int majorEnd = index + 1;
-
-			for (int i = majorStart; i < userAgent.length(); i++) {
-				char c = userAgent.charAt(i);
-
-				if ((c < '0') || (c > '9')) {
-					majorEnd = i;
-
-					break;
-				}
-			}
-
-			String major = userAgent.substring(majorStart, majorEnd);
-
-			if (userAgent.charAt(majorEnd) != '.') {
-				return major;
-			}
-
-			// Minor
-
-			int minorStart = majorEnd + 1;
-			int minorEnd = minorStart + 1;
-
-			for (int i = minorStart; i < userAgent.length(); i++) {
-				char c = userAgent.charAt(i);
-
-				if ((c < '0') || (c > '9')) {
-					minorEnd = i;
-
-					break;
-				}
-			}
-
-			String minor = userAgent.substring(minorStart, minorEnd);
-
-			return major.concat(StringPool.PERIOD).concat(minor);
-		}
-
-		return StringPool.BLANK;
-	}
+	protected static String[] revisionLeadings = {"rv", "it", "ra", "ie"};
+	protected static char[] revisionSeparators =
+		{CharPool.BACK_SLASH, CharPool.COLON, CharPool.SLASH, CharPool.SPACE};
+	protected static String[] versionLeadings =
+		{"version", "firefox", "minefield", "chrome"};
+	protected static char[] versionSeparators =
+		{CharPool.BACK_SLASH, CharPool.SLASH};
 
 	private static final String[] _FIREFOX_ALIASES = {
 		"firefox", "minefield", "granparadiso", "bonecho", "firebird",
@@ -507,13 +521,5 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 	private static final String[] _WINDOWS_ALIASES = {
 		"windows", "win32", "16bit"
 	};
-
-	private static String[] _revisionLeadings = {"rv", "it", "ra", "ie"};
-	private static char[] _revisionSeparators =
-		{CharPool.COLON, CharPool.SLASH, CharPool.BACK_SLASH};
-	private static String[] _versionLeadings =
-		{"version", "firefox", "minefield", "chrome"};
-	private static char[] _versionSeparators =
-		{CharPool.SLASH, CharPool.BACK_SLASH};
 
 }
