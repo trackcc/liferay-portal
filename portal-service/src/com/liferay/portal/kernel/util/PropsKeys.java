@@ -2305,6 +2305,8 @@ public interface PropsKeys {
 
 	public static final String SOCIAL_ACTIVITY_COUNTER_PERIOD_LENGTH = "social.activity.counter.period.length";
 
+	public static final String SOCIAL_ACTIVITY_FILTER_SEARCH_LIMIT = "social.activity.filter.search.limit";
+
 	public static final String SOCIAL_ACTIVITY_LOCK_RETRY_DELAY = "social.activity.lock.retry.delay";
 
 	public static final String SOCIAL_ACTIVITY_LOCK_TIMEOUT = "social.activity.lock.timeout";
@@ -2426,6 +2428,8 @@ public interface PropsKeys {
 	public static final String TRANSACTION_MANAGER_IMPL = "transaction.manager.impl";
 
 	public static final String TRANSACTIONAL_CACHE_ENABLED = "transactional.cache.enable";
+
+	public static final String TRANSACTIONAL_CACHE_NAMES = "transactional.cache.names";
 
 	public static final String TRANSLATIONS_DISABLED = "translations.disabled";
 

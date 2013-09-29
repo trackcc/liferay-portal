@@ -1100,7 +1100,9 @@ public class SeleniumBuilderFileUtil {
 			else if (elementName.equals("isset")) {
 				validateSimpleElement(fileName, element, new String[] {"var"});
 			}
-			else if (elementName.equals("not")) {
+			else if (elementName.equals("and") || elementName.equals("not") ||
+					 elementName.equals("or")) {
+
 				validateIfElement(
 					fileName, element, allowedBlockChildElementNames,
 					allowedExecuteAttributeNames,
@@ -1117,7 +1119,10 @@ public class SeleniumBuilderFileUtil {
 				1001, fileName, ifElement, allowedIfConditionElementNames);
 		}
 
-		if (ifElement.getName() == "not") {
+		if (Validator.equals(ifElement.getName(), "and") ||
+			Validator.equals(ifElement.getName(), "not") ||
+			Validator.equals(ifElement.getName(), "or")) {
+
 			return;
 		}
 
@@ -1159,7 +1164,9 @@ public class SeleniumBuilderFileUtil {
 					},
 					new String[] {"action", "macro"}, new String[] {"var"},
 					new String[] {
-						"condition", "contains", "equals", "isset", "not"});
+						"and", "condition", "contains", "equals", "isset",
+						"not", "or"
+					});
 			}
 			else if (elementName.equals("var")) {
 				validateVarElement(fileName, element);
@@ -1455,6 +1462,10 @@ public class SeleniumBuilderFileUtil {
 		else {
 			String varValue = attributeMap.get("value");
 
+			if (Validator.isNotNull(varText)) {
+				varValue = varText;
+			}
+
 			Pattern pattern = Pattern.compile("\\$\\{([^\\}]*?)\\}");
 
 			Matcher matcher = pattern.matcher(varValue);
@@ -1551,13 +1562,15 @@ public class SeleniumBuilderFileUtil {
 	private static List<String> _allowedVarAttributes = ListUtil.fromArray(
 		new String[] {"line-number", "locator-key", "name", "path", "value"});
 	private static List<String> _methodNames = ListUtil.fromArray(
-		new String[] {"increment", "length", "lowercase", "replace"});
+		new String[] {
+			"getFirstNumber", "increment", "length", "lowercase", "replace"
+		});
 	private static List<String> _reservedTags = ListUtil.fromArray(
 		new String[] {
-			"case", "command", "condition", "contains", "default", "definition",
-			"echo", "else", "elseif", "equals", "execute", "fail", "if",
-			"isset", "not", "set-up", "td", "tear-down", "then", "tr", "while",
-			"var"
+			"and", "case", "command", "condition", "contains", "default",
+			"definition", "echo", "else", "elseif", "equals", "execute", "fail",
+			"if", "isset", "not", "or", "set-up", "td", "tear-down", "then",
+			"tr", "while", "var"
 		});
 
 	private String _baseDir;

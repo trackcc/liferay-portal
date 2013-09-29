@@ -124,16 +124,9 @@ public class JournalArticleStagedModelDataHandler
 	protected boolean countStagedModel(
 		PortletDataContext portletDataContext, JournalArticle article) {
 
-		if (portletDataContext.isPathProcessed(
-				ExportImportPathUtil.getModelPath(
-					article.getGroupId(),
-					JournalArticleResource.class.getName(),
-					article.getResourcePrimKey()))) {
-
-			return false;
-		}
-
-		return true;
+		return !portletDataContext.isModelCounted(
+			JournalArticleResource.class.getName(),
+			article.getResourcePrimKey());
 	}
 
 	@Override
@@ -650,11 +643,16 @@ public class JournalArticleStagedModelDataHandler
 
 		long userId = portletDataContext.getUserId(article.getUserUuid());
 
+		Element articleElement =
+			portletDataContext.getImportDataStagedModelElement(article);
+
+		String articleResourceUuid = articleElement.attributeValue(
+			"article-resource-uuid");
+
 		JournalArticleResource existingArticleResource =
 			JournalArticleResourceLocalServiceUtil.
 				fetchJournalArticleResourceByUuidAndGroupId(
-					article.getArticleResourceUuid(),
-					portletDataContext.getScopeGroupId());
+					articleResourceUuid, portletDataContext.getScopeGroupId());
 
 		if (existingArticleResource == null) {
 			return;
