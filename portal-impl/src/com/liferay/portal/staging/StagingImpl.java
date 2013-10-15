@@ -119,6 +119,7 @@ import com.liferay.portlet.documentlibrary.DuplicateFileException;
 import com.liferay.portlet.documentlibrary.FileExtensionException;
 import com.liferay.portlet.documentlibrary.FileNameException;
 import com.liferay.portlet.documentlibrary.FileSizeException;
+import com.liferay.portlet.layoutsadmin.lar.StagedTheme;
 
 import java.io.Serializable;
 
@@ -182,6 +183,63 @@ public class StagingImpl implements Staging {
 		}
 
 		return sb.toString();
+	}
+
+	@Override
+	public void checkDefaultLayoutSetBranches(
+			long userId, Group liveGroup, boolean branchingPublic,
+			boolean branchingPrivate, boolean remote,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		long targetGroupId = 0;
+
+		if (remote) {
+			targetGroupId = liveGroup.getGroupId();
+		}
+		else {
+			Group stagingGroup = liveGroup.getStagingGroup();
+
+			if (stagingGroup == null) {
+				return;
+			}
+
+			targetGroupId = stagingGroup.getGroupId();
+		}
+
+		if (branchingPublic) {
+			LayoutSetBranch layoutSetBranch =
+				LayoutSetBranchLocalServiceUtil.fetchLayoutSetBranch(
+					targetGroupId, false,
+					LayoutSetBranchConstants.MASTER_BRANCH_NAME);
+
+			if (layoutSetBranch == null) {
+				addDefaultLayoutSetBranch(
+					userId, targetGroupId, liveGroup.getDescriptiveName(),
+					false, serviceContext);
+			}
+		}
+		else {
+			LayoutSetBranchLocalServiceUtil.deleteLayoutSetBranches(
+				targetGroupId, false, true);
+		}
+
+		if (branchingPrivate) {
+			LayoutSetBranch layoutSetBranch =
+				LayoutSetBranchLocalServiceUtil.fetchLayoutSetBranch(
+					targetGroupId, true,
+					LayoutSetBranchConstants.MASTER_BRANCH_NAME);
+
+			if (layoutSetBranch == null) {
+				addDefaultLayoutSetBranch(
+					userId, targetGroupId, liveGroup.getDescriptiveName(), true,
+					serviceContext);
+			}
+		}
+		else {
+			LayoutSetBranchLocalServiceUtil.deleteLayoutSetBranches(
+				targetGroupId, true, true);
+		}
 	}
 
 	@Override
@@ -641,9 +699,19 @@ public class StagingImpl implements Staging {
 			JSONObject errorMessageJSONObject =
 				JSONFactoryUtil.createJSONObject();
 
+			String className = missingReference.getClassName();
 			Map<String, String> referrers = missingReference.getReferrers();
 
-			if (referrers.size() == 1) {
+			if (className.equals(StagedTheme.class.getName())) {
+				errorMessageJSONObject.put(
+					"info",
+					LanguageUtil.format(
+						locale,
+						"the-referenced-theme-x-is-not-deployed-in-the-" +
+							"current-environment",
+						missingReference.getClassPK()));
+			}
+			else if (referrers.size() == 1) {
 				Set<Map.Entry<String, String>> referrerDisplayNames =
 					referrers.entrySet();
 
@@ -1075,9 +1143,6 @@ public class StagingImpl implements Staging {
 			PortletDataHandlerKeys.PORTLET_SETUP_ALL,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
-			PortletDataHandlerKeys.THEME,
-			new String[] {Boolean.FALSE.toString()});
-		parameterMap.put(
 			PortletDataHandlerKeys.THEME_REFERENCE,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
@@ -1162,12 +1227,6 @@ public class StagingImpl implements Staging {
 
 			parameterMap.put(
 				PortletDataHandlerKeys.PORTLET_DATA_ALL,
-				new String[] {Boolean.FALSE.toString()});
-		}
-
-		if (!parameterMap.containsKey(PortletDataHandlerKeys.THEME)) {
-			parameterMap.put(
-				PortletDataHandlerKeys.THEME,
 				new String[] {Boolean.FALSE.toString()});
 		}
 
@@ -1912,62 +1971,6 @@ public class StagingImpl implements Staging {
 		return buildRemoteURL(
 			remoteAddress, remotePort, remotePathContext, secureConnection,
 			GroupConstants.DEFAULT_LIVE_GROUP_ID, false);
-	}
-
-	protected void checkDefaultLayoutSetBranches(
-			long userId, Group liveGroup, boolean branchingPublic,
-			boolean branchingPrivate, boolean remote,
-			ServiceContext serviceContext)
-		throws Exception {
-
-		long targetGroupId = 0;
-
-		if (remote) {
-			targetGroupId = liveGroup.getGroupId();
-		}
-		else {
-			Group stagingGroup = liveGroup.getStagingGroup();
-
-			if (stagingGroup == null) {
-				return;
-			}
-
-			targetGroupId = stagingGroup.getGroupId();
-		}
-
-		if (branchingPublic) {
-			LayoutSetBranch layoutSetBranch =
-				LayoutSetBranchLocalServiceUtil.fetchLayoutSetBranch(
-					targetGroupId, false,
-					LayoutSetBranchConstants.MASTER_BRANCH_NAME);
-
-			if (layoutSetBranch == null) {
-				addDefaultLayoutSetBranch(
-					userId, targetGroupId, liveGroup.getDescriptiveName(),
-					false, serviceContext);
-			}
-		}
-		else {
-			LayoutSetBranchLocalServiceUtil.deleteLayoutSetBranches(
-				targetGroupId, false, true);
-		}
-
-		if (branchingPrivate) {
-			LayoutSetBranch layoutSetBranch =
-				LayoutSetBranchLocalServiceUtil.fetchLayoutSetBranch(
-					targetGroupId, true,
-					LayoutSetBranchConstants.MASTER_BRANCH_NAME);
-
-			if (layoutSetBranch == null) {
-				addDefaultLayoutSetBranch(
-					userId, targetGroupId, liveGroup.getDescriptiveName(), true,
-					serviceContext);
-			}
-		}
-		else {
-			LayoutSetBranchLocalServiceUtil.deleteLayoutSetBranches(
-				targetGroupId, true, true);
-		}
 	}
 
 	protected void clearLastPublishDate(long groupId, boolean privateLayout)
