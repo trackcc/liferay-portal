@@ -475,7 +475,7 @@
 	</target>
 
 	<target name="build-test-ant-scripts">
-		<property name="build-test-ant-scripts.version" value="3" />
+		<property name="build-test-ant-scripts.version" value="4" />
 
 		<if>
 			<available file="portal-web/test-ant-scripts/version" />
@@ -617,6 +617,12 @@
 			<param name="test.ant.script.command" value="end-user-search-acceptance" />
 			<param name="test.ant.script.database.minimal" value="true" />
 			<param name="test.ant.script.suite" value="EndUserSearchAcceptanceTestSuite" />
+		</antcall>
+
+		<antcall target="build-test-ant-script">
+			<param name="test.ant.script.command" value="end-user-search-p5" />
+			<param name="test.ant.script.database.minimal" value="true" />
+			<param name="test.ant.script.suite" value="EndUserSearchP5TestSuite" />
 		</antcall>
 
 		<antcall target="build-test-ant-script">
@@ -852,7 +858,8 @@
 				<isset property="skip.delete-liferay-home" />
 			</not>
 			<then>
-				<delete dir="${user.home}/liferay" />
+				<delete dir="${liferay.home}/data" />
+				<delete dir="${liferay.home}/deploy" />
 			</then>
 		</if>
 
@@ -1397,7 +1404,7 @@
 	</target>
 
 	<target name="prepare-portal-ext-properties" depends="generate-test-properties">
-		<echo file="portal-impl/src/portal-ext.properties">liferay.home=$${user.home}/liferay
+		<echo file="portal-impl/src/portal-ext.properties">liferay.home=${liferay.home}
 
 plugin.notifications.enabled=false
 
@@ -1679,7 +1686,7 @@ message.boards.subscribe.by.default=false</echo>
 			<then>
 				<replace
 					file="portal-impl/src/portal-ext.properties"
-					token="liferay.home=$${user.home}/liferay"
+					token="liferay.home=${liferay.home}"
 					value="liferay.home=C:/WINDOWS/system32/config/systemprofile/liferay"
 				/>
 
@@ -2330,14 +2337,15 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 						<isset property="skip.delete-liferay-home" />
 					</not>
 					<then>
-						<delete dir="${user.home}/liferay" />
+						<delete dir="${liferay.home}/data" />
+						<delete dir="${liferay.home}/deploy" />
 					</then>
 				</if>
 
 				<if>
 					<equals arg1="${database}" arg2="hsql" />
 					<then>
-						<delete dir="${user.home}/liferay/data" includeemptydirs="true" />
+						<delete dir="${liferay.home}/data" includeemptydirs="true" />
 
 						<if>
 							<not>
@@ -2348,8 +2356,8 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 								</or>
 							</not>
 							<then>
-								<copy file="sql/${database.name}.properties" tofile="${user.home}/liferay/data/hsql/${database.name}.properties" />
-								<copy file="sql/${database.name}.script" tofile="${user.home}/liferay/data/hsql/${database.name}.script" />
+								<copy file="sql/${database.name}.properties" tofile="${liferay.home}/data/hsql/${database.name}.properties" />
+								<copy file="sql/${database.name}.script" tofile="${liferay.home}/data/hsql/${database.name}.script" />
 							</then>
 						</if>
 					</then>
@@ -2875,6 +2883,8 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 				</if>
 
 				<antcall target="run-selenium-test" />
+
+				<sleep seconds="3" />
 
 				<exec dir="${simple.server.bin.dir}" executable="${simple.server.stop.executable}" resolveexecutable="true">
 					<arg line="${simple.server.stop.executable.arg.line}" />
