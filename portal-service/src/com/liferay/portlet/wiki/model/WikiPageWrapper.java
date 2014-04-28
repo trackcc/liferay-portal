@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.wiki.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see WikiPage
  * @generated
  */
+@ProviderType
 public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	public WikiPageWrapper(WikiPage wikiPage) {
 		_wikiPage = wikiPage;
@@ -821,9 +824,22 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 		return _wikiPage.isInTrashContainer();
 	}
 
+	@Override
+	public boolean isInTrashExplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPage.isInTrashExplicitly();
+	}
+
+	@Override
+	public boolean isInTrashImplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPage.isInTrashImplicitly();
+	}
+
 	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _wikiPage.getApproved();
@@ -1021,6 +1037,18 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	}
 
 	@Override
+	public com.liferay.portlet.wiki.model.WikiPage fetchParentPage()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPage.fetchParentPage();
+	}
+
+	@Override
+	public com.liferay.portlet.wiki.model.WikiPage fetchRedirectPage()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPage.fetchRedirectPage();
+	}
+
+	@Override
 	public java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getAttachmentsFileEntries()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _wikiPage.getAttachmentsFileEntries();
@@ -1081,17 +1109,22 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	}
 
 	@Override
-	public com.liferay.portlet.wiki.model.WikiPage getParentPage() {
+	public com.liferay.portlet.wiki.model.WikiPage getParentPage()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _wikiPage.getParentPage();
 	}
 
 	@Override
-	public java.util.List<com.liferay.portlet.wiki.model.WikiPage> getParentPages() {
+	public java.util.List<com.liferay.portlet.wiki.model.WikiPage> getParentPages()
+		throws com.liferay.portal.kernel.exception.SystemException {
 		return _wikiPage.getParentPages();
 	}
 
 	@Override
-	public com.liferay.portlet.wiki.model.WikiPage getRedirectPage() {
+	public com.liferay.portlet.wiki.model.WikiPage getRedirectPage()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _wikiPage.getRedirectPage();
 	}
 
@@ -1142,6 +1175,7 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public WikiPage getWrappedWikiPage() {
 		return _wikiPage;
 	}
@@ -1149,6 +1183,16 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	@Override
 	public WikiPage getWrappedModel() {
 		return _wikiPage;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _wikiPage.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _wikiPage.isFinderCacheEnabled();
 	}
 
 	@Override

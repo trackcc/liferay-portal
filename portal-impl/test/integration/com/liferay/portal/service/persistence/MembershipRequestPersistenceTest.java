@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,6 +30,8 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.MembershipRequest;
+import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.service.MembershipRequestLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -38,6 +40,7 @@ import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -55,6 +58,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class MembershipRequestPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<MembershipRequest> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -76,6 +88,10 @@ public class MembershipRequestPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<MembershipRequest> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -111,6 +127,8 @@ public class MembershipRequestPersistenceTest {
 
 		MembershipRequest newMembershipRequest = _persistence.create(pk);
 
+		newMembershipRequest.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newMembershipRequest.setGroupId(ServiceTestUtil.nextLong());
 
 		newMembershipRequest.setCompanyId(ServiceTestUtil.nextLong());
@@ -133,6 +151,8 @@ public class MembershipRequestPersistenceTest {
 
 		MembershipRequest existingMembershipRequest = _persistence.findByPrimaryKey(newMembershipRequest.getPrimaryKey());
 
+		Assert.assertEquals(existingMembershipRequest.getMvccVersion(),
+			newMembershipRequest.getMvccVersion());
 		Assert.assertEquals(existingMembershipRequest.getMembershipRequestId(),
 			newMembershipRequest.getMembershipRequestId());
 		Assert.assertEquals(existingMembershipRequest.getGroupId(),
@@ -155,6 +175,56 @@ public class MembershipRequestPersistenceTest {
 			newMembershipRequest.getReplierUserId());
 		Assert.assertEquals(existingMembershipRequest.getStatusId(),
 			newMembershipRequest.getStatusId());
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUserId() {
+		try {
+			_persistence.countByUserId(ServiceTestUtil.nextLong());
+
+			_persistence.countByUserId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_S() {
+		try {
+			_persistence.countByG_S(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByG_S(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_U_S() {
+		try {
+			_persistence.countByG_U_S(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextInt());
+
+			_persistence.countByG_U_S(0L, 0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -193,10 +263,10 @@ public class MembershipRequestPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("MembershipRequest",
-			"membershipRequestId", true, "groupId", true, "companyId", true,
-			"userId", true, "createDate", true, "comments", true,
-			"replyComments", true, "replyDate", true, "replierUserId", true,
-			"statusId", true);
+			"mvccVersion", true, "membershipRequestId", true, "groupId", true,
+			"companyId", true, "userId", true, "createDate", true, "comments",
+			true, "replyComments", true, "replyDate", true, "replierUserId",
+			true, "statusId", true);
 	}
 
 	@Test
@@ -221,16 +291,18 @@ public class MembershipRequestPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new MembershipRequestActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = MembershipRequestLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					MembershipRequest membershipRequest = (MembershipRequest)object;
 
 					Assert.assertNotNull(membershipRequest);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -317,6 +389,8 @@ public class MembershipRequestPersistenceTest {
 
 		MembershipRequest membershipRequest = _persistence.create(pk);
 
+		membershipRequest.setMvccVersion(ServiceTestUtil.nextLong());
+
 		membershipRequest.setGroupId(ServiceTestUtil.nextLong());
 
 		membershipRequest.setCompanyId(ServiceTestUtil.nextLong());
@@ -341,6 +415,7 @@ public class MembershipRequestPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(MembershipRequestPersistenceTest.class);
+	private ModelListener<MembershipRequest>[] _modelListeners;
 	private MembershipRequestPersistence _persistence = (MembershipRequestPersistence)PortalBeanLocatorUtil.locate(MembershipRequestPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.UserNotificationEvent;
 
 import java.io.Externalizable;
@@ -32,12 +33,24 @@ import java.io.ObjectOutput;
  * @generated
  */
 public class UserNotificationEventCacheModel implements CacheModel<UserNotificationEvent>,
-	Externalizable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(21);
+		StringBundler sb = new StringBundler(25);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", userNotificationEventId=");
 		sb.append(userNotificationEventId);
@@ -49,6 +62,8 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		sb.append(type);
 		sb.append(", timestamp=");
 		sb.append(timestamp);
+		sb.append(", deliveryType=");
+		sb.append(deliveryType);
 		sb.append(", deliverBy=");
 		sb.append(deliverBy);
 		sb.append(", delivered=");
@@ -65,6 +80,8 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 	@Override
 	public UserNotificationEvent toEntityModel() {
 		UserNotificationEventImpl userNotificationEventImpl = new UserNotificationEventImpl();
+
+		userNotificationEventImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			userNotificationEventImpl.setUuid(StringPool.BLANK);
@@ -85,6 +102,7 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		}
 
 		userNotificationEventImpl.setTimestamp(timestamp);
+		userNotificationEventImpl.setDeliveryType(deliveryType);
 		userNotificationEventImpl.setDeliverBy(deliverBy);
 		userNotificationEventImpl.setDelivered(delivered);
 
@@ -104,12 +122,14 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
 		userNotificationEventId = objectInput.readLong();
 		companyId = objectInput.readLong();
 		userId = objectInput.readLong();
 		type = objectInput.readUTF();
 		timestamp = objectInput.readLong();
+		deliveryType = objectInput.readInt();
 		deliverBy = objectInput.readLong();
 		delivered = objectInput.readBoolean();
 		payload = objectInput.readUTF();
@@ -119,6 +139,8 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
 		}
@@ -138,6 +160,7 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		}
 
 		objectOutput.writeLong(timestamp);
+		objectOutput.writeInt(deliveryType);
 		objectOutput.writeLong(deliverBy);
 		objectOutput.writeBoolean(delivered);
 
@@ -151,12 +174,14 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		objectOutput.writeBoolean(archived);
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public long userNotificationEventId;
 	public long companyId;
 	public long userId;
 	public String type;
 	public long timestamp;
+	public int deliveryType;
 	public long deliverBy;
 	public boolean delivered;
 	public String payload;

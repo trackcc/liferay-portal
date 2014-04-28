@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,12 +14,18 @@
 
 package com.liferay.portlet.documentlibrary.action;
 
-import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
+import com.liferay.portal.NoSuchRepositoryEntryException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.portlet.SettingsConfigurationAction;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.settings.Settings;
+import com.liferay.portlet.documentlibrary.DLPortletInstanceSettings;
+import com.liferay.portlet.documentlibrary.DLSettings;
 import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
@@ -32,7 +38,11 @@ import javax.portlet.PortletConfig;
  * @author Jorge Ferrer
  * @author Sergio González
  */
-public class ConfigurationActionImpl extends DefaultConfigurationAction {
+public class ConfigurationActionImpl extends SettingsConfigurationAction {
+
+	public ConfigurationActionImpl() {
+		addMultiValuedKeys(DLPortletInstanceSettings.MULTI_VALUED_KEYS);
+	}
 
 	@Override
 	public void processAction(
@@ -42,72 +52,31 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
-		String tabs2 = ParamUtil.getString(actionRequest, "tabs2");
-
 		if (Validator.isNotNull(cmd)) {
-			if (tabs2.equals("display-settings")) {
-				validateRootFolder(actionRequest);
-			}
-			else if (tabs2.equals("document-added-email")) {
-				validateEmailFileEntryAdded(actionRequest);
-			}
-			else if (tabs2.equals("document-updated-email")) {
-				validateEmailFileEntryUpdated(actionRequest);
-			}
-			else if (tabs2.equals("email-from")) {
-				validateEmailFrom(actionRequest);
-			}
+			validate(actionRequest);
 		}
 
 		super.processAction(portletConfig, actionRequest, actionResponse);
 	}
 
-	protected void validateEmailFileEntryAdded(ActionRequest actionRequest)
-		throws Exception {
+	@Override
+	protected Settings getSettings(ActionRequest actionRequest)
+		throws PortalException, SystemException {
 
-		String emailFileEntryAddedSubject = getLocalizedParameter(
-			actionRequest, "emailFileEntryAddedSubject");
-		String emailFileEntryAddedBody = getLocalizedParameter(
-			actionRequest, "emailFileEntryAddedBody");
-
-		if (Validator.isNull(emailFileEntryAddedSubject)) {
-			SessionErrors.add(actionRequest, "emailFileEntryAddedSubject");
-		}
-		else if (Validator.isNull(emailFileEntryAddedBody)) {
-			SessionErrors.add(actionRequest, "emailFileEntryAddedBody");
-		}
+		return new DLSettings(super.getSettings(actionRequest));
 	}
 
-	protected void validateEmailFileEntryUpdated(ActionRequest actionRequest)
-		throws Exception {
-
-		String emailFileEntryUpdatedSubject = getLocalizedParameter(
-			actionRequest, "emailFileEntryUpdatedSubject");
-		String emailFileEntryUpdatedBody = getLocalizedParameter(
-			actionRequest, "emailFileEntryUpdatedBody");
-
-		if (Validator.isNull(emailFileEntryUpdatedSubject)) {
-			SessionErrors.add(actionRequest, "emailFileEntryUpdatedSubject");
-		}
-		else if (Validator.isNull(emailFileEntryUpdatedBody)) {
-			SessionErrors.add(actionRequest, "emailFileEntryUpdatedBody");
-		}
+	protected void validate(ActionRequest actionRequest) throws Exception {
+		validateDisplayStyleViews(actionRequest);
+		validateRootFolder(actionRequest);
 	}
 
-	protected void validateEmailFrom(ActionRequest actionRequest)
-		throws Exception {
+	protected void validateDisplayStyleViews(ActionRequest actionRequest) {
+		String displayViews = GetterUtil.getString(
+			getParameter(actionRequest, "displayViews"));
 
-		String emailFromName = getParameter(actionRequest, "emailFromName");
-		String emailFromAddress = getParameter(
-			actionRequest, "emailFromAddress");
-
-		if (Validator.isNull(emailFromName)) {
-			SessionErrors.add(actionRequest, "emailFromName");
-		}
-		else if (!Validator.isEmailAddress(emailFromAddress) &&
-				 !Validator.isVariableTerm(emailFromAddress)) {
-
-			SessionErrors.add(actionRequest, "emailFromAddress");
+		if (Validator.isNull(displayViews)) {
+			SessionErrors.add(actionRequest, "displayViewsInvalid");
 		}
 	}
 
@@ -121,8 +90,15 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 			try {
 				DLAppLocalServiceUtil.getFolder(rootFolderId);
 			}
-			catch (NoSuchFolderException nsfe) {
-				SessionErrors.add(actionRequest, "rootFolderIdInvalid");
+			catch (Exception e) {
+				if (e instanceof NoSuchFolderException ||
+					e instanceof NoSuchRepositoryEntryException) {
+
+					SessionErrors.add(actionRequest, "rootFolderIdInvalid");
+				}
+				else {
+					throw e;
+				}
 			}
 		}
 	}

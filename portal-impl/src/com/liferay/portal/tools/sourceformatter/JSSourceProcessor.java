@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,7 +33,7 @@ public class JSSourceProcessor extends BaseSourceProcessor {
 	protected void format() throws Exception {
 		String[] excludes = {
 			"**\\js\\aui\\**", "**\\js\\editor\\**", "**\\js\\misc\\**",
-			"**\\tools\\**", "**\\VAADIN\\**"
+			"**\\r2.js", "**\\tools\\**", "**\\VAADIN\\**"
 		};
 		String[] includes = {"**\\*.js"};
 
@@ -94,13 +94,11 @@ public class JSSourceProcessor extends BaseSourceProcessor {
 
 		checkLanguageKeys(fileName, newContent, languageKeyPattern);
 
-		if (isAutoFix() && (newContent != null) &&
-			!content.equals(newContent)) {
-
-			fileUtil.write(file, newContent);
-
-			sourceFormatterHelper.printError(fileName, file);
+		if (newContent.contains("debugger.")) {
+			processErrorMessage(fileName, "debugger " + fileName);
 		}
+
+		compareAndAutoFixContent(file, fileName, content, newContent);
 
 		return newContent;
 	}

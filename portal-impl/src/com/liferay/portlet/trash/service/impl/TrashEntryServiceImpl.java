@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -338,25 +338,19 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 				TrashPermissionException.RESTORE);
 		}
 
-		if (trashHandler.isInTrash(classPK)) {
-			TrashEntry entry = trashEntryLocalService.getEntry(
-				className, classPK);
+		TrashEntry trashEntry = trashHandler.getTrashEntry(classPK);
 
-			trashHandler.checkDuplicateTrashEntry(
-				entry, destinationContainerModelId, StringPool.BLANK);
-
-			trashHandler.moveTrashEntry(
-				getUserId(), classPK, destinationContainerModelId,
-				serviceContext);
+		if (trashEntry.isTrashEntry(className, classPK)) {
+			trashHandler.checkRestorableEntry(
+				trashEntry, destinationContainerModelId, StringPool.BLANK);
 		}
 		else {
-			trashHandler.checkDuplicateEntry(
+			trashHandler.checkRestorableEntry(
 				classPK, destinationContainerModelId, StringPool.BLANK);
-
-			trashHandler.moveEntry(
-				getUserId(), classPK, destinationContainerModelId,
-				serviceContext);
 		}
+
+		trashHandler.moveTrashEntry(
+			getUserId(), classPK, destinationContainerModelId, serviceContext);
 	}
 
 	@Override
@@ -436,7 +430,7 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 
 			trashHandler.deleteTrashEntry(overrideClassPK);
 
-			trashHandler.checkDuplicateTrashEntry(
+			trashHandler.checkRestorableEntry(
 				entry, TrashEntryConstants.DEFAULT_CONTAINER_ID, null);
 		}
 		else if (name != null) {
@@ -448,7 +442,7 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 					TrashPermissionException.RESTORE_RENAME);
 			}
 
-			trashHandler.checkDuplicateTrashEntry(
+			trashHandler.checkRestorableEntry(
 				entry, TrashEntryConstants.DEFAULT_CONTAINER_ID, name);
 
 			trashHandler.updateTitle(entry.getClassPK(), name);
@@ -457,6 +451,28 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 		trashHandler.restoreTrashEntry(getUserId(), entry.getClassPK());
 
 		return entry;
+	}
+
+	@Override
+	public TrashEntry restoreEntry(String className, long classPK)
+		throws PortalException, SystemException {
+
+		return restoreEntry(className, classPK, 0, null);
+	}
+
+	@Override
+	public TrashEntry restoreEntry(
+			String className, long classPK, long overrideClassPK, String name)
+		throws PortalException, SystemException {
+
+		TrashEntry trashEntry = trashEntryPersistence.fetchByC_C(
+			classNameLocalService.getClassNameId(className), classPK);
+
+		if (trashEntry != null) {
+			return restoreEntry(trashEntry.getEntryId(), overrideClassPK, name);
+		}
+
+		return null;
 	}
 
 	protected void deleteEntry(TrashEntry entry)

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 
@@ -29,6 +31,7 @@ import java.util.Map;
  * @see SystemEvent
  * @generated
  */
+@ProviderType
 public class SystemEventWrapper implements SystemEvent,
 	ModelWrapper<SystemEvent> {
 	public SystemEventWrapper(SystemEvent systemEvent) {
@@ -49,6 +52,7 @@ public class SystemEventWrapper implements SystemEvent,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("systemEventId", getSystemEventId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -69,6 +73,12 @@ public class SystemEventWrapper implements SystemEvent,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long systemEventId = (Long)attributes.get("systemEventId");
 
 		if (systemEventId != null) {
@@ -172,6 +182,26 @@ public class SystemEventWrapper implements SystemEvent,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_systemEvent.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this system event.
+	*
+	* @return the mvcc version of this system event
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _systemEvent.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this system event.
+	*
+	* @param mvccVersion the mvcc version of this system event
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_systemEvent.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -627,6 +657,7 @@ public class SystemEventWrapper implements SystemEvent,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SystemEvent getWrappedSystemEvent() {
 		return _systemEvent;
 	}
@@ -634,6 +665,16 @@ public class SystemEventWrapper implements SystemEvent,
 	@Override
 	public SystemEvent getWrappedModel() {
 		return _systemEvent;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _systemEvent.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _systemEvent.isFinderCacheEnabled();
 	}
 
 	@Override

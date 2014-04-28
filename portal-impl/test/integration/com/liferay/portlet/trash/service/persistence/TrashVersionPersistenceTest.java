@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -37,9 +38,11 @@ import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.trash.NoSuchVersionException;
 import com.liferay.portlet.trash.model.TrashVersion;
 import com.liferay.portlet.trash.model.impl.TrashVersionModelImpl;
+import com.liferay.portlet.trash.service.TrashVersionLocalServiceUtil;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -57,6 +60,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class TrashVersionPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<TrashVersion> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -78,6 +90,10 @@ public class TrashVersionPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<TrashVersion> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -119,6 +135,8 @@ public class TrashVersionPersistenceTest {
 
 		newTrashVersion.setClassPK(ServiceTestUtil.nextLong());
 
+		newTrashVersion.setTypeSettings(ServiceTestUtil.randomString());
+
 		newTrashVersion.setStatus(ServiceTestUtil.nextInt());
 
 		_persistence.update(newTrashVersion);
@@ -133,8 +151,61 @@ public class TrashVersionPersistenceTest {
 			newTrashVersion.getClassNameId());
 		Assert.assertEquals(existingTrashVersion.getClassPK(),
 			newTrashVersion.getClassPK());
+		Assert.assertEquals(existingTrashVersion.getTypeSettings(),
+			newTrashVersion.getTypeSettings());
 		Assert.assertEquals(existingTrashVersion.getStatus(),
 			newTrashVersion.getStatus());
+	}
+
+	@Test
+	public void testCountByEntryId() {
+		try {
+			_persistence.countByEntryId(ServiceTestUtil.nextLong());
+
+			_persistence.countByEntryId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByE_C() {
+		try {
+			_persistence.countByE_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByE_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_C() {
+		try {
+			_persistence.countByC_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByE_C_C() {
+		try {
+			_persistence.countByE_C_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByE_C_C(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -173,7 +244,7 @@ public class TrashVersionPersistenceTest {
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("TrashVersion", "versionId",
 			true, "entryId", true, "classNameId", true, "classPK", true,
-			"status", true);
+			"typeSettings", true, "status", true);
 	}
 
 	@Test
@@ -198,16 +269,18 @@ public class TrashVersionPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new TrashVersionActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = TrashVersionLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					TrashVersion trashVersion = (TrashVersion)object;
 
 					Assert.assertNotNull(trashVersion);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -298,6 +371,11 @@ public class TrashVersionPersistenceTest {
 
 		TrashVersionModelImpl existingTrashVersionModelImpl = (TrashVersionModelImpl)_persistence.findByPrimaryKey(newTrashVersion.getPrimaryKey());
 
+		Assert.assertEquals(existingTrashVersionModelImpl.getClassNameId(),
+			existingTrashVersionModelImpl.getOriginalClassNameId());
+		Assert.assertEquals(existingTrashVersionModelImpl.getClassPK(),
+			existingTrashVersionModelImpl.getOriginalClassPK());
+
 		Assert.assertEquals(existingTrashVersionModelImpl.getEntryId(),
 			existingTrashVersionModelImpl.getOriginalEntryId());
 		Assert.assertEquals(existingTrashVersionModelImpl.getClassNameId(),
@@ -317,6 +395,8 @@ public class TrashVersionPersistenceTest {
 
 		trashVersion.setClassPK(ServiceTestUtil.nextLong());
 
+		trashVersion.setTypeSettings(ServiceTestUtil.randomString());
+
 		trashVersion.setStatus(ServiceTestUtil.nextInt());
 
 		_persistence.update(trashVersion);
@@ -325,6 +405,7 @@ public class TrashVersionPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(TrashVersionPersistenceTest.class);
+	private ModelListener<TrashVersion>[] _modelListeners;
 	private TrashVersionPersistence _persistence = (TrashVersionPersistence)PortalBeanLocatorUtil.locate(TrashVersionPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

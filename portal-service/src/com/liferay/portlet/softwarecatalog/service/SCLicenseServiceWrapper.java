@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.softwarecatalog.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see SCLicenseService
  * @generated
  */
+@ProviderType
 public class SCLicenseServiceWrapper implements SCLicenseService,
 	ServiceWrapper<SCLicenseService> {
 	public SCLicenseServiceWrapper(SCLicenseService scLicenseService) {
@@ -87,6 +90,7 @@ public class SCLicenseServiceWrapper implements SCLicenseService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SCLicenseService getWrappedSCLicenseService() {
 		return _scLicenseService;
 	}
@@ -94,6 +98,7 @@ public class SCLicenseServiceWrapper implements SCLicenseService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSCLicenseService(SCLicenseService scLicenseService) {
 		_scLicenseService = scLicenseService;
 	}

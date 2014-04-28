@@ -1,19 +1,37 @@
-<#assign x = testCaseCommandAttribute?last_index_of("#")>
+<#assign testCaseCommandFound = false>
 
-<#assign targetTestCaseName = testCaseCommandAttribute?substring(0, x)>
+<#if testCaseRootElement.elements("command")??>
+	<#assign testCaseCommandElements = testCaseRootElement.elements("command")>
 
-<#assign targetTestCaseCommand = testCaseCommandAttribute?substring(x + 1)>
+	<#list testCaseCommandElements as testCaseCommandElement>
+		<#assign testCaseCommand = testCaseCommandElement.attributeValue("name")>
 
-<#assign testCaseRootElement = seleniumBuilderContext.getTestCaseRootElement(targetTestCaseName)>
+		<#if testCaseCommand == testCaseCommandName>
+			<#include "test_case_command_block_element_html.ftl">
 
-<#assign testCaseCommandElements = testCaseRootElement.elements("command")>
+			<#assign testCaseCommandFound = true>
 
-<#list testCaseCommandElements as testCaseCommandElement>
-	<#assign testCaseCommand = testCaseCommandElement.attributeValue("name")>
+			<#break>
+		</#if>
+	</#list>
+</#if>
 
-	<#if testCaseCommand == targetTestCaseCommand>
-		<#assign testCaseName = targetTestCaseName>
+<#if !testCaseCommandFound && extendedTestCaseRootElement?? && extendedTestCaseRootElement.elements("command")??>
+	<#assign extendedTestCaseCommandElements = extendedTestCaseRootElement.elements("command")>
 
-		<#include "test_case_command_block_element_html.ftl">
-	</#if>
-</#list>
+	<#list extendedTestCaseCommandElements as extendedTestCaseCommandElement>
+		<#assign extendedTestCaseCommand = extendedTestCaseCommandElement.attributeValue("name")>
+
+		<#if extendedTestCaseCommand = testCaseCommandName>
+			<#assign void = testCaseNameStack.push(extendedTestCase)>
+
+			<#assign testCaseCommandElement = extendedTestCaseCommandElement>
+
+			<#include "test_case_command_block_element_html.ftl">
+
+			<#assign void = testCaseNameStack.pop()>
+
+			<#break>
+		</#if>
+	</#list>
+</#if>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portlet.documentlibrary.util;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
@@ -31,11 +32,8 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
-import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PrefsParamUtil;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
@@ -46,21 +44,33 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
+import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.Subscription;
+import com.liferay.portal.service.GroupLocalServiceUtil;
+import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.SubscriptionLocalServiceUtil;
 import com.liferay.portal.service.WorkflowDefinitionLinkLocalServiceUtil;
+import com.liferay.portal.settings.ParameterMapSettings;
+import com.liferay.portal.settings.Settings;
+import com.liferay.portal.settings.SettingsFactoryUtil;
 import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.PortletURLFactoryUtil;
+import com.liferay.portlet.documentlibrary.DLPortletInstanceSettings;
+import com.liferay.portlet.documentlibrary.DLSettings;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryTypeConstants;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
+import com.liferay.portlet.documentlibrary.model.DLFileVersion;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
@@ -73,21 +83,20 @@ import com.liferay.portlet.documentlibrary.util.comparator.RepositoryModelSizeCo
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
 import com.liferay.portlet.trash.util.TrashUtil;
-import com.liferay.util.ContentUtil;
+
+import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderResponse;
@@ -172,7 +181,14 @@ public class DLImpl implements DL {
 		Map<String, Object> data = new HashMap<String, Object>();
 
 		data.put("direction-right", Boolean.TRUE.toString());
-		data.put("folder-id", getDefaultFolderId(request));
+
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		DLPortletInstanceSettings dlPortletInstanceSettings =
+			DLUtil.getDLPortletInstanceSettings(
+				themeDisplay.getLayout(), portletDisplay.getId());
+
+		data.put("folder-id", dlPortletInstanceSettings.getDefaultFolderId());
 
 		PortalUtil.addPortletBreadcrumbEntry(
 			request, themeDisplay.translate("home"), portletURL.toString(),
@@ -186,7 +202,16 @@ public class DLImpl implements DL {
 			Folder folder, HttpServletRequest request, PortletURL portletURL)
 		throws Exception {
 
-		long defaultFolderId = getDefaultFolderId(request);
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		DLPortletInstanceSettings dlPortletInstanceSettings =
+			DLUtil.getDLPortletInstanceSettings(
+				themeDisplay.getLayout(), portletDisplay.getId());
+
+		long defaultFolderId = dlPortletInstanceSettings.getDefaultFolderId();
 
 		List<Folder> ancestorFolders = Collections.emptyList();
 
@@ -354,12 +379,12 @@ public class DLImpl implements DL {
 		sb.append(StringPool.SPACE);
 
 		for (Folder curFolder : folders) {
-			sb.append(StringPool.RAQUO);
+			sb.append(StringPool.RAQUO_CHAR);
 			sb.append(StringPool.SPACE);
 			sb.append(curFolder.getName());
 		}
 
-		sb.append(StringPool.RAQUO);
+		sb.append(StringPool.RAQUO_CHAR);
 		sb.append(StringPool.SPACE);
 		sb.append(folder.getName());
 
@@ -423,7 +448,7 @@ public class DLImpl implements DL {
 			WebKeys.THEME_DISPLAY);
 
 		PortletURL portletURL = PortletURLFactoryUtil.create(
-			portletRequest, PortletKeys.DOCUMENT_LIBRARY,
+			portletRequest, PortletKeys.DOCUMENT_LIBRARY_ADMIN,
 			PortalUtil.getControlPanelPlid(themeDisplay.getCompanyId()),
 			PortletRequest.RENDER_PHASE);
 
@@ -443,7 +468,7 @@ public class DLImpl implements DL {
 			WebKeys.THEME_DISPLAY);
 
 		PortletURL portletURL = PortletURLFactoryUtil.create(
-			portletRequest, PortletKeys.DOCUMENT_LIBRARY,
+			portletRequest, PortletKeys.DOCUMENT_LIBRARY_ADMIN,
 			PortalUtil.getControlPanelPlid(themeDisplay.getCompanyId()),
 			PortletRequest.RENDER_PHASE);
 
@@ -454,143 +479,178 @@ public class DLImpl implements DL {
 	}
 
 	@Override
-	public Map<Locale, String> getEmailFileEntryAddedBodyMap(
-		PortletPreferences preferences) {
+	public DLPortletInstanceSettings getDLPortletInstanceSettings(
+			Layout layout, String portletId)
+		throws PortalException, SystemException {
 
-		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
-			preferences, "emailFileEntryAddedBody");
+		Settings settings = SettingsFactoryUtil.getPortletInstanceSettings(
+			layout, portletId);
 
-		Locale defaultLocale = LocaleUtil.getSiteDefault();
-
-		String defaultValue = map.get(defaultLocale);
-
-		if (Validator.isNotNull(defaultValue)) {
-			return map;
-		}
-
-		map.put(
-			defaultLocale,
-			ContentUtil.get(
-				PropsUtil.get(PropsKeys.DL_EMAIL_FILE_ENTRY_ADDED_BODY)));
-
-		return map;
+		return new DLPortletInstanceSettings(settings);
 	}
 
 	@Override
-	public boolean getEmailFileEntryAddedEnabled(
-		PortletPreferences preferences) {
+	public DLPortletInstanceSettings getDLPortletInstanceSettings(
+			Layout layout, String portletId, HttpServletRequest request)
+		throws PortalException, SystemException {
 
-		String emailFileEntryAddedEnabled = preferences.getValue(
-			"emailFileEntryAddedEnabled", StringPool.BLANK);
+		Settings settings = SettingsFactoryUtil.getPortletInstanceSettings(
+			layout, portletId);
 
-		if (Validator.isNotNull(emailFileEntryAddedEnabled)) {
-			return GetterUtil.getBoolean(emailFileEntryAddedEnabled);
-		}
-		else {
-			return PropsValues.DL_EMAIL_FILE_ENTRY_ADDED_ENABLED;
-		}
+		Settings parameterMapSettings = new ParameterMapSettings(
+			request.getParameterMap(), settings);
+
+		return new DLPortletInstanceSettings(parameterMapSettings);
 	}
 
 	@Override
-	public Map<Locale, String> getEmailFileEntryAddedSubjectMap(
-		PortletPreferences preferences) {
+	public DLSettings getDLSettings(long groupId)
+		throws PortalException, SystemException {
 
-		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
-			preferences, "emailFileEntryAddedSubject");
+		Settings settings = SettingsFactoryUtil.getGroupServiceSettings(
+			groupId, DLConstants.SERVICE_NAME);
 
-		Locale defaultLocale = LocaleUtil.getSiteDefault();
-
-		String defaultValue = map.get(defaultLocale);
-
-		if (Validator.isNotNull(defaultValue)) {
-			return map;
-		}
-
-		map.put(
-			defaultLocale,
-			ContentUtil.get(
-				PropsUtil.get(PropsKeys.DL_EMAIL_FILE_ENTRY_ADDED_SUBJECT)));
-
-		return map;
+		return new DLSettings(settings);
 	}
 
 	@Override
-	public Map<Locale, String> getEmailFileEntryUpdatedBodyMap(
-		PortletPreferences preferences) {
+	public DLSettings getDLSettings(long groupId, HttpServletRequest request)
+		throws PortalException, SystemException {
 
-		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
-			preferences, "emailFileEntryUpdatedBody");
+		Settings settings = SettingsFactoryUtil.getGroupServiceSettings(
+			groupId, DLConstants.SERVICE_NAME);
 
-		Locale defaultLocale = LocaleUtil.getSiteDefault();
+		Settings parameterMapSettings = new ParameterMapSettings(
+			request.getParameterMap(), settings);
 
-		String defaultValue = map.get(defaultLocale);
-
-		if (Validator.isNotNull(defaultValue)) {
-			return map;
-		}
-
-		map.put(
-			defaultLocale,
-			ContentUtil.get(
-				PropsUtil.get(PropsKeys.DL_EMAIL_FILE_ENTRY_UPDATED_BODY)));
-
-		return map;
+		return new DLSettings(parameterMapSettings);
 	}
 
 	@Override
-	public boolean getEmailFileEntryUpdatedEnabled(
-		PortletPreferences preferences) {
+	public Map<String, String> getEmailDefinitionTerms(
+		PortletRequest portletRequest, String emailFromAddress,
+		String emailFromName) {
 
-		String emailFileEntryUpdatedEnabled = preferences.getValue(
-			"emailFileEntryUpdatedEnabled", StringPool.BLANK);
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
-		if (Validator.isNotNull(emailFileEntryUpdatedEnabled)) {
-			return GetterUtil.getBoolean(emailFileEntryUpdatedEnabled);
-		}
-		else {
-			return PropsValues.DL_EMAIL_FILE_ENTRY_UPDATED_ENABLED;
-		}
+		Map<String, String> definitionTerms =
+			new LinkedHashMap<String, String>();
+
+		definitionTerms.put(
+			"[$COMPANY_ID$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-id-associated-with-the-document"));
+		definitionTerms.put(
+			"[$COMPANY_MX$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-mx-associated-with-the-document"));
+		definitionTerms.put(
+			"[$COMPANY_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-name-associated-with-the-document"));
+		definitionTerms.put(
+			"[$DOCUMENT_TITLE$]",
+			LanguageUtil.get(themeDisplay.getLocale(), "the-document-title"));
+		definitionTerms.put(
+			"[$DOCUMENT_TYPE$]",
+			LanguageUtil.get(themeDisplay.getLocale(), "the-document-type"));
+		definitionTerms.put(
+			"[$DOCUMENT_URL$]",
+			LanguageUtil.get(themeDisplay.getLocale(), "the-document-url"));
+		definitionTerms.put(
+			"[$DOCUMENT_USER_ADDRESS$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-email-address-of-the-user-who-added-the-document"));
+		definitionTerms.put(
+			"[$DOCUMENT_USER_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(), "the-user-who-added-the-document"));
+		definitionTerms.put(
+			"[$FOLDER_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-folder-in-which-the-document-has-been-added"));
+		definitionTerms.put(
+			"[$FROM_ADDRESS$]", HtmlUtil.escape(emailFromAddress));
+		definitionTerms.put("[$FROM_NAME$]", HtmlUtil.escape(emailFromName));
+
+		Company company = themeDisplay.getCompany();
+
+		definitionTerms.put("[$PORTAL_URL$]", company.getVirtualHostname());
+
+		definitionTerms.put(
+			"[$PORTLET_NAME$]", PortalUtil.getPortletTitle(portletRequest));
+		definitionTerms.put(
+			"[$SITE_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-site-name-associated-with-the-document"));
+		definitionTerms.put(
+			"[$TO_ADDRESS$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-address-of-the-email-recipient"));
+		definitionTerms.put(
+			"[$TO_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(), "the-name-of-the-email-recipient"));
+
+		return definitionTerms;
 	}
 
 	@Override
-	public Map<Locale, String> getEmailFileEntryUpdatedSubjectMap(
-		PortletPreferences preferences) {
+	public Map<String, String> getEmailFromDefinitionTerms(
+		PortletRequest portletRequest, String emailFromAddress,
+		String emailFromName) {
 
-		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
-			preferences, "emailFileEntryUpdatedSubject");
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
-		Locale defaultLocale = LocaleUtil.getSiteDefault();
+		Map<String, String> definitionTerms =
+			new LinkedHashMap<String, String>();
 
-		String defaultValue = map.get(defaultLocale);
+		definitionTerms.put(
+			"[$COMPANY_ID$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-id-associated-with-the-document"));
+		definitionTerms.put(
+			"[$COMPANY_MX$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-mx-associated-with-the-document"));
+		definitionTerms.put(
+			"[$COMPANY_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-name-associated-with-the-document"));
+		definitionTerms.put(
+			"[$DOCUMENT_STATUS_BY_USER_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(), "the-user-who-updated-the-document"));
+		definitionTerms.put(
+			"[$DOCUMENT_USER_ADDRESS$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-email-address-of-the-user-who-added-the-document"));
+		definitionTerms.put(
+			"[$DOCUMENT_USER_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(), "the-user-who-added-the-document"));
+		definitionTerms.put(
+			"[$PORTLET_NAME$]", PortalUtil.getPortletTitle(portletRequest));
+		definitionTerms.put(
+			"[$SITE_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-site-name-associated-with-the-document"));
 
-		if (Validator.isNotNull(defaultValue)) {
-			return map;
-		}
-
-		map.put(
-			defaultLocale,
-			ContentUtil.get(
-				PropsUtil.get(PropsKeys.DL_EMAIL_FILE_ENTRY_UPDATED_SUBJECT)));
-
-		return map;
-	}
-
-	@Override
-	public String getEmailFromAddress(
-			PortletPreferences preferences, long companyId)
-		throws SystemException {
-
-		return PortalUtil.getEmailFromAddress(
-			preferences, companyId, PropsValues.DL_EMAIL_FROM_ADDRESS);
-	}
-
-	@Override
-	public String getEmailFromName(
-			PortletPreferences preferences, long companyId)
-		throws SystemException {
-
-		return PortalUtil.getEmailFromName(
-			preferences, companyId, PropsValues.DL_EMAIL_FROM_NAME);
+		return definitionTerms;
 	}
 
 	@Override
@@ -719,21 +779,6 @@ public class DLImpl implements DL {
 	}
 
 	@Override
-	public String[] getMediaGalleryMimeTypes(
-		PortletPreferences portletPreferences, PortletRequest portletRequest) {
-
-		String mimeTypes = PrefsParamUtil.getString(
-			portletPreferences, portletRequest, "mimeTypes",
-			_allMediaGalleryMimeTypesString);
-
-		String[] mimeTypesArray = StringUtil.split(mimeTypes);
-
-		Arrays.sort(mimeTypesArray);
-
-		return mimeTypesArray;
-	}
-
-	@Override
 	public String getPreviewURL(
 		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
 		String queryString) {
@@ -746,6 +791,7 @@ public class DLImpl implements DL {
 	 * @deprecated As of 6.2.0, replaced by {@link #getPreviewURL(FileEntry,
 	 *             FileVersion, ThemeDisplay, String, boolean, boolean)}
 	 */
+	@Deprecated
 	@Override
 	public String getPreviewURL(
 		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
@@ -784,7 +830,7 @@ public class DLImpl implements DL {
 		sb.append(HttpUtil.encodeURL(HtmlUtil.unescape(title)));
 
 		sb.append(StringPool.SLASH);
-		sb.append(fileEntry.getUuid());
+		sb.append(HttpUtil.encodeURL(fileEntry.getUuid()));
 
 		if (appendVersion) {
 			sb.append("?version=");
@@ -1024,6 +1070,8 @@ public class DLImpl implements DL {
 
 		String fileEntryTitle = null;
 
+		Group group = null;
+
 		if (fileEntry != null) {
 			String extension = fileEntry.getExtension();
 
@@ -1036,9 +1084,12 @@ public class DLImpl implements DL {
 
 				fileEntryTitle += StringPool.PERIOD + extension;
 			}
-		}
 
-		Group group = themeDisplay.getScopeGroup();
+			group = GroupLocalServiceUtil.getGroup(fileEntry.getGroupId());
+		}
+		else {
+			group = themeDisplay.getScopeGroup();
+		}
 
 		webDavURL.append(group.getFriendlyURL());
 		webDavURL.append("/document_library");
@@ -1122,18 +1173,7 @@ public class DLImpl implements DL {
 
 	@Override
 	public boolean isOfficeExtension(String extension) {
-		if (StringUtil.equalsIgnoreCase(extension, "doc") ||
-			StringUtil.equalsIgnoreCase(extension, "docx") ||
-			StringUtil.equalsIgnoreCase(extension, "dot") ||
-			StringUtil.equalsIgnoreCase(extension, "ppt") ||
-			StringUtil.equalsIgnoreCase(extension, "pptx") ||
-			StringUtil.equalsIgnoreCase(extension, "xls") ||
-			StringUtil.equalsIgnoreCase(extension, "xlsx")) {
-
-			return true;
-		}
-
-		return false;
+		return ArrayUtil.contains(_MICROSOFT_OFFICE_EXTENSIONS, extension);
 	}
 
 	@Override
@@ -1171,13 +1211,13 @@ public class DLImpl implements DL {
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			Folder folder = DLAppLocalServiceUtil.getFolder(folderId);
 
+			ancestorFolderIds.add(folderId);
+
 			if (recursive) {
-				ancestorFolderIds = folder.getAncestorFolderIds();
+				ancestorFolderIds.addAll(folder.getAncestorFolderIds());
 
 				ancestorFolderIds.add(groupId);
 			}
-
-			ancestorFolderIds.add(0, folderId);
 		}
 		else {
 			ancestorFolderIds.add(groupId);
@@ -1189,17 +1229,82 @@ public class DLImpl implements DL {
 			companyId, userId, Folder.class.getName(), folderIdsArray);
 	}
 
-	protected long getDefaultFolderId(HttpServletRequest request)
-		throws Exception {
+	@Override
+	public boolean isValidVersion(String version) {
+		if (version.equals(DLFileEntryConstants.PRIVATE_WORKING_COPY_VERSION)) {
+			return true;
+		}
 
-		PortletPreferences portletPreferences =
-			PortletPreferencesFactoryUtil.getPortletPreferences(
-				request, PortalUtil.getPortletId(request));
+		String[] versionParts = StringUtil.split(version, StringPool.PERIOD);
 
-		return GetterUtil.getLong(
-			portletPreferences.getValue(
-				"rootFolderId",
-				String.valueOf(DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)));
+		if (versionParts.length != 2) {
+			return false;
+		}
+
+		if (Validator.isNumber(versionParts[0]) &&
+			Validator.isNumber(versionParts[1])) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public void startWorkflowInstance(
+			long userId, DLFileVersion dlFileVersion, String syncEventType,
+			ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		Map<String, Serializable> workflowContext =
+			new HashMap<String, Serializable>();
+
+		workflowContext.put(
+			WorkflowConstants.CONTEXT_URL,
+			getEntryURL(dlFileVersion, serviceContext));
+		workflowContext.put("event", syncEventType);
+
+		WorkflowHandlerRegistryUtil.startWorkflowInstance(
+			dlFileVersion.getCompanyId(), dlFileVersion.getGroupId(), userId,
+			DLFileEntryConstants.getClassName(),
+			dlFileVersion.getFileVersionId(), dlFileVersion, serviceContext,
+			workflowContext);
+	}
+
+	protected String getEntryURL(
+			DLFileVersion dlFileVersion, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		HttpServletRequest request = serviceContext.getRequest();
+
+		if ((request == null) || (serviceContext.getThemeDisplay() == null)) {
+			return StringPool.BLANK;
+		}
+
+		long plid = serviceContext.getPlid();
+
+		long controlPanelPlid = PortalUtil.getControlPanelPlid(
+			serviceContext.getCompanyId());
+
+		if (plid == controlPanelPlid) {
+			plid = PortalUtil.getPlidFromPortletId(
+				dlFileVersion.getGroupId(), PortletKeys.DOCUMENT_LIBRARY);
+		}
+
+		if (plid == LayoutConstants.DEFAULT_PLID) {
+			plid = controlPanelPlid;
+		}
+
+		PortletURL portletURL = PortletURLFactoryUtil.create(
+			request, PortletKeys.DOCUMENT_LIBRARY, plid,
+			PortletRequest.RENDER_PHASE);
+
+		portletURL.setParameter(
+			"struts_action", "/document_library/view_file_entry");
+		portletURL.setParameter(
+			"fileEntryId", String.valueOf(dlFileVersion.getFileEntryId()));
+
+		return portletURL.toString();
 	}
 
 	protected String getImageSrc(
@@ -1239,13 +1344,26 @@ public class DLImpl implements DL {
 
 	private static final long _DIVISOR = 256;
 
+	private static final String[] _MICROSOFT_OFFICE_EXTENSIONS = {
+		"accda", "accdb", "accdc", "accde", "accdp", "accdr", "accdt", "accdu",
+		"acl", "ade", "adp", "asd", "cnv", "crtx", "doc", "docm", "docx", "dot",
+		"dotm", "dotx", "grv", "iaf", "laccdb", "maf", "mam", "maq", "mar",
+		"mat", "mda", "mdb", "mde", "mdt", "mdw", "mpd", "mpp", "mpt", "oab",
+		"obi", "oft", "olm", "one", "onepkg", "ops", "ost", "pa", "pip", "pot",
+		"potm", "potx", "ppa", "ppam", "pps", "ppsm", "ppsx", "ppt", "pptm",
+		"pptx", "prf", "pst", "pub", "puz", "rpmsg", "sldm", "sldx", "slk",
+		"snp", "svd", "thmx", "vdx", "vrge08message", "vsd", "vss", "vst",
+		"vsx", "vtx", "wbk", "wll", "xar", "xl", "xla", "xlam", "xlb", "xlc",
+		"xll", "xlm", "xls", "xlsb", "xlsm", "xlsx", "xlt", "xltm", "xltx",
+		"xlw", "xsf", "xsn"
+	};
+
 	private static final String _STRUCTURE_KEY_PREFIX = "AUTO_";
 
 	private static Log _log = LogFactoryUtil.getLog(DLImpl.class);
 
 	private static Set<String> _allMediaGalleryMimeTypes =
 		new TreeSet<String>();
-	private static String _allMediaGalleryMimeTypesString;
 	private static Set<String> _fileIcons = new HashSet<String>();
 	private static Map<String, String> _genericNames =
 		new HashMap<String, String>();
@@ -1263,9 +1381,6 @@ public class DLImpl implements DL {
 			SetUtil.fromArray(
 				PropsUtil.getArray(
 					PropsKeys.DL_FILE_ENTRY_PREVIEW_IMAGE_MIME_TYPES)));
-
-		_allMediaGalleryMimeTypesString = StringUtil.merge(
-			_allMediaGalleryMimeTypes);
 
 		String[] fileIcons = null;
 

@@ -7,6 +7,14 @@
 		<execute macro="Page#openURL" />
 
 		<execute action="Setupwizard#assertTextEquals" locator-key1="PORTAL_PORTAL_NAME_FIELD" value1="Liferay" />
+
+		<if>
+			<equals arg1="${setupWizardAddSampleData}" arg2="false" />
+			<then>
+				<execute action="Setupwizard#uncheck" locator-key1="PORTAL_ADD_SAMPLE_DATA_CHECKBOX" />
+			</then>
+		</if>
+
 		<execute action="Setupwizard#assertSelectedLabel" locator-key1="PORTAL_DEFAULT_LANGUAGE_SELECT" value1="English (United States)" />
 		<execute action="Setupwizard#assertTextEquals" locator-key1="ADMINISTRATOR_USER_FIRST_NAME_FIELD" value1="${administratorFirstName}" />
 		<execute action="Setupwizard#assertTextEquals" locator-key1="ADMINISTRATOR_USER_LAST_NAME_FIELD" value1="${administratorLastName}" />
@@ -29,9 +37,14 @@
 
 		<execute action="PGLoginTermsofservice#assertClick" locator-key1="I_AGREE_BUTTON" value1="I Agree" />
 
-		<execute action="PGLoginNewpassword#type" locator-key1="PASSWORD_FIELD" value1="test" />
-		<execute action="PGLoginNewpassword#type" locator-key1="ENTER_AGAIN_FIELD" value1="test" />
-		<execute action="PGLoginNewpassword#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+		<if>
+			<equals arg1="${setupWizardAddSampleData}" arg2="false" />
+			<then>
+				<execute action="PGLoginNewpassword#type" locator-key1="PASSWORD_FIELD" value1="test" />
+				<execute action="PGLoginNewpassword#type" locator-key1="ENTER_AGAIN_FIELD" value1="test" />
+				<execute action="PGLoginNewpassword#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />
+			</then>
+		</if>
 
 		<execute action="PGLoginPasswordreminder#type" locator-key1="ANSWER_FIELD" value1="test" />
 		<execute action="PGLoginPasswordreminder#assertClick" locator-key1="SAVE_BUTTON" value1="Save" />

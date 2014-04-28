@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.dynamicdatamapping.service;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.dynamicdatamapping.service.impl.DDMTemplateLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class DDMTemplateLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -227,6 +230,17 @@ public class DDMTemplateLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getDDMTemplate(templateId);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getActionableDynamicQuery();
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -593,8 +607,8 @@ public class DDMTemplateLocalServiceUtil {
 	* @param classNameId the primary key of the class name for the template's
 	related model
 	* @param templateKey the unique string identifying the template
-	* @param includeGlobalTemplates whether to include the global scope in the
-	search
+	* @param includeAncestorTemplates whether to include the global scope in
+	the search
 	* @return the matching template, or <code>null</code> if a matching
 	template could not be found
 	* @throws PortalException if a portal exception occurred
@@ -602,12 +616,12 @@ public class DDMTemplateLocalServiceUtil {
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMTemplate fetchTemplate(
 		long groupId, long classNameId, java.lang.String templateKey,
-		boolean includeGlobalTemplates)
+		boolean includeAncestorTemplates)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
 				   .fetchTemplate(groupId, classNameId, templateKey,
-			includeGlobalTemplates);
+			includeAncestorTemplates);
 	}
 
 	/**
@@ -645,32 +659,32 @@ public class DDMTemplateLocalServiceUtil {
 
 	/**
 	* Returns the template matching the group and template key, optionally in
-	* the global scope.
+	* the parent sites.
 	*
 	* <p>
 	* This method first searches in the group. If the template is still not
-	* found and <code>includeGlobalTemplates</code> is set to
-	* <code>true</code>, this method searches the global group.
+	* found and <code>includeAncestorTemplates</code> is set to
+	* <code>true</code>, this method searches the parent sites.
 	* </p>
 	*
 	* @param groupId the primary key of the group
 	* @param classNameId the primary key of the class name for the template's
 	related model
 	* @param templateKey the unique string identifying the template
-	* @param includeGlobalTemplates whether to include the global scope in the
-	search
+	* @param includeAncestorTemplates whether to include the parent sites in
+	the search
 	* @return the matching template
 	* @throws PortalException if a matching template could not be found
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMTemplate getTemplate(
 		long groupId, long classNameId, java.lang.String templateKey,
-		boolean includeGlobalTemplates)
+		boolean includeAncestorTemplates)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
 				   .getTemplate(groupId, classNameId, templateKey,
-			includeGlobalTemplates);
+			includeAncestorTemplates);
 	}
 
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMTemplate getTemplateBySmallImageId(
@@ -723,6 +737,12 @@ public class DDMTemplateLocalServiceUtil {
 		long groupId, long classNameId, long classPK)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getTemplates(groupId, classNameId, classPK);
+	}
+
+	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMTemplate> getTemplates(
+		long[] groupIds, long classNameId, long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getTemplates(groupIds, classNameId, classPK);
 	}
 
 	/**
@@ -1288,6 +1308,7 @@ public class DDMTemplateLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(DDMTemplateLocalService service) {
 	}
 

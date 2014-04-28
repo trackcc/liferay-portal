@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.dynamicdatalists.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see DDLRecordSet
  * @generated
  */
+@ProviderType
 public class DDLRecordSetWrapper implements DDLRecordSet,
 	ModelWrapper<DDLRecordSet> {
 	public DDLRecordSetWrapper(DDLRecordSet ddlRecordSet) {
@@ -903,6 +906,7 @@ public class DDLRecordSetWrapper implements DDLRecordSet,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DDLRecordSet getWrappedDDLRecordSet() {
 		return _ddlRecordSet;
 	}
@@ -910,6 +914,16 @@ public class DDLRecordSetWrapper implements DDLRecordSet,
 	@Override
 	public DDLRecordSet getWrappedModel() {
 		return _ddlRecordSet;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _ddlRecordSet.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _ddlRecordSet.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -20,7 +20,7 @@
 </tr>
 <tr>
 	<td>SUCCESS_MESSAGE</td>
-	<td>//div[@class='alert alert-success']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-success')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -67,6 +67,22 @@
 <tr>
 	<td>MENU_CONFIGURATION_CONTENT_SHARING</td>
 	<td>//a[@id='_130_contentSharingLink']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MENU_CONFIGURATION_RECYCLE_BIN</td>
+	<td>//a[@id='_130_recycleBinLink']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--MENU_MISCELLANEOUS-->
+<tr>
+	<td>MENU_MISCELLANEOUS_DISPLAY_SETTINGS</td>
+	<td>//a[@id='_130_displaySettingsLink']</td>
 	<td></td>
 </tr>
 <tr>

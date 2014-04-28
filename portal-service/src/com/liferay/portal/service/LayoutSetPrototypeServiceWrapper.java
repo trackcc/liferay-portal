@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutSetPrototypeService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see LayoutSetPrototypeService
  * @generated
  */
+@ProviderType
 public class LayoutSetPrototypeServiceWrapper
 	implements LayoutSetPrototypeService,
 		ServiceWrapper<LayoutSetPrototypeService> {
@@ -49,6 +52,23 @@ public class LayoutSetPrototypeServiceWrapper
 		_layoutSetPrototypeService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
+	public com.liferay.portal.model.LayoutSetPrototype addLayoutSetPrototype(
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		boolean active, boolean layoutsUpdateable,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutSetPrototypeService.addLayoutSetPrototype(nameMap,
+			descriptionMap, active, layoutsUpdateable, serviceContext);
+	}
+
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #addLayoutSetPrototype(Map,
+	Map, boolean, boolean, ServiceContext)}
+	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.LayoutSetPrototype addLayoutSetPrototype(
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
@@ -89,6 +109,25 @@ public class LayoutSetPrototypeServiceWrapper
 	public com.liferay.portal.model.LayoutSetPrototype updateLayoutSetPrototype(
 		long layoutSetPrototypeId,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		boolean active, boolean layoutsUpdateable,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutSetPrototypeService.updateLayoutSetPrototype(layoutSetPrototypeId,
+			nameMap, descriptionMap, active, layoutsUpdateable, serviceContext);
+	}
+
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link
+	#updateLayoutSetPrototype(long, Map, Map, boolean, boolean,
+	ServiceContext)}
+	*/
+	@Deprecated
+	@Override
+	public com.liferay.portal.model.LayoutSetPrototype updateLayoutSetPrototype(
+		long layoutSetPrototypeId,
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
 		java.lang.String description, boolean active,
 		boolean layoutsUpdateable,
 		com.liferay.portal.service.ServiceContext serviceContext)
@@ -110,6 +149,7 @@ public class LayoutSetPrototypeServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutSetPrototypeService getWrappedLayoutSetPrototypeService() {
 		return _layoutSetPrototypeService;
 	}
@@ -117,6 +157,7 @@ public class LayoutSetPrototypeServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutSetPrototypeService(
 		LayoutSetPrototypeService layoutSetPrototypeService) {
 		_layoutSetPrototypeService = layoutSetPrototypeService;

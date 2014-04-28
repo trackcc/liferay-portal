@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -65,10 +65,11 @@ public class TeamServiceImpl extends TeamServiceBaseImpl {
 
 	@Override
 	public Team getTeam(long teamId) throws PortalException, SystemException {
-		TeamPermissionUtil.check(
-			getPermissionChecker(), teamId, ActionKeys.VIEW);
+		Team team = teamLocalService.getTeam(teamId);
 
-		return teamLocalService.getTeam(teamId);
+		TeamPermissionUtil.check(getPermissionChecker(), team, ActionKeys.VIEW);
+
+		return team;
 	}
 
 	@Override

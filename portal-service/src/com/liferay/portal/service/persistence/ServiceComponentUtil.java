@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.service.persistence;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -36,6 +38,7 @@ import java.util.List;
  * @see ServiceComponentPersistenceImpl
  * @generated
  */
+@ProviderType
 public class ServiceComponentUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -517,6 +520,7 @@ public class ServiceComponentUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setPersistence(ServiceComponentPersistence persistence) {
 	}
 

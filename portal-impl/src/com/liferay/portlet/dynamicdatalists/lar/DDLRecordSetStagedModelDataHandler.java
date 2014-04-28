@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -70,8 +70,9 @@ public class DDLRecordSetStagedModelDataHandler
 
 		DDMStructure ddmStructure = recordSet.getDDMStructure();
 
-		StagedModelDataHandlerUtil.exportStagedModel(
-			portletDataContext, ddmStructure);
+		StagedModelDataHandlerUtil.exportReferenceStagedModel(
+			portletDataContext, recordSet, ddmStructure,
+			PortletDataContext.REFERENCE_TYPE_STRONG);
 
 		List<DDMTemplate> ddmTemplates = ddmStructure.getTemplates();
 
@@ -87,6 +88,23 @@ public class DDLRecordSetStagedModelDataHandler
 		portletDataContext.addClassedModel(
 			recordSetElement, ExportImportPathUtil.getModelPath(recordSet),
 			recordSet);
+	}
+
+	@Override
+	protected void doImportMissingReference(
+			PortletDataContext portletDataContext, String uuid, long groupId,
+			long recordSetId)
+		throws Exception {
+
+		DDLRecordSet existingRecordSet =
+			DDLRecordSetLocalServiceUtil.fetchDDLRecordSetByUuidAndGroupId(
+				uuid, groupId);
+
+		Map<Long, Long> recordSetIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				DDLRecordSet.class);
+
+		recordSetIds.put(recordSetId, existingRecordSet.getRecordSetId());
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ResourceBlockLocalService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see ResourceBlockLocalService
  * @generated
  */
+@ProviderType
 public class ResourceBlockLocalServiceWrapper
 	implements ResourceBlockLocalService,
 		ServiceWrapper<ResourceBlockLocalService> {
@@ -203,6 +206,12 @@ public class ResourceBlockLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _resourceBlockLocalService.getResourceBlock(resourceBlockId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _resourceBlockLocalService.getActionableDynamicQuery();
 	}
 
 	@Override
@@ -749,6 +758,7 @@ public class ResourceBlockLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ResourceBlockLocalService getWrappedResourceBlockLocalService() {
 		return _resourceBlockLocalService;
 	}
@@ -756,6 +766,7 @@ public class ResourceBlockLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedResourceBlockLocalService(
 		ResourceBlockLocalService resourceBlockLocalService) {
 		_resourceBlockLocalService = resourceBlockLocalService;

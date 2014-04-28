@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,9 +28,12 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.ResourceTypePermission;
 import com.liferay.portal.model.impl.ResourceTypePermissionModelImpl;
+import com.liferay.portal.service.ResourceTypePermissionLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -40,6 +43,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -57,6 +61,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ResourceTypePermissionPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<ResourceTypePermission> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -78,6 +91,10 @@ public class ResourceTypePermissionPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<ResourceTypePermission> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -113,6 +130,8 @@ public class ResourceTypePermissionPersistenceTest {
 
 		ResourceTypePermission newResourceTypePermission = _persistence.create(pk);
 
+		newResourceTypePermission.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newResourceTypePermission.setCompanyId(ServiceTestUtil.nextLong());
 
 		newResourceTypePermission.setGroupId(ServiceTestUtil.nextLong());
@@ -127,6 +146,8 @@ public class ResourceTypePermissionPersistenceTest {
 
 		ResourceTypePermission existingResourceTypePermission = _persistence.findByPrimaryKey(newResourceTypePermission.getPrimaryKey());
 
+		Assert.assertEquals(existingResourceTypePermission.getMvccVersion(),
+			newResourceTypePermission.getMvccVersion());
 		Assert.assertEquals(existingResourceTypePermission.getResourceTypePermissionId(),
 			newResourceTypePermission.getResourceTypePermissionId());
 		Assert.assertEquals(existingResourceTypePermission.getCompanyId(),
@@ -139,6 +160,49 @@ public class ResourceTypePermissionPersistenceTest {
 			newResourceTypePermission.getRoleId());
 		Assert.assertEquals(existingResourceTypePermission.getActionIds(),
 			newResourceTypePermission.getActionIds());
+	}
+
+	@Test
+	public void testCountByRoleId() {
+		try {
+			_persistence.countByRoleId(ServiceTestUtil.nextLong());
+
+			_persistence.countByRoleId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_N_R() {
+		try {
+			_persistence.countByC_N_R(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, ServiceTestUtil.nextLong());
+
+			_persistence.countByC_N_R(0L, StringPool.NULL, 0L);
+
+			_persistence.countByC_N_R(0L, (String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_G_N_R() {
+		try {
+			_persistence.countByC_G_N_R(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_G_N_R(0L, 0L, StringPool.NULL, 0L);
+
+			_persistence.countByC_G_N_R(0L, 0L, (String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -178,8 +242,9 @@ public class ResourceTypePermissionPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("ResourceTypePermission",
-			"resourceTypePermissionId", true, "companyId", true, "groupId",
-			true, "name", true, "roleId", true, "actionIds", true);
+			"mvccVersion", true, "resourceTypePermissionId", true, "companyId",
+			true, "groupId", true, "name", true, "roleId", true, "actionIds",
+			true);
 	}
 
 	@Test
@@ -205,16 +270,18 @@ public class ResourceTypePermissionPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new ResourceTypePermissionActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = ResourceTypePermissionLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					ResourceTypePermission resourceTypePermission = (ResourceTypePermission)object;
 
 					Assert.assertNotNull(resourceTypePermission);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -329,6 +396,8 @@ public class ResourceTypePermissionPersistenceTest {
 
 		ResourceTypePermission resourceTypePermission = _persistence.create(pk);
 
+		resourceTypePermission.setMvccVersion(ServiceTestUtil.nextLong());
+
 		resourceTypePermission.setCompanyId(ServiceTestUtil.nextLong());
 
 		resourceTypePermission.setGroupId(ServiceTestUtil.nextLong());
@@ -345,6 +414,7 @@ public class ResourceTypePermissionPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ResourceTypePermissionPersistenceTest.class);
+	private ModelListener<ResourceTypePermission>[] _modelListeners;
 	private ResourceTypePermissionPersistence _persistence = (ResourceTypePermissionPersistence)PortalBeanLocatorUtil.locate(ResourceTypePermissionPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

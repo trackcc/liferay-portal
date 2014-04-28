@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.kernel.lar;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LongWrapper;
@@ -38,6 +40,7 @@ import java.util.Set;
  * @author Mate Thurzo
  * @author Zsolt Berentey
  */
+@ProviderType
 public class ManifestSummary implements Serializable {
 
 	public static String getManifestSummaryKey(
@@ -109,6 +112,33 @@ public class ManifestSummary implements Serializable {
 		modelDeletionCounter.setValue(count);
 
 		_manifestSummaryKeys.add(manifestSummaryKey);
+	}
+
+	@Override
+	public Object clone() {
+		ManifestSummary manifestSummary = new ManifestSummary();
+
+		manifestSummary._configurationPortletOptions =
+			new HashMap<String, String[]> (
+				manifestSummary._configurationPortletOptions);
+		manifestSummary._configurationPortlets = new ArrayList<Portlet>(
+			_configurationPortlets);
+		manifestSummary._dataPortlets = new ArrayList<Portlet>(_dataPortlets);
+		manifestSummary._dataRootPortletIds = new HashSet<String>(
+			_dataRootPortletIds);
+
+		if (_exportDate != null) {
+			manifestSummary.setExportDate(new Date(_exportDate.getTime()));
+		}
+
+		manifestSummary._manifestSummaryKeys = new HashSet<String>(
+			_manifestSummaryKeys);
+		manifestSummary._modelAdditionCounters =
+			new HashMap<String, LongWrapper>(_modelAdditionCounters);
+		manifestSummary._modelDeletionCounters =
+			new HashMap<String, LongWrapper>(_modelDeletionCounters);
+
+		return manifestSummary;
 	}
 
 	public String[] getConfigurationPortletOptions(String rootPortletId) {

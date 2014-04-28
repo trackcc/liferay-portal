@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,6 +30,8 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.Contact;
+import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.service.ContactLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -38,6 +40,7 @@ import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -55,6 +58,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ContactPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<Contact> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -76,6 +88,10 @@ public class ContactPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<Contact> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -110,6 +126,8 @@ public class ContactPersistenceTest {
 		long pk = ServiceTestUtil.nextLong();
 
 		Contact newContact = _persistence.create(pk);
+
+		newContact.setMvccVersion(ServiceTestUtil.nextLong());
 
 		newContact.setCompanyId(ServiceTestUtil.nextLong());
 
@@ -179,6 +197,8 @@ public class ContactPersistenceTest {
 
 		Contact existingContact = _persistence.findByPrimaryKey(newContact.getPrimaryKey());
 
+		Assert.assertEquals(existingContact.getMvccVersion(),
+			newContact.getMvccVersion());
 		Assert.assertEquals(existingContact.getContactId(),
 			newContact.getContactId());
 		Assert.assertEquals(existingContact.getCompanyId(),
@@ -244,6 +264,43 @@ public class ContactPersistenceTest {
 	}
 
 	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByAccountId() {
+		try {
+			_persistence.countByAccountId(ServiceTestUtil.nextLong());
+
+			_persistence.countByAccountId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_C() {
+		try {
+			_persistence.countByC_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		Contact newContact = addContact();
 
@@ -277,17 +334,17 @@ public class ContactPersistenceTest {
 	}
 
 	protected OrderByComparator getOrderByComparator() {
-		return OrderByComparatorFactoryUtil.create("Contact_", "contactId",
-			true, "companyId", true, "userId", true, "userName", true,
-			"createDate", true, "modifiedDate", true, "classNameId", true,
-			"classPK", true, "accountId", true, "parentContactId", true,
-			"emailAddress", true, "firstName", true, "middleName", true,
-			"lastName", true, "prefixId", true, "suffixId", true, "male", true,
-			"birthday", true, "smsSn", true, "aimSn", true, "facebookSn", true,
-			"icqSn", true, "jabberSn", true, "msnSn", true, "mySpaceSn", true,
-			"skypeSn", true, "twitterSn", true, "ymSn", true,
-			"employeeStatusId", true, "employeeNumber", true, "jobTitle", true,
-			"jobClass", true, "hoursOfOperation", true);
+		return OrderByComparatorFactoryUtil.create("Contact_", "mvccVersion",
+			true, "contactId", true, "companyId", true, "userId", true,
+			"userName", true, "createDate", true, "modifiedDate", true,
+			"classNameId", true, "classPK", true, "accountId", true,
+			"parentContactId", true, "emailAddress", true, "firstName", true,
+			"middleName", true, "lastName", true, "prefixId", true, "suffixId",
+			true, "male", true, "birthday", true, "smsSn", true, "aimSn", true,
+			"facebookSn", true, "icqSn", true, "jabberSn", true, "msnSn", true,
+			"mySpaceSn", true, "skypeSn", true, "twitterSn", true, "ymSn",
+			true, "employeeStatusId", true, "employeeNumber", true, "jobTitle",
+			true, "jobClass", true, "hoursOfOperation", true);
 	}
 
 	@Test
@@ -312,16 +369,18 @@ public class ContactPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new ContactActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = ContactLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					Contact contact = (Contact)object;
 
 					Assert.assertNotNull(contact);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -405,6 +464,8 @@ public class ContactPersistenceTest {
 
 		Contact contact = _persistence.create(pk);
 
+		contact.setMvccVersion(ServiceTestUtil.nextLong());
+
 		contact.setCompanyId(ServiceTestUtil.nextLong());
 
 		contact.setUserId(ServiceTestUtil.nextLong());
@@ -475,6 +536,7 @@ public class ContactPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ContactPersistenceTest.class);
+	private ModelListener<Contact>[] _modelListeners;
 	private ContactPersistence _persistence = (ContactPersistence)PortalBeanLocatorUtil.locate(ContactPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

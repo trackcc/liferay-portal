@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,6 +26,8 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.service.WikiNodeLocalServiceUtil;
+
+import java.util.Map;
 
 /**
  * @author Zsolt Berentey
@@ -63,6 +65,22 @@ public class WikiNodeStagedModelDataHandler
 
 		portletDataContext.addClassedModel(
 			nodeElement, ExportImportPathUtil.getModelPath(node), node);
+	}
+
+	@Override
+	protected void doImportMissingReference(
+			PortletDataContext portletDataContext, String uuid, long groupId,
+			long nodeId)
+		throws Exception {
+
+		WikiNode existingNode =
+			WikiNodeLocalServiceUtil.fetchNodeByUuidAndGroupId(uuid, groupId);
+
+		Map<Long, Long> nodeIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				WikiNode.class);
+
+		nodeIds.put(nodeId, existingNode.getNodeId());
 	}
 
 	@Override

@@ -26,17 +26,17 @@
 </tr>
 <tr>
 	<td>SUCCESS_MESSAGE</td>
-	<td>//div[@class='alert alert-success']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-success')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SUCCESS_MESSAGE_RECYCLE_BIN</td>
-	<td>//div[@class='alert alert-success taglib-trash-undo']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-success') and contains(@class,'taglib-trash-undo')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>INFO_MESSAGE</td>
-	<td>//div[@class='entries-empty alert alert-info']</td>
+	<td>//div[contains(@class,'entries-empty') and contains(@class,'alert') and contains(@class,'alert-info')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -205,6 +205,37 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--SEARCH_RESULTS-->
+<tr>
+	<td>SEARCH_RESULTS_NONE</td>
+	<td>//div[@id='_15_searchResultsContainer']//div[contains(.,'No web content was found that matched the keywords: ${searchQuery}.')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SEARCH_RESULTS_FILTER_REMOVE_BUTTON</td>
+	<td>//div[@id='_15_searchInfo']//a[contains(.,'Remove')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SEARCH_RESULTS_TITLE</td>
+	<td>//div[@data-title='${key_webContentTitle}']/a/div/span[contains(@class,'entry-title')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SEARCH_RESULTS_BODY</td>
+	<td>//div[@data-title='${key_webContentTitle}']/a/div/span[contains(@class,'entry-description')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SEARCH_RESULTS_FOLDER</td>
+	<td>//div[@class='entry-metadata']//dl[contains(.,'Folder')]/dd[contains(.,'${key_webContentFolder}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--FILTER-->
 <tr>
 	<td>FILTER_HOME</td>
@@ -228,7 +259,7 @@
 </tr>
 <tr>
 	<td>FILTER_SELECTED</td>
-	<td>//li[@class='app-view-navigation-entry folder active']/a</td>
+	<td>//li[contains(@class,'app-view-navigation-entry') and contains(@class,'folder') and contains(@class,'active')]/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -270,12 +301,12 @@
 </tr>
 <tr>
 	<td>ENTRY_ICON_MENULIST_ARROW</td>
-	<td>//div[@data-title='${key_webContentTitle}']//span[@class='entry-action overlay']/div/a/i[@class='caret']</td>
+	<td>//div[@data-title='${key_webContentTitle}']//span[contains(@class,'entry-action') and contains(@class,'overlay')]/div/a/i[@class='caret']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ENTRY_ICON_CHECKBOX</td>
-	<td>//div[@data-title='${key_webContentTitle}']//input[@id='_15_rowIdsJournalArticleCheckbox']</td>
+	<td>//div[@data-title='${key_webContentTitle}']//input[@name='_15_rowIdsJournalArticleCheckbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -306,12 +337,12 @@
 </tr>
 <tr>
 	<td>ENTRY_DESCRIPTIVE_MENULIST_ARROW</td>
-	<td>//div[@data-title='${key_webContentTitle}']//span[@class='entry-action overlay']/div/a/i[@class='caret']</td>
+	<td>//div[@data-title='${key_webContentTitle}']//span[contains(@class,'entry-action') and contains(@class,'overlay')]/div/a/i[contains(@class,'caret')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ENTRY_DESCRIPTIVE_CHECKBOX</td>
-	<td>//div[@data-title='${key_webContentTitle}']//input[@id='_15_rowIdsJournalArticleCheckbox']</td>
+	<td>//div[@data-title='${key_webContentTitle}']//input[@name='_15_rowIdsJournalArticleCheckbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -320,8 +351,38 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ENTRY_DESCRIPTIVE_TITLE_COPY</td>
+	<td>xpath=(//div[@data-title='${key_webContentTitle}']//span[@class='entry-title']/span)[3]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ENTRY_DESCRIPTIVE_VERSION</td>
-	<td>//div[@data-title='${key_webContentTitle}']//div[@class='entry-metadata']/small/dl/dd</td>
+	<td>//div[@data-title='${key_webContentTitle}']//div[@class='entry-metadata']/small/dl/dt[contains(.,'Version:')]/following-sibling::dd</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_LAST_UPDATED</td>
+	<td>//div[@data-title='${key_webContentTitle}']//div[@class='entry-metadata']/small/dl/dd[contains(.,'ago by ${key_userFirstLast}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_CREATED</td>
+	<td>//div[@data-title='${key_webContentTitle}']//div[@class='entry-metadata']/small/dl/dt[contains(.,'Created: ')]/following-sibling::dd</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_DISPLAY_DATE</td>
+	<td>//div[@data-title='${key_webContentTitle}']//div[@class='entry-metadata']/small/dl/dt[contains(.,'Display Date:')]/following-sibling::dd</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_CATEGORY</td>
+	<td>//div[@data-title='${key_webContentTitle}']//span[contains(@class,'asset-category') and contains(.,'${key_categoryName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ENTRY_DESCRIPTIVE_CATEGORY_COPY</td>
+	<td>xpath=(//div[@data-title='${key_webContentTitle}']//span[contains(@class,'asset-category') and contains(.,'${key_categoryName}')])[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -335,6 +396,11 @@
 	<td></td>
 </tr>
 <!--ENTRY_LIST-->
+<tr>
+	<td>ENTRY_LIST_WORKFLOW_STATUS</td>
+	<td>//tr[contains(.,'${key_webContentTitle}')]//span[@class='workflow-status']/strong</td>
+	<td></td>
+</tr>
 <tr>
 	<td></td>
 	<td></td>
@@ -373,7 +439,7 @@
 </tr>
 <tr>
 	<td>ENTRY_MENULIST_MOVE_TO_THE_RECYCLE_BIN</td>
-	<td>//ul[@class='dropdown-menu lfr-menu-list direction-down']/li/a[contains(.,'Move to the Recycle Bin')]</td>
+	<td>//ul[contains(@class,'dropdown-menu') and contains(@class,'lfr-menu-list') and contains(@class,'direction-down')]/li/a[contains(.,'Move to the Recycle Bin')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -384,27 +450,27 @@
 <!--PAGINATION-->
 <tr>
 	<td>PAGINATION_FIRST</td>
-	<td>//div[contains(@class, 'article-entries-paginator')]/a[@class='aui-paginator-link aui-paginator-first-link']</td>
+	<td>//div[contains(@class, 'article-entries-paginator')]/a[contains(@class,'aui-paginator-link') and contains(@class,'aui-paginator-first-link')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGINATION_PREVIOUS</td>
-	<td>//div[contains(@class, 'article-entries-paginator')]/a[@class='aui-paginator-link aui-paginator-prev-link']</td>
+	<td>//div[contains(@class, 'article-entries-paginator')]/a[contains(@class,'aui-paginator-link') and contains(@class,'aui-paginator-prev-link')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGINATION_CURRENT_PAGE</td>
-	<td>//a[@class='aui-paginator-link aui-paginator-page-link aui-paginator-current-page']</td>
+	<td>//a[contains(@class,'aui-paginator-link') and contains(@class,'aui-paginator-page-link') and contains(@class,'aui-paginator-current-page')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGINATION_NEXT</td>
-	<td>//div[contains(@class, 'article-entries-paginator')]/a[@class='aui-paginator-link aui-paginator-next-link']</td>
+	<td>//div[contains(@class, 'article-entries-paginator')]/a[contains(@class,'aui-paginator-link') and contains(@class,'aui-paginator-next-link')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PAGINATION_LAST</td>
-	<td>//div[contains(@class, 'article-entries-paginator')]/a[@class='aui-paginator-link aui-paginator-last-link']</td>
+	<td>//div[contains(@class, 'article-entries-paginator')]/a[contains(@class,'aui-paginator-link') and contains(@class,'aui-paginator-last-link')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,10 +28,13 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.UserNotificationDelivery;
 import com.liferay.portal.model.impl.UserNotificationDeliveryModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.UserNotificationDeliveryLocalServiceUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
@@ -40,6 +43,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -57,6 +61,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class UserNotificationDeliveryPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<UserNotificationDelivery> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -78,6 +91,10 @@ public class UserNotificationDeliveryPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<UserNotificationDelivery> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -113,6 +130,8 @@ public class UserNotificationDeliveryPersistenceTest {
 
 		UserNotificationDelivery newUserNotificationDelivery = _persistence.create(pk);
 
+		newUserNotificationDelivery.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newUserNotificationDelivery.setCompanyId(ServiceTestUtil.nextLong());
 
 		newUserNotificationDelivery.setUserId(ServiceTestUtil.nextLong());
@@ -131,6 +150,8 @@ public class UserNotificationDeliveryPersistenceTest {
 
 		UserNotificationDelivery existingUserNotificationDelivery = _persistence.findByPrimaryKey(newUserNotificationDelivery.getPrimaryKey());
 
+		Assert.assertEquals(existingUserNotificationDelivery.getMvccVersion(),
+			newUserNotificationDelivery.getMvccVersion());
 		Assert.assertEquals(existingUserNotificationDelivery.getUserNotificationDeliveryId(),
 			newUserNotificationDelivery.getUserNotificationDeliveryId());
 		Assert.assertEquals(existingUserNotificationDelivery.getCompanyId(),
@@ -147,6 +168,34 @@ public class UserNotificationDeliveryPersistenceTest {
 			newUserNotificationDelivery.getDeliveryType());
 		Assert.assertEquals(existingUserNotificationDelivery.getDeliver(),
 			newUserNotificationDelivery.getDeliver());
+	}
+
+	@Test
+	public void testCountByUserId() {
+		try {
+			_persistence.countByUserId(ServiceTestUtil.nextLong());
+
+			_persistence.countByUserId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByU_P_C_N_D() {
+		try {
+			_persistence.countByU_P_C_N_D(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt(), ServiceTestUtil.nextInt());
+
+			_persistence.countByU_P_C_N_D(0L, StringPool.NULL, 0L, 0, 0);
+
+			_persistence.countByU_P_C_N_D(0L, (String)null, 0L, 0, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -186,9 +235,10 @@ public class UserNotificationDeliveryPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("UserNotificationDelivery",
-			"userNotificationDeliveryId", true, "companyId", true, "userId",
-			true, "portletId", true, "classNameId", true, "notificationType",
-			true, "deliveryType", true, "deliver", true);
+			"mvccVersion", true, "userNotificationDeliveryId", true,
+			"companyId", true, "userId", true, "portletId", true,
+			"classNameId", true, "notificationType", true, "deliveryType",
+			true, "deliver", true);
 	}
 
 	@Test
@@ -214,16 +264,18 @@ public class UserNotificationDeliveryPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new UserNotificationDeliveryActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = UserNotificationDeliveryLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					UserNotificationDelivery userNotificationDelivery = (UserNotificationDelivery)object;
 
 					Assert.assertNotNull(userNotificationDelivery);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -341,6 +393,8 @@ public class UserNotificationDeliveryPersistenceTest {
 
 		UserNotificationDelivery userNotificationDelivery = _persistence.create(pk);
 
+		userNotificationDelivery.setMvccVersion(ServiceTestUtil.nextLong());
+
 		userNotificationDelivery.setCompanyId(ServiceTestUtil.nextLong());
 
 		userNotificationDelivery.setUserId(ServiceTestUtil.nextLong());
@@ -361,6 +415,7 @@ public class UserNotificationDeliveryPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(UserNotificationDeliveryPersistenceTest.class);
+	private ModelListener<UserNotificationDelivery>[] _modelListeners;
 	private UserNotificationDeliveryPersistence _persistence = (UserNotificationDeliveryPersistence)PortalBeanLocatorUtil.locate(UserNotificationDeliveryPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

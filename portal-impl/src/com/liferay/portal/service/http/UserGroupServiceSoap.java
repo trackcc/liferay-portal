@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.service.http;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -60,6 +62,7 @@ import java.rmi.RemoteException;
  * @see com.liferay.portal.service.UserGroupServiceUtil
  * @generated
  */
+@ProviderType
 public class UserGroupServiceSoap {
 	/**
 	* Adds the user groups to the group.
@@ -122,6 +125,7 @@ public class UserGroupServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #addUserGroup(String, String,
 	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.UserGroupSoap addUserGroup(
 		java.lang.String name, java.lang.String description)
 		throws RemoteException {
@@ -320,6 +324,7 @@ public class UserGroupServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #updateUserGroup(long,
 	String, String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.UserGroupSoap updateUserGroup(
 		long userGroupId, java.lang.String name, java.lang.String description)
 		throws RemoteException {

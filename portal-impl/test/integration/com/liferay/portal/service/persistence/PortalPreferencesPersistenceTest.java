@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,8 +28,10 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.PortalPreferences;
 import com.liferay.portal.model.impl.PortalPreferencesModelImpl;
+import com.liferay.portal.service.PortalPreferencesLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -39,6 +41,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -56,6 +59,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class PortalPreferencesPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<PortalPreferences> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -77,6 +89,10 @@ public class PortalPreferencesPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<PortalPreferences> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -112,6 +128,8 @@ public class PortalPreferencesPersistenceTest {
 
 		PortalPreferences newPortalPreferences = _persistence.create(pk);
 
+		newPortalPreferences.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newPortalPreferences.setOwnerId(ServiceTestUtil.nextLong());
 
 		newPortalPreferences.setOwnerType(ServiceTestUtil.nextInt());
@@ -122,6 +140,8 @@ public class PortalPreferencesPersistenceTest {
 
 		PortalPreferences existingPortalPreferences = _persistence.findByPrimaryKey(newPortalPreferences.getPrimaryKey());
 
+		Assert.assertEquals(existingPortalPreferences.getMvccVersion(),
+			newPortalPreferences.getMvccVersion());
 		Assert.assertEquals(existingPortalPreferences.getPortalPreferencesId(),
 			newPortalPreferences.getPortalPreferencesId());
 		Assert.assertEquals(existingPortalPreferences.getOwnerId(),
@@ -130,6 +150,19 @@ public class PortalPreferencesPersistenceTest {
 			newPortalPreferences.getOwnerType());
 		Assert.assertEquals(existingPortalPreferences.getPreferences(),
 			newPortalPreferences.getPreferences());
+	}
+
+	@Test
+	public void testCountByO_O() {
+		try {
+			_persistence.countByO_O(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByO_O(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -168,8 +201,8 @@ public class PortalPreferencesPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("PortalPreferences",
-			"portalPreferencesId", true, "ownerId", true, "ownerType", true,
-			"preferences", true);
+			"mvccVersion", true, "portalPreferencesId", true, "ownerId", true,
+			"ownerType", true, "preferences", true);
 	}
 
 	@Test
@@ -194,16 +227,18 @@ public class PortalPreferencesPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new PortalPreferencesActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = PortalPreferencesLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					PortalPreferences portalPreferences = (PortalPreferences)object;
 
 					Assert.assertNotNull(portalPreferences);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -308,6 +343,8 @@ public class PortalPreferencesPersistenceTest {
 
 		PortalPreferences portalPreferences = _persistence.create(pk);
 
+		portalPreferences.setMvccVersion(ServiceTestUtil.nextLong());
+
 		portalPreferences.setOwnerId(ServiceTestUtil.nextLong());
 
 		portalPreferences.setOwnerType(ServiceTestUtil.nextInt());
@@ -320,6 +357,7 @@ public class PortalPreferencesPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(PortalPreferencesPersistenceTest.class);
+	private ModelListener<PortalPreferences>[] _modelListeners;
 	private PortalPreferencesPersistence _persistence = (PortalPreferencesPersistence)PortalBeanLocatorUtil.locate(PortalPreferencesPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

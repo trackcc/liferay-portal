@@ -230,6 +230,23 @@
 
 /* ---------- Miscellaneous ---------- */
 
+.hsv-palette {
+	.hsv-view-container {
+		.hsv-label-value-hex .hsv-value {
+			width: 95px;
+		}
+
+		.hsv-label {
+			display: inline;
+			margin-left: 5px;
+		}
+
+		.hsv-value {
+			width: 30px;
+		}
+	}
+}
+
 .lfr-panel-container {
 	background: #FFF;
 }
@@ -262,6 +279,10 @@
 .app-view-drop-active {
 	background-color: #00A2EA;
 	font-weight: bold;
+
+	.category-portlets & {
+		color: #FFF;
+	}
 }
 
 .basecelleditor [class~="form-validator-message"] {
@@ -282,11 +303,14 @@
 	vertical-align: middle;
 }
 
-/* ---------- Menus ---------- */
+.aui .lfr-url-error {
+	display: inline-block;
+	white-space: normal;
 
-.lfr-menu-list {
-	z-index: 450;
+	@include word-break(break-all);
 }
+
+/* ---------- Menus ---------- */
 
 .lfr-page-templates li {
 	a {
@@ -441,6 +465,23 @@
 
 .tree-node-selected .tree-label {
 	background-color: transparent;
+}
+
+/* ---------- Input mirror ---------- */
+
+.lfr-autocomplete-input-list .yui3-aclist-list {
+	margin: 0;
+}
+
+.liferay-autocomplete-input-mirror {
+	left: -9999px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	position: absolute;
+	top: -9999px;
+	visibility: hidden;
+	white-space: pre-wrap;
+	word-wrap: break-word;
 }
 
 /* ---------- Page customization ---------- */
@@ -609,6 +650,12 @@
 	width: 25px;
 }
 
+.yui3-color-picker-popover {
+	.palette-container {
+		border-collapse: separate;
+	}
+}
+
 .ie {
 	.proxy.not-intersecting .forbidden-action {
 		right: 2px;
@@ -645,7 +692,7 @@
 
 .ios.mobile {
 	.modal-content .dialog-iframe-bd {
-		overflow: auto;
 		-webkit-overflow-scrolling: touch;
+		overflow: auto;
 	}
 }

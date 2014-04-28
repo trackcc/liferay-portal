@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,10 +17,12 @@ package com.liferay.portlet.dynamicdatalists.service.impl;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -29,6 +31,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.documentlibrary.util.DLUtil;
@@ -38,12 +41,15 @@ import com.liferay.portlet.dynamicdatalists.model.DDLRecordConstants;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecordSet;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecordVersion;
 import com.liferay.portlet.dynamicdatalists.service.base.DDLRecordLocalServiceBaseImpl;
+import com.liferay.portlet.dynamicdatalists.util.DDL;
+import com.liferay.portlet.dynamicdatalists.util.DDLUtil;
 import com.liferay.portlet.dynamicdatalists.util.comparator.DDLRecordVersionVersionComparator;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.storage.Field;
 import com.liferay.portlet.dynamicdatamapping.storage.Fields;
 import com.liferay.portlet.dynamicdatamapping.storage.StorageEngineUtil;
 import com.liferay.portlet.dynamicdatamapping.util.DDMUtil;
+import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.Serializable;
 
@@ -143,6 +149,9 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	}
 
 	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
 	public void deleteRecord(DDLRecord record)
 		throws PortalException, SystemException {
 
@@ -183,7 +192,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		DDLRecord record = ddlRecordPersistence.findByPrimaryKey(recordId);
 
-		deleteRecord(record);
+		ddlRecordLocalService.deleteRecord(record);
 	}
 
 	@Override
@@ -215,7 +224,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			recordSetId);
 
 		for (DDLRecord record : records) {
-			deleteRecord(record);
+			ddlRecordLocalService.deleteRecord(record);
 		}
 	}
 
@@ -238,6 +247,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getCompanyRecords(long, int,
 	 *             int, int, int, OrderByComparator)}
 	 */
+	@Deprecated
 	@Override
 	public List<DDLRecord> getCompanyRecords(
 			long companyId, int scope, int start, int end,
@@ -253,6 +263,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getCompanyRecordsCount(long,
 	 *             int, int)}
 	 */
+	@Deprecated
 	@Override
 	public int getCompanyRecordsCount(long companyId, int scope)
 		throws SystemException {
@@ -405,6 +416,27 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 	}
 
 	@Override
+	public BaseModelSearchResult<DDLRecord> searchDDLRecords(
+			SearchContext searchContext)
+		throws SystemException {
+
+		try {
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				DDLRecord.class);
+
+			Hits hits = indexer.search(searchContext, DDL.SELECTED_FIELD_NAMES);
+
+			List<DDLRecord> ddlRecords = DDLUtil.getRecords(hits);
+
+			return new BaseModelSearchResult<DDLRecord>(
+				ddlRecords, hits.getLength());
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+	}
+
+	@Override
 	public void updateAsset(
 			long userId, DDLRecord record, DDLRecordVersion recordVersion,
 			long[] assetCategoryIds, String[] assetTagNames, Locale locale)
@@ -443,7 +475,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		String title = LanguageUtil.format(
 			locale, "new-x-for-list-x",
-			new Object[] {ddmStructureName, recordSetName});
+			new Object[] {ddmStructureName, recordSetName}, false);
 
 		if (addDraftAssetEntry) {
 			assetEntryLocalService.updateEntry(
@@ -516,6 +548,20 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			updateRecordVersion(
 				user, recordVersion, version, displayIndex,
 				recordVersion.getStatus(), serviceContext);
+		}
+
+		if (!majorVersion &&
+			isKeepRecordVersionLabel(
+				record.getRecordVersion(), recordVersion,
+				serviceContext.getWorkflowAction())) {
+
+			ddlRecordVersionPersistence.remove(recordVersion);
+
+			// Dynamic data mapping storage
+
+			StorageEngineUtil.deleteByClass(recordVersion.getDDMStorageId());
+
+			return record;
 		}
 
 		// Workflow
@@ -682,6 +728,51 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 		}
 
 		return versionParts[0] + StringPool.PERIOD + versionParts[1];
+	}
+
+	/**
+	 * @see com.liferay.portlet.documentlibrary.service.impl.DLFileEntryLocalServiceImpl#isKeepFileVersionLabel(
+	 *      DLFileEntry, DLFileVersion, DLFileVersion, int)
+	 */
+	protected boolean isKeepRecordVersionLabel(
+			DDLRecordVersion lastRecordVersion,
+			DDLRecordVersion latestRecordVersion, int workflowContext)
+		throws PortalException {
+
+		if (workflowContext == WorkflowConstants.ACTION_SAVE_DRAFT) {
+			return false;
+		}
+
+		if (Validator.equals(
+				lastRecordVersion.getVersion(),
+				latestRecordVersion.getVersion())) {
+
+			return false;
+		}
+
+		Fields lastFields = StorageEngineUtil.getFields(
+			lastRecordVersion.getDDMStorageId());
+		Fields latestFields = StorageEngineUtil.getFields(
+			latestRecordVersion.getDDMStorageId());
+
+		if (!lastFields.equals(latestFields, false)) {
+			return false;
+		}
+
+		ExpandoBridge lastExpandoBridge = lastRecordVersion.getExpandoBridge();
+		ExpandoBridge latestExpandoBridge =
+			latestRecordVersion.getExpandoBridge();
+
+		Map<String, Serializable> lastAttributes =
+			lastExpandoBridge.getAttributes();
+		Map<String, Serializable> latestAttributes =
+			latestExpandoBridge.getAttributes();
+
+		if (!lastAttributes.equals(latestAttributes)) {
+			return false;
+		}
+
+		return true;
 	}
 
 	protected Fields toFields(

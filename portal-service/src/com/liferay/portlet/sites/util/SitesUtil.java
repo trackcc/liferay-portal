@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -270,6 +270,7 @@ public class SitesUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #mergeLayoutPrototypeLayout(Group, Layout)}
 	 */
+	@Deprecated
 	public static void mergeLayoutProtypeLayout(Group group, Layout layout)
 		throws Exception {
 
@@ -287,6 +288,7 @@ public class SitesUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #mergeLayoutSetPrototypeLayouts(Group, LayoutSet)}
 	 */
+	@Deprecated
 	public static void mergeLayoutSetProtypeLayouts(
 			Group group, LayoutSet layoutSet)
 		throws Exception {

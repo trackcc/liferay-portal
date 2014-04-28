@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,6 +31,10 @@ portletURL.setParameter("className", className);
 portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 %>
 
+<div class="alert alert-error hide" id="<portlet:namespace />message">
+	<span class="error-message"><%= LanguageUtil.get(pageContext, "the-field-value-is-invalid") %></span>
+</div>
+
 <div id="<portlet:namespace />selectDDMStructureFieldForm">
 	<liferay-ui:search-container
 		iteratorURL="<%= portletURL %>"
@@ -53,7 +57,7 @@ portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 			%>
 
 			<liferay-ui:search-container-column-text>
-				<input data-button-id="<%= renderResponse.getNamespace() + "applyButton" + name %>" data-form-id="<%= renderResponse.getNamespace() + name + "fieldForm" %>" name="<portlet:namespace />selectStructureFieldSubtype" type="radio" <%= name.equals(ddmStructureFieldName) ? "checked" : StringPool.BLANK %> />
+				<input data-button-id="<%= renderResponse.getNamespace() + "applyButton" + name %>" data-form-id="<%= renderResponse.getNamespace() + name + "fieldForm" %>" name="<portlet:namespace />selectStructureFieldSubtype" type="radio" <%= name.equals(assetPublisherDisplayContext.getDDMStructureFieldName()) ? "checked" : StringPool.BLANK %> />
 			</liferay-ui:search-container-column-text>
 
 			<%
@@ -81,7 +85,9 @@ portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 					ddmField.setDDMStructureId(ddmStructureId);
 					ddmField.setName(name);
 
-					if (name.equals(ddmStructureFieldName)) {
+					Serializable ddmStructureFieldValue = assetPublisherDisplayContext.getDDMStructureFieldValue();
+
+					if (name.equals(assetPublisherDisplayContext.getDDMStructureFieldName())) {
 						if (fieldType.equals(DDMImpl.TYPE_DDM_DATE)) {
 							ddmStructureFieldValue = GetterUtil.getDate(ddmStructureFieldValue, DateFormatFactoryUtil.getSimpleDateFormat("yyyyMMddHHmmss"));
 						}
@@ -109,7 +115,7 @@ portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 				data.put("name", name);
 				%>
 
-				<aui:button cssClass="selector-button" data="<%= data %>" disabled="<%= name.equals(ddmStructureFieldName) ? false : true %>" id='<%= renderResponse.getNamespace() + "applyButton" + name %>' value="apply" />
+				<aui:button cssClass="selector-button" data="<%= data %>" disabled="<%= name.equals(assetPublisherDisplayContext.getDDMStructureFieldName()) ? false : true %>" id='<%= renderResponse.getNamespace() + "applyButton" + name %>' value="apply" />
 			</liferay-ui:search-container-column-text>
 		</liferay-ui:search-container-row>
 
@@ -144,13 +150,22 @@ portletURL.setParameter("classTypeId", String.valueOf(classTypeId));
 					success: function(event, id, obj) {
 						var respondData = this.get('responseData');
 
-						result.className = '<%= AssetPublisherUtil.getClassName(assetRendererFactory) %>';
-						result.displayValue = respondData.displayValue;
-						result.value = respondData.value;
+						var message = A.one('#<portlet:namespace />message');
 
-						Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
+						if (respondData.success) {
+							result.className = '<%= AssetPublisherUtil.getClassName(assetRendererFactory) %>';
+							result.displayValue = respondData.displayValue;
+							result.value = respondData.value;
 
-						Util.getWindow().hide();
+							message.hide();
+
+							Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
+
+							Util.getWindow().hide();
+						}
+						else {
+							message.show();
+						}
 					}
 				}
 			}

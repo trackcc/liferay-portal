@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.shopping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see ShoppingCartLocalService
  * @generated
  */
+@ProviderType
 public class ShoppingCartLocalServiceWrapper implements ShoppingCartLocalService,
 	ServiceWrapper<ShoppingCartLocalService> {
 	public ShoppingCartLocalServiceWrapper(
@@ -206,6 +209,12 @@ public class ShoppingCartLocalServiceWrapper implements ShoppingCartLocalService
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _shoppingCartLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -318,6 +327,7 @@ public class ShoppingCartLocalServiceWrapper implements ShoppingCartLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ShoppingCartLocalService getWrappedShoppingCartLocalService() {
 		return _shoppingCartLocalService;
 	}
@@ -325,6 +335,7 @@ public class ShoppingCartLocalServiceWrapper implements ShoppingCartLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedShoppingCartLocalService(
 		ShoppingCartLocalService shoppingCartLocalService) {
 		_shoppingCartLocalService = shoppingCartLocalService;

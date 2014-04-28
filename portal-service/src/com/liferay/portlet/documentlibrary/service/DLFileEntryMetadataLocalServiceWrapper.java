@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see DLFileEntryMetadataLocalService
  * @generated
  */
+@ProviderType
 public class DLFileEntryMetadataLocalServiceWrapper
 	implements DLFileEntryMetadataLocalService,
 		ServiceWrapper<DLFileEntryMetadataLocalService> {
@@ -209,6 +212,12 @@ public class DLFileEntryMetadataLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileEntryMetadataLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -332,6 +341,7 @@ public class DLFileEntryMetadataLocalServiceWrapper
 	* @deprecated As of 6.2.0, replaced by {@link
 	#getFileVersionFileEntryMetadatasCount(long)}
 	*/
+	@Deprecated
 	@Override
 	public long getFileEntryMetadataCount(long fileEntryId, long fileVersionId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -379,6 +389,7 @@ public class DLFileEntryMetadataLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DLFileEntryMetadataLocalService getWrappedDLFileEntryMetadataLocalService() {
 		return _dlFileEntryMetadataLocalService;
 	}
@@ -386,6 +397,7 @@ public class DLFileEntryMetadataLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDLFileEntryMetadataLocalService(
 		DLFileEntryMetadataLocalService dlFileEntryMetadataLocalService) {
 		_dlFileEntryMetadataLocalService = dlFileEntryMetadataLocalService;

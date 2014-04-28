@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,10 @@
 
 package com.liferay.portal.kernel.trash;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.SystemEvent;
 import com.liferay.portal.model.TrashedModel;
@@ -86,6 +87,7 @@ import javax.portlet.PortletRequest;
  * @author Alexander Chow
  * @author Zsolt Berentey
  */
+@ProviderType
 public interface TrashHandler {
 
 	public SystemEvent addDeletionSystemEvent(
@@ -93,7 +95,42 @@ public interface TrashHandler {
 			String referrerClassName)
 		throws PortalException, SystemException;
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #checkRestorableEntry(long,
+	 *             long, String)}
+	 */
+	@Deprecated
 	public void checkDuplicateEntry(
+			long classPK, long containerModelId, String newName)
+		throws PortalException, SystemException;
+
+	/**
+	 * Checks if a duplicate trash entry already exists in the destination
+	 * container.
+	 *
+	 * <p>
+	 * This method is used to check for duplicates when a trash entry is being
+	 * restored or moved out of the Recycle Bin.
+	 * </p>
+	 *
+	 * @param      trashEntry the trash entry to check
+	 * @param      containerModelId the primary key of the destination (e.g.
+	 *             folder)
+	 * @param      newName the new name to be assigned to the trash entry
+	 *             (optionally <code>null</code> to forego renaming the trash
+	 *             entry)
+	 * @throws     PortalException if a duplicate trash entry already existed in
+	 *             the destination container
+	 * @throws     SystemException if a system exception occurred
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #checkRestorableEntry(TrashEntry, long, String)}
+	 */
+	@Deprecated
+	public void checkDuplicateTrashEntry(
+			TrashEntry trashEntry, long containerModelId, String newName)
+		throws PortalException, SystemException;
+
+	public void checkRestorableEntry(
 			long classPK, long containerModelId, String newName)
 		throws PortalException, SystemException;
 
@@ -114,7 +151,7 @@ public interface TrashHandler {
 	 *         destination container
 	 * @throws SystemException if a system exception occurred
 	 */
-	public void checkDuplicateTrashEntry(
+	public void checkRestorableEntry(
 			TrashEntry trashEntry, long containerModelId, String newName)
 		throws PortalException, SystemException;
 
@@ -385,9 +422,6 @@ public interface TrashHandler {
 			long classPK, int start, int end)
 		throws PortalException, SystemException;
 
-	public ContainerModel getTrashContainer(long classPK)
-		throws PortalException, SystemException;
-
 	/**
 	 * Returns the name of the container model.
 	 *
@@ -564,9 +598,6 @@ public interface TrashHandler {
 	 */
 	public boolean isRestorable(long classPK)
 		throws PortalException, SystemException;
-
-	public boolean isTrashEntry(
-		TrashEntry trashEntry, ClassedModel classedModel);
 
 	/**
 	 * Moves the entity with the class primary key to the container model with

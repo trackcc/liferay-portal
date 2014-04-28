@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -566,6 +566,10 @@ public class DLStoreUtil {
 			companyId, repositoryId, fileName, versionLabel);
 	}
 
+	public static boolean isValidName(String name) {
+		return getStore().isValidName(name);
+	}
+
 	/**
 	 * Moves an existing directory. Only implemented by {@link
 	 * JCRStore#move(String, String)}.
@@ -797,6 +801,12 @@ public class DLStoreUtil {
 
 		getStore().validate(
 			fileName, fileExtension, sourceFileName, validateFileExtension, is);
+	}
+
+	public static void validateDirectoryName(String directoryName)
+		throws PortalException {
+
+		getStore().validateDirectoryName(directoryName);
 	}
 
 	/**

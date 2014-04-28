@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,6 +36,7 @@ public class ServiceMonitorAdvice extends ChainableMethodAdvice {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static ServiceMonitorAdvice getInstance() {
 		return new ServiceMonitorAdvice();
 	}
@@ -114,6 +115,8 @@ public class ServiceMonitorAdvice extends ChainableMethodAdvice {
 
 		_serviceRequestDataSampleThreadLocal.set(serviceRequestDataSample);
 
+		DataSampleThreadLocal.initialize();
+
 		return null;
 	}
 
@@ -160,6 +163,7 @@ public class ServiceMonitorAdvice extends ChainableMethodAdvice {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setMonitoringDestinationName(String monitoringDestinationName) {
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link RoleLocalService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see RoleLocalService
  * @generated
  */
+@ProviderType
 public class RoleLocalServiceWrapper implements RoleLocalService,
 	ServiceWrapper<RoleLocalService> {
 	public RoleLocalServiceWrapper(RoleLocalService roleLocalService) {
@@ -213,6 +216,19 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _roleLocalService.getRole(roleId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _roleLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _roleLocalService.getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	@Override
@@ -630,6 +646,7 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #addRole(long, String, long,
 	String, Map, Map, int, String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Role addRole(long userId, long companyId,
 		java.lang.String name,
@@ -666,6 +683,7 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #addRole(long, String, long,
 	String, Map, Map, int, String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Role addRole(long userId, long companyId,
 		java.lang.String name,
@@ -1125,8 +1143,8 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	* @param groups the groups (optionally <code>null</code>)
 	* @return the union of all the user's roles within the groups
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	long, List)
+	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	List)
 	*/
 	@Override
 	public java.util.List<com.liferay.portal.model.Role> getUserRelatedRoles(
@@ -1142,8 +1160,8 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	* @param groupId the primary key of the group
 	* @return the user's roles within the group
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	long, long)
+	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	long)
 	*/
 	@Override
 	public java.util.List<com.liferay.portal.model.Role> getUserRelatedRoles(
@@ -1159,8 +1177,8 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	* @param groupIds the primary keys of the groups
 	* @return the union of all the user's roles within the groups
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	long, long[])
+	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	long[])
 	*/
 	@Override
 	public java.util.List<com.liferay.portal.model.Role> getUserRelatedRoles(
@@ -1537,6 +1555,7 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public RoleLocalService getWrappedRoleLocalService() {
 		return _roleLocalService;
 	}
@@ -1544,6 +1563,7 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedRoleLocalService(RoleLocalService roleLocalService) {
 		_roleLocalService = roleLocalService;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,12 +23,15 @@ import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -36,27 +39,35 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.TreeModelFinder;
+import com.liferay.portal.kernel.util.TreePathUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Company;
+import com.liferay.portal.model.Country;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.GroupConstants;
-import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.ListTypeConstants;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.OrganizationConstants;
+import com.liferay.portal.model.Region;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserGroupRole;
 import com.liferay.portal.model.impl.OrganizationImpl;
 import com.liferay.portal.security.permission.PermissionCacheUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.OrganizationLocalServiceBaseImpl;
+import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.comparator.OrganizationIdComparator;
 import com.liferay.portal.util.comparator.OrganizationNameComparator;
+import com.liferay.portlet.usersadmin.util.UsersAdminUtil;
 import com.liferay.util.dao.orm.CustomSQLUtil;
 
 import java.io.Serializable;
@@ -64,12 +75,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -175,6 +184,7 @@ public class OrganizationLocalServiceImpl
 	 *             String, String, long, long, int, String, boolean,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Organization addOrganization(
 			long userId, long parentOrganizationId, String name, String type,
@@ -366,7 +376,7 @@ public class OrganizationLocalServiceImpl
 	}
 
 	/**
-	 * Deletes the logo of the organization.
+	 * Deletes the organization's logo.
 	 *
 	 * @param  organizationId the primary key of the organization
 	 * @throws PortalException if an organization or parent organization with
@@ -380,37 +390,7 @@ public class OrganizationLocalServiceImpl
 
 		Organization organization = getOrganization(organizationId);
 
-		Group group = organization.getGroup();
-
-		LayoutSet publicLayoutSet = layoutSetLocalService.getLayoutSet(
-			group.getGroupId(), false);
-
-		if (publicLayoutSet.isLogo()) {
-			long logoId = publicLayoutSet.getLogoId();
-
-			publicLayoutSet.setLogo(false);
-			publicLayoutSet.setLogoId(0);
-
-			layoutSetPersistence.update(publicLayoutSet);
-
-			imageLocalService.deleteImage(logoId);
-		}
-
-		LayoutSet privateLayoutSet = layoutSetLocalService.getLayoutSet(
-			group.getGroupId(), true);
-
-		if (privateLayoutSet.isLogo()) {
-			long logoId = privateLayoutSet.getLogoId();
-
-			privateLayoutSet.setLogo(false);
-			privateLayoutSet.setLogoId(0);
-
-			layoutSetPersistence.update(privateLayoutSet);
-
-			if (imageLocalService.getImage(logoId) != null) {
-				imageLocalService.deleteImage(logoId);
-			}
-		}
+		PortalUtil.updateImageId(organization, false, null, "logoId", 0, 0, 0);
 	}
 
 	/**
@@ -431,7 +411,7 @@ public class OrganizationLocalServiceImpl
 		Organization organization = organizationPersistence.findByPrimaryKey(
 			organizationId);
 
-		return deleteOrganization(organization);
+		return organizationLocalService.deleteOrganization(organization);
 	}
 
 	/**
@@ -445,6 +425,7 @@ public class OrganizationLocalServiceImpl
 	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public Organization deleteOrganization(Organization organization)
 		throws PortalException, SystemException {
 
@@ -1006,55 +987,24 @@ public class OrganizationLocalServiceImpl
 	public void rebuildTree(long companyId)
 		throws PortalException, SystemException {
 
-		Deque<Object[]> traces = new LinkedList<Object[]>();
+		TreePathUtil.rebuildTree(
+			companyId, OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			new TreeModelFinder<Organization>() {
 
-		traces.push(
-			new Object[] {
-				GetterUtil.getLong(
-					OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID),
-				StringPool.SLASH, 0L
-			});
+				@Override
+				public List<Organization> findTreeModels(
+						long previousId, long companyId, long parentPrimaryKey,
+						int size)
+					throws SystemException {
 
-		Object[] trace = null;
+					return organizationPersistence.findByO_C_P(
+						previousId, companyId, parentPrimaryKey,
+						QueryUtil.ALL_POS, size,
+						new OrganizationIdComparator(true));
+				}
 
-		while ((trace = traces.poll()) != null) {
-			Long parentOrganizationId = (Long)trace[0];
-			String parentPath = (String)trace[1];
-			Long previousOrganizationId = (Long)trace[2];
-
-			List<Long> childOrganizationIds = organizationFinder.findByC_P(
-				companyId, parentOrganizationId, previousOrganizationId,
-				PropsValues.MODEL_TREE_REBUILD_QUERY_RESULTS_BATCH_SIZE);
-
-			if (childOrganizationIds.isEmpty()) {
-				continue;
 			}
-
-			if (childOrganizationIds.size() ==
-					PropsValues.MODEL_TREE_REBUILD_QUERY_RESULTS_BATCH_SIZE) {
-
-				trace[2] = childOrganizationIds.get(
-					childOrganizationIds.size() - 1);
-
-				traces.push(trace);
-			}
-
-			for (long childOrganizationId : childOrganizationIds) {
-				String path = parentPath.concat(
-					String.valueOf(childOrganizationId)).concat(
-						StringPool.SLASH);
-
-				Organization organization =
-					organizationPersistence.findByPrimaryKey(
-						childOrganizationId);
-
-				organization.setTreePath(path);
-
-				organizationPersistence.update(organization);
-
-				traces.push(new Object[] {childOrganizationId, path, 0L});
-			}
-		}
+		);
 	}
 
 	/**
@@ -1415,52 +1365,12 @@ public class OrganizationLocalServiceImpl
 		throws SystemException {
 
 		try {
-			SearchContext searchContext = new SearchContext();
-
-			searchContext.setAndSearch(andSearch);
-
-			Map<String, Serializable> attributes =
-				new HashMap<String, Serializable>();
-
-			attributes.put("city", city);
-			attributes.put("country", country);
-			attributes.put("name", name);
-			attributes.put("params", params);
-			attributes.put(
-				"parentOrganizationId", String.valueOf(parentOrganizationId));
-			attributes.put("region", region);
-			attributes.put("street", street);
-			attributes.put("type", type);
-			attributes.put("zip", zip);
-
-			searchContext.setAttributes(attributes);
-
-			searchContext.setCompanyId(companyId);
-			searchContext.setEnd(end);
-
-			if (params != null) {
-				String keywords = (String)params.remove("keywords");
-
-				if (Validator.isNotNull(keywords)) {
-					searchContext.setKeywords(keywords);
-				}
-			}
-
-			QueryConfig queryConfig = new QueryConfig();
-
-			queryConfig.setHighlightEnabled(false);
-			queryConfig.setScoreEnabled(false);
-
-			searchContext.setQueryConfig(queryConfig);
-
-			if (sort != null) {
-				searchContext.setSorts(sort);
-			}
-
-			searchContext.setStart(start);
-
 			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
 				Organization.class);
+
+			SearchContext searchContext = buildSearchContext(
+				companyId, parentOrganizationId, name, type, street, city, zip,
+				region, country, params, andSearch, start, end, sort);
 
 			return indexer.search(searchContext);
 		}
@@ -1498,17 +1408,58 @@ public class OrganizationLocalServiceImpl
 			LinkedHashMap<String, Object> params)
 		throws SystemException {
 
-		String parentOrganizationIdComparator = StringPool.EQUAL;
+		if (!PropsValues.ORGANIZATIONS_INDEXER_ENABLED ||
+			!PropsValues.ORGANIZATIONS_SEARCH_WITH_INDEX) {
 
-		if (parentOrganizationId ==
-				OrganizationConstants.ANY_PARENT_ORGANIZATION_ID) {
+			String parentOrganizationIdComparator = StringPool.EQUAL;
 
-			parentOrganizationIdComparator = StringPool.NOT_EQUAL;
+			if (parentOrganizationId ==
+					OrganizationConstants.ANY_PARENT_ORGANIZATION_ID) {
+
+				parentOrganizationIdComparator = StringPool.NOT_EQUAL;
+			}
+
+			return organizationFinder.countByKeywords(
+				companyId, parentOrganizationId, parentOrganizationIdComparator,
+				keywords, type, regionId, countryId, params);
 		}
 
-		return organizationFinder.countByKeywords(
-			companyId, parentOrganizationId, parentOrganizationIdComparator,
-			keywords, type, regionId, countryId, params);
+		try {
+			String name = null;
+			String street = null;
+			String city = null;
+			String zip = null;
+			boolean andOperator = false;
+
+			if (Validator.isNotNull(keywords)) {
+				name = keywords;
+				street = keywords;
+				city = keywords;
+				zip = keywords;
+			}
+			else {
+				andOperator = true;
+			}
+
+			if (params != null) {
+				params.put("keywords", keywords);
+			}
+
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				Organization.class);
+
+			SearchContext searchContext = buildSearchContext(
+				companyId, parentOrganizationId, name, type, street, city, zip,
+				regionId, countryId, params, andOperator, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, null);
+
+			Hits hits = indexer.search(searchContext);
+
+			return hits.getLength();
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
 	}
 
 	/**
@@ -1548,18 +1499,107 @@ public class OrganizationLocalServiceImpl
 			boolean andOperator)
 		throws SystemException {
 
-		String parentOrganizationIdComparator = StringPool.EQUAL;
+		if (!PropsValues.ORGANIZATIONS_INDEXER_ENABLED ||
+			!PropsValues.ORGANIZATIONS_SEARCH_WITH_INDEX) {
 
-		if (parentOrganizationId ==
-				OrganizationConstants.ANY_PARENT_ORGANIZATION_ID) {
+			String parentOrganizationIdComparator = StringPool.EQUAL;
 
-			parentOrganizationIdComparator = StringPool.NOT_EQUAL;
+			if (parentOrganizationId ==
+					OrganizationConstants.ANY_PARENT_ORGANIZATION_ID) {
+
+				parentOrganizationIdComparator = StringPool.NOT_EQUAL;
+			}
+
+			return organizationFinder.countByC_PO_N_T_S_C_Z_R_C(
+				companyId, parentOrganizationId, parentOrganizationIdComparator,
+				name, type, street, city, zip, regionId, countryId, params,
+				andOperator);
 		}
 
-		return organizationFinder.countByC_PO_N_T_S_C_Z_R_C(
-			companyId, parentOrganizationId, parentOrganizationIdComparator,
-			name, type, street, city, zip, regionId, countryId, params,
-			andOperator);
+		try {
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				Organization.class);
+
+			SearchContext searchContext = buildSearchContext(
+				companyId, parentOrganizationId, name, type, street, city, zip,
+				regionId, countryId, params, andOperator, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, null);
+
+			Hits hits = indexer.search(searchContext);
+
+			return hits.getLength();
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+	}
+
+	@Override
+	public BaseModelSearchResult<Organization> searchOrganizations(
+			long companyId, long parentOrganizationId, String keywords,
+			LinkedHashMap<String, Object> params, int start, int end, Sort sort)
+		throws PortalException, SystemException {
+
+		String name = null;
+		String type = null;
+		String street = null;
+		String city = null;
+		String zip = null;
+		String region = null;
+		String country = null;
+		boolean andOperator = false;
+
+		if (Validator.isNotNull(keywords)) {
+			name = keywords;
+			type = keywords;
+			street = keywords;
+			city = keywords;
+			zip = keywords;
+			region = keywords;
+			country = keywords;
+		}
+		else {
+			andOperator = true;
+		}
+
+		if (params != null) {
+			params.put("keywords", keywords);
+		}
+
+		return searchOrganizations(
+			companyId, parentOrganizationId, name, type, street, city, zip,
+			region, country, params, andOperator, start, end, sort);
+	}
+
+	@Override
+	public BaseModelSearchResult<Organization> searchOrganizations(
+			long companyId, long parentOrganizationId, String name, String type,
+			String street, String city, String zip, String region,
+			String country, LinkedHashMap<String, Object> params,
+			boolean andSearch, int start, int end, Sort sort)
+		throws PortalException, SystemException {
+
+		Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+			Organization.class);
+
+		SearchContext searchContext = buildSearchContext(
+			companyId, parentOrganizationId, name, type, street, city, zip,
+			region, country, params, andSearch, start, end, sort);
+
+		for (int i = 0; i < 10; i++) {
+			Hits hits = indexer.search(searchContext);
+
+			List<Organization> organizations = UsersAdminUtil.getOrganizations(
+				hits);
+
+			if (organizations != null) {
+				return new BaseModelSearchResult<Organization>(
+					organizations, hits.getLength());
+			}
+		}
+
+		throw new SearchException(
+			"Unable to fix the search index after 10 attempts");
 	}
 
 	/**
@@ -1673,8 +1713,9 @@ public class OrganizationLocalServiceImpl
 	 * @throws     SystemException if a system exception occurred
 	 * @deprecated As of 6.2.0, replaced by {@link #updateOrganization(long,
 	 *             long, long, String, String, long, long, int, String, boolean,
-	 *             ServiceContext)}
+	 *             byte[], boolean, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Organization updateOrganization(
 			long companyId, long organizationId, long parentOrganizationId,
@@ -1685,7 +1726,8 @@ public class OrganizationLocalServiceImpl
 
 		return updateOrganization(
 			companyId, organizationId, parentOrganizationId, name, type,
-			regionId, countryId, statusId, comments, site, serviceContext);
+			regionId, countryId, statusId, comments, true, null, site,
+			serviceContext);
 	}
 
 	/**
@@ -1701,6 +1743,8 @@ public class OrganizationLocalServiceImpl
 	 * @param  countryId the primary key of the organization's country
 	 * @param  statusId the organization's workflow status
 	 * @param  comments the comments about the organization
+	 * @param  logo whether to update the ogranization's logo
+	 * @param  logoBytes the new logo image data
 	 * @param  site whether the organization is to be associated with a main
 	 *         site
 	 * @param  serviceContext the service context to be applied (optionally
@@ -1717,8 +1761,8 @@ public class OrganizationLocalServiceImpl
 	public Organization updateOrganization(
 			long companyId, long organizationId, long parentOrganizationId,
 			String name, String type, long regionId, long countryId,
-			int statusId, String comments, boolean site,
-			ServiceContext serviceContext)
+			int statusId, String comments, boolean logo, byte[] logoBytes,
+			boolean site, ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
 		// Organization
@@ -1746,6 +1790,13 @@ public class OrganizationLocalServiceImpl
 		organization.setCountryId(countryId);
 		organization.setStatusId(statusId);
 		organization.setComments(comments);
+
+		PortalUtil.updateImageId(
+			organization, logo, logoBytes, "logoId",
+			PrefsPropsUtil.getLong(PropsKeys.USERS_IMAGE_MAX_SIZE),
+			PropsValues.USERS_IMAGE_MAX_HEIGHT,
+			PropsValues.USERS_IMAGE_MAX_WIDTH);
+
 		organization.setExpandoBridgeAttributes(serviceContext);
 
 		organizationPersistence.update(organization);
@@ -1819,6 +1870,48 @@ public class OrganizationLocalServiceImpl
 		return organization;
 	}
 
+	/**
+	 * Updates the organization.
+	 *
+	 * @param      companyId the primary key of the organization's company
+	 * @param      organizationId the primary key of the organization
+	 * @param      parentOrganizationId the primary key of organization's parent
+	 *             organization
+	 * @param      name the organization's name
+	 * @param      type the organization's type
+	 * @param      regionId the primary key of the organization's region
+	 * @param      countryId the primary key of the organization's country
+	 * @param      statusId the organization's workflow status
+	 * @param      comments the comments about the organization
+	 * @param      site whether the organization is to be associated with a main
+	 *             site
+	 * @param      serviceContext the service context to be applied (optionally
+	 *             <code>null</code>). Can set asset category IDs and asset tag
+	 *             names for the organization, and merge expando bridge
+	 *             attributes for the organization.
+	 * @return     the organization
+	 * @throws     PortalException if an organization or parent organization
+	 *             with the primary key could not be found or if the new
+	 *             information was invalid
+	 * @throws     SystemException if a system exception occurred
+	 * @deprecated As of 7.0.0, replaced by {@link #updateOrganization(long,
+	 *             long, long, String, String, long, long, int, String, boolean,
+	 *             boolean, byte[], ServiceContext)}
+	 */
+	@Deprecated
+	@Override
+	public Organization updateOrganization(
+			long companyId, long organizationId, long parentOrganizationId,
+			String name, String type, long regionId, long countryId,
+			int statusId, String comments, boolean site,
+			ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		return updateOrganization(
+			companyId, organizationId, parentOrganizationId, name, type,
+			regionId, countryId, statusId, comments, site, serviceContext);
+	}
+
 	protected void addSuborganizations(
 			List<Organization> allSuborganizations,
 			List<Organization> organizations)
@@ -1836,6 +1929,85 @@ public class OrganizationLocalServiceImpl
 				addSuborganizations(allSuborganizations, suborganizations);
 			}
 		}
+	}
+
+	protected SearchContext buildSearchContext(
+			long companyId, long parentOrganizationId, String name, String type,
+			String street, String city, String zip, Long regionId,
+			Long countryId, LinkedHashMap<String, Object> params,
+			boolean andSearch, int start, int end, Sort sort)
+		throws SystemException {
+
+		String regionCode = null;
+
+		if (regionId != null) {
+			Region region = regionService.fetchRegion(regionId);
+
+			regionCode = region.getRegionCode();
+		}
+
+		String countryName = null;
+
+		if (countryId != null) {
+			Country country = countryService.fetchCountry(countryId);
+
+			countryName = country.getName();
+		}
+
+		return buildSearchContext(
+			companyId, parentOrganizationId, name, type, street, city, zip,
+			regionCode, countryName, params, andSearch, start, end, sort);
+	}
+
+	protected SearchContext buildSearchContext(
+		long companyId, long parentOrganizationId, String name, String type,
+		String street, String city, String zip, String region, String country,
+		LinkedHashMap<String, Object> params, boolean andSearch, int start,
+		int end, Sort sort) {
+
+		SearchContext searchContext = new SearchContext();
+
+		searchContext.setAndSearch(andSearch);
+
+		Map<String, Serializable> attributes =
+			new HashMap<String, Serializable>();
+
+		attributes.put("city", city);
+		attributes.put("country", country);
+		attributes.put("name", name);
+		attributes.put("params", params);
+		attributes.put(
+			"parentOrganizationId", String.valueOf(parentOrganizationId));
+		attributes.put("region", region);
+		attributes.put("street", street);
+		attributes.put("type", type);
+		attributes.put("zip", zip);
+
+		searchContext.setAttributes(attributes);
+
+		searchContext.setCompanyId(companyId);
+		searchContext.setEnd(end);
+
+		if (params != null) {
+			String keywords = (String)params.remove("keywords");
+
+			if (Validator.isNotNull(keywords)) {
+				searchContext.setKeywords(keywords);
+			}
+		}
+
+		if (sort != null) {
+			searchContext.setSorts(sort);
+		}
+
+		searchContext.setStart(start);
+
+		QueryConfig queryConfig = searchContext.getQueryConfig();
+
+		queryConfig.setHighlightEnabled(false);
+		queryConfig.setScoreEnabled(false);
+
+		return searchContext;
 	}
 
 	protected long getParentOrganizationId(

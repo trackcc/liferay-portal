@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.documentlibrary.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see DLFileEntry
  * @generated
  */
+@ProviderType
 public class DLFileEntryWrapper implements DLFileEntry,
 	ModelWrapper<DLFileEntry> {
 	public DLFileEntryWrapper(DLFileEntry dlFileEntry) {
@@ -947,6 +950,18 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	}
 
 	@Override
+	public boolean isInTrashExplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileEntry.isInTrashExplicitly();
+	}
+
+	@Override
+	public boolean isInTrashImplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileEntry.isInTrashImplicitly();
+	}
+
+	@Override
 	public boolean isNew() {
 		return _dlFileEntry.isNew();
 	}
@@ -1052,6 +1067,12 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	}
 
 	@Override
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_dlFileEntry.updateTreePath(treePath);
+	}
+
+	@Override
 	public java.lang.String buildTreePath()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -1150,6 +1171,7 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	/**
 	* @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserId()}
 	*/
+	@Deprecated
 	@Override
 	public long getVersionUserId() {
 		return _dlFileEntry.getVersionUserId();
@@ -1158,6 +1180,7 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	/**
 	* @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserName()}
 	*/
+	@Deprecated
 	@Override
 	public java.lang.String getVersionUserName() {
 		return _dlFileEntry.getVersionUserName();
@@ -1166,6 +1189,7 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	/**
 	* @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserUuid()}
 	*/
+	@Deprecated
 	@Override
 	public java.lang.String getVersionUserUuid() {
 		return _dlFileEntry.getVersionUserUuid();
@@ -1219,6 +1243,7 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DLFileEntry getWrappedDLFileEntry() {
 		return _dlFileEntry;
 	}
@@ -1226,6 +1251,16 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	@Override
 	public DLFileEntry getWrappedModel() {
 		return _dlFileEntry;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _dlFileEntry.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _dlFileEntry.isFinderCacheEnabled();
 	}
 
 	@Override

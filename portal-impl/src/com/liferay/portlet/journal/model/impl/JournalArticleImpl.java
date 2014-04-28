@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,15 +18,19 @@ import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.templateparser.TransformerListener;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.SetUtil;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.xml.Document;
+import com.liferay.portal.kernel.xml.DocumentException;
+import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.model.CacheField;
 import com.liferay.portal.model.Image;
 import com.liferay.portal.service.ImageLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -34,6 +38,7 @@ import com.liferay.portal.webserver.WebServerServletTokenUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalArticleResource;
 import com.liferay.portlet.journal.model.JournalFolder;
+import com.liferay.portlet.journal.service.JournalArticleImageLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleResourceLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalFolderLocalServiceUtil;
@@ -50,12 +55,35 @@ import java.util.Set;
 public class JournalArticleImpl extends JournalArticleBaseImpl {
 
 	public static String getContentByLocale(
-		String content, boolean templateDriven, String languageId) {
+		Document document, String languageId) {
 
 		TransformerListener transformerListener =
 			new LocaleTransformerListener();
 
-		return transformerListener.onXml(content, languageId, null);
+		document = transformerListener.onXml(
+			document.clone(), languageId, null);
+
+		return document.asXML();
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #getContentByLocale(String,
+	 *             String}
+	 */
+	@Deprecated
+	public static String getContentByLocale(
+		String content, boolean templateDriven, String languageId) {
+
+		try {
+			return getContentByLocale(SAXReaderUtil.read(content), languageId);
+		}
+		catch (DocumentException de) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(de, de);
+			}
+
+			return content;
+		}
 	}
 
 	public JournalArticleImpl() {
@@ -63,11 +91,19 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 
 	@Override
 	public String buildTreePath() throws PortalException, SystemException {
-		StringBundler sb = new StringBundler();
+		JournalFolder folder = getFolder();
 
-		buildTreePath(sb, getFolder());
+		return folder.buildTreePath();
+	}
 
-		return sb.toString();
+	@Override
+	public long getArticleImageId(
+			String elInstanceId, String elName, String languageId)
+		throws SystemException {
+
+		return JournalArticleImageLocalServiceUtil.getArticleImageId(
+			getGroupId(), getArticleId(), getVersion(), elInstanceId, elName,
+			languageId);
 	}
 
 	@Override
@@ -108,11 +144,14 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 		Set<String> availableLanguageIds = SetUtil.fromArray(
 			super.getAvailableLanguageIds());
 
-		String[] contentAvailableLanguageIds =
-			LocalizationUtil.getAvailableLanguageIds(getContent());
+		Document document = getDocument();
 
-		for (String availableLanguageId : contentAvailableLanguageIds) {
-			availableLanguageIds.add(availableLanguageId);
+		if (document != null) {
+			for (String availableLanguageId :
+					LocalizationUtil.getAvailableLanguageIds(document)) {
+
+				availableLanguageIds.add(availableLanguageId);
+			}
 		}
 
 		return availableLanguageIds.toArray(
@@ -122,6 +161,7 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #getAvailableLanguageIds}
 	 */
+	@Deprecated
 	@Override
 	public String[] getAvailableLocales() {
 		return getAvailableLanguageIds();
@@ -129,27 +169,46 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 
 	@Override
 	public String getContentByLocale(String languageId) {
-		return getContentByLocale(getContent(), isTemplateDriven(), languageId);
+		return getContentByLocale(getDocument(), languageId);
 	}
 
 	@Override
 	public String getDefaultLanguageId() {
-		String defaultLanguageId = super.getDefaultLanguageId();
+		if (_defaultLanguageId == null) {
+			_defaultLanguageId = super.getDefaultLanguageId();
 
-		if (isTemplateDriven() && Validator.isNull(defaultLanguageId)) {
-			defaultLanguageId = LocaleUtil.toLanguageId(
-				LocaleUtil.getSiteDefault());
+			if (Validator.isNull(_defaultLanguageId)) {
+				_defaultLanguageId = LocaleUtil.toLanguageId(
+					LocaleUtil.getSiteDefault());
+			}
 		}
 
-		return defaultLanguageId;
+		return _defaultLanguageId;
 	}
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #getDefaultLanguageId}
 	 */
+	@Deprecated
 	@Override
 	public String getDefaultLocale() {
 		return getDefaultLanguageId();
+	}
+
+	@Override
+	public Document getDocument() {
+		if (_document == null) {
+			try {
+				_document = SAXReaderUtil.read(getContent());
+			}
+			catch (DocumentException de) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(de, de);
+				}
+			}
+		}
+
+		return _document;
 	}
 
 	@Override
@@ -214,14 +273,13 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 		return true;
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public boolean isTemplateDriven() {
-		if (Validator.isNull(getStructureId())) {
-			return false;
-		}
-		else {
-			return true;
-		}
+		return true;
 	}
 
 	/**
@@ -234,23 +292,41 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	}
 
 	@Override
+	public void setContent(String content) {
+		super.setContent(content);
+
+		_document = null;
+	}
+
+	@Override
+	public void setDefaultLanguageId(String defaultLanguageId) {
+		_defaultLanguageId = defaultLanguageId;
+	}
+
+	@Override
+	public void setDocument(Document document) {
+		_document = document;
+	}
+
+	@Override
 	public void setSmallImageType(String smallImageType) {
 		_smallImageType = smallImageType;
 	}
 
-	protected void buildTreePath(StringBundler sb, JournalFolder folder)
-		throws PortalException, SystemException {
+	@Override
+	public void setTitle(String title) {
+		super.setTitle(title);
 
-		if (folder == null) {
-			sb.append(StringPool.SLASH);
-		}
-		else {
-			buildTreePath(sb, folder.getParentFolder());
-
-			sb.append(folder.getFolderId());
-			sb.append(StringPool.SLASH);
-		}
+		_defaultLanguageId = null;
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(JournalArticleImpl.class);
+
+	@CacheField
+	private String _defaultLanguageId;
+
+	@CacheField
+	private Document _document;
 
 	private String _smallImageType;
 

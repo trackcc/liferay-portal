@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,10 +28,13 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.LayoutSetBranch;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.impl.LayoutSetBranchModelImpl;
+import com.liferay.portal.service.LayoutSetBranchLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -41,6 +44,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -58,6 +62,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class LayoutSetBranchPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<LayoutSetBranch> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -79,6 +92,10 @@ public class LayoutSetBranchPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<LayoutSetBranch> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -114,6 +131,8 @@ public class LayoutSetBranchPersistenceTest {
 
 		LayoutSetBranch newLayoutSetBranch = _persistence.create(pk);
 
+		newLayoutSetBranch.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newLayoutSetBranch.setGroupId(ServiceTestUtil.nextLong());
 
 		newLayoutSetBranch.setCompanyId(ServiceTestUtil.nextLong());
@@ -133,8 +152,6 @@ public class LayoutSetBranchPersistenceTest {
 		newLayoutSetBranch.setDescription(ServiceTestUtil.randomString());
 
 		newLayoutSetBranch.setMaster(ServiceTestUtil.randomBoolean());
-
-		newLayoutSetBranch.setLogo(ServiceTestUtil.randomBoolean());
 
 		newLayoutSetBranch.setLogoId(ServiceTestUtil.nextLong());
 
@@ -158,6 +175,8 @@ public class LayoutSetBranchPersistenceTest {
 
 		LayoutSetBranch existingLayoutSetBranch = _persistence.findByPrimaryKey(newLayoutSetBranch.getPrimaryKey());
 
+		Assert.assertEquals(existingLayoutSetBranch.getMvccVersion(),
+			newLayoutSetBranch.getMvccVersion());
 		Assert.assertEquals(existingLayoutSetBranch.getLayoutSetBranchId(),
 			newLayoutSetBranch.getLayoutSetBranchId());
 		Assert.assertEquals(existingLayoutSetBranch.getGroupId(),
@@ -182,8 +201,6 @@ public class LayoutSetBranchPersistenceTest {
 			newLayoutSetBranch.getDescription());
 		Assert.assertEquals(existingLayoutSetBranch.getMaster(),
 			newLayoutSetBranch.getMaster());
-		Assert.assertEquals(existingLayoutSetBranch.getLogo(),
-			newLayoutSetBranch.getLogo());
 		Assert.assertEquals(existingLayoutSetBranch.getLogoId(),
 			newLayoutSetBranch.getLogoId());
 		Assert.assertEquals(existingLayoutSetBranch.getThemeId(),
@@ -202,6 +219,62 @@ public class LayoutSetBranchPersistenceTest {
 			newLayoutSetBranch.getLayoutSetPrototypeUuid());
 		Assert.assertEquals(existingLayoutSetBranch.getLayoutSetPrototypeLinkEnabled(),
 			newLayoutSetBranch.getLayoutSetPrototypeLinkEnabled());
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P() {
+		try {
+			_persistence.countByG_P(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByG_P(0L, ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P_N() {
+		try {
+			_persistence.countByG_P_N(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean(), StringPool.BLANK);
+
+			_persistence.countByG_P_N(0L, ServiceTestUtil.randomBoolean(),
+				StringPool.NULL);
+
+			_persistence.countByG_P_N(0L, ServiceTestUtil.randomBoolean(),
+				(String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P_M() {
+		try {
+			_persistence.countByG_P_M(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean(), ServiceTestUtil.randomBoolean());
+
+			_persistence.countByG_P_M(0L, ServiceTestUtil.randomBoolean(),
+				ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -251,11 +324,11 @@ public class LayoutSetBranchPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("LayoutSetBranch",
-			"layoutSetBranchId", true, "groupId", true, "companyId", true,
-			"userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "privateLayout", true, "name", true,
-			"description", true, "master", true, "logo", true, "logoId", true,
-			"themeId", true, "colorSchemeId", true, "wapThemeId", true,
+			"mvccVersion", true, "layoutSetBranchId", true, "groupId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "privateLayout", true, "name", true,
+			"description", true, "master", true, "logoId", true, "themeId",
+			true, "colorSchemeId", true, "wapThemeId", true,
 			"wapColorSchemeId", true, "css", true, "settings", true,
 			"layoutSetPrototypeUuid", true, "layoutSetPrototypeLinkEnabled",
 			true);
@@ -283,16 +356,18 @@ public class LayoutSetBranchPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new LayoutSetBranchActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = LayoutSetBranchLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					LayoutSetBranch layoutSetBranch = (LayoutSetBranch)object;
 
 					Assert.assertNotNull(layoutSetBranch);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -399,6 +474,8 @@ public class LayoutSetBranchPersistenceTest {
 
 		LayoutSetBranch layoutSetBranch = _persistence.create(pk);
 
+		layoutSetBranch.setMvccVersion(ServiceTestUtil.nextLong());
+
 		layoutSetBranch.setGroupId(ServiceTestUtil.nextLong());
 
 		layoutSetBranch.setCompanyId(ServiceTestUtil.nextLong());
@@ -418,8 +495,6 @@ public class LayoutSetBranchPersistenceTest {
 		layoutSetBranch.setDescription(ServiceTestUtil.randomString());
 
 		layoutSetBranch.setMaster(ServiceTestUtil.randomBoolean());
-
-		layoutSetBranch.setLogo(ServiceTestUtil.randomBoolean());
 
 		layoutSetBranch.setLogoId(ServiceTestUtil.nextLong());
 
@@ -445,6 +520,7 @@ public class LayoutSetBranchPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(LayoutSetBranchPersistenceTest.class);
+	private ModelListener<LayoutSetBranch>[] _modelListeners;
 	private LayoutSetBranchPersistence _persistence = (LayoutSetBranchPersistence)PortalBeanLocatorUtil.locate(LayoutSetBranchPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

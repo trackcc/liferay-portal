@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -49,8 +49,7 @@ public class StagedThemeStagedModelDataHandler
 
 	@Override
 	public boolean validateReference(
-		PortletDataContext portletDataContext, Element rootElement,
-		Element referenceElement) {
+		PortletDataContext portletDataContext, Element referenceElement) {
 
 		boolean importThemeSettings = MapUtil.getBoolean(
 			portletDataContext.getParameterMap(),
@@ -60,20 +59,16 @@ public class StagedThemeStagedModelDataHandler
 			return true;
 		}
 
-		String elementName = referenceElement.getName();
+		String classPK = referenceElement.attributeValue("class-pk");
 
-		if (elementName.equals("missing-reference")) {
-			String classPK = referenceElement.attributeValue("class-pk");
+		List<Theme> themes = ThemeLocalServiceUtil.getThemes(
+			portletDataContext.getCompanyId());
 
-			List<Theme> themes = ThemeLocalServiceUtil.getThemes(
-				portletDataContext.getCompanyId());
+		for (Theme theme : themes) {
+			String themeId = theme.getThemeId();
 
-			for (Theme theme : themes) {
-				String themeId = theme.getThemeId();
-
-				if (themeId.equals(classPK)) {
-					return true;
-				}
+			if (themeId.equals(classPK)) {
+				return true;
 			}
 		}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,13 @@
 
 package com.liferay.portal.kernel.resiliency.spi;
 
-import com.liferay.portal.kernel.resiliency.PortalResiliencyException;
-
 /**
  * @author Shuyang Zhou
  */
 public interface SPIRegistryValidator {
 
-	public void validatePortletSPI(String portletId, SPI spi)
-		throws PortalResiliencyException;
+	public SPI validatePortletSPI(String portletId, SPI spi);
 
-	public void validateServletContextSPI(String servletContextName, SPI spi)
-		throws PortalResiliencyException;
+	public SPI validateServletContextSPI(String servletContextName, SPI spi);
 
 }

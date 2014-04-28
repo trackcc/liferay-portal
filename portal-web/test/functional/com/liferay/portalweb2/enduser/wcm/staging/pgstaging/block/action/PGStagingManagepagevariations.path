@@ -25,8 +25,8 @@
 </tr>
 <tr>
 	<td>SUCCESS_MESSAGE</td>
-	<td>//div[@class='alert alert-success']</td>
-	<td>Page variation was added.|Page variation was deleted. </td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-success')]</td>
+	<td></td>
 </tr>
 <tr>
 	<td>ADD_PAGE_VARIATION_BUTTON</td>

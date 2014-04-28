@@ -1,4 +1,5 @@
 @import "compass";
+@import "mixins";
 
 .portlet-document-library, .portlet-document-library-display {
 	.select-all-entries {
@@ -38,11 +39,13 @@
 
 	.document-container .search-info {
 		background-color: #D3E8F1;
+
+		@include hyphenation;
+
 		margin-bottom: 0.5em;
 		padding: 0.5em 0.75em;
 		padding-right: 30px;
 		position: relative;
-		word-wrap: break-word;
 
 		.keywords {
 			float: none;
@@ -114,17 +117,13 @@
 		}
 	}
 
-	.document-container {
-		overflow: auto;
-	}
-
 	.document-container, .document-entries-pagination {
 		clear: both;
 	}
 
 	.document-entries-pagination {
-		text-align: center;
 		margin: 10px 0;
+		text-align: center;
 
 		.pagination-content {
 			margin: 0;
@@ -133,12 +132,6 @@
 
 	.folder.error:hover {
 		background-color: #FDD;
-	}
-
-	.expand-folder-container {
-		position: absolute;
-		right: 0;
-		top: 0;
 	}
 
 	.folder-search {
@@ -273,14 +266,6 @@
 		right: 0;
 	}
 
-	.taglib-search-iterator {
-		table-layout: fixed;
-
-		.align-left {
-			word-wrap: break-word;
-		}
-	}
-
 	.taglib-webdav {
 		margin-top: 3em;
 	}
@@ -317,8 +302,8 @@
 
 	.lfr-document-library-comments.lfr-panel.lfr-extended {
 		background: #FFF;
-		border-width: 0;
-		border-right: 1px solid #CCC;
+		border: 0 solid #CCC;
+		border-right-width: 1px;
 		margin-bottom: 0;
 
 		.lfr-panel-titlebar {
@@ -450,7 +435,7 @@
 
 		&:after {
 			clear: both;
-			content: "";
+			content: '';
 			display:block;
 			height: 0;
 		}
@@ -467,8 +452,11 @@
 		}
 
 		.document-description {
-			margin: 8px 0;
 			display: block;
+
+			@include hyphenation;
+
+			margin: 8px 0;
 		}
 
 		.document-thumbnail {
@@ -517,11 +505,19 @@
 				margin: 0 0 1em;
 			}
 		}
+
+		.lfr-asset-description {
+			@include hyphenation;
+		}
 	}
 
 	.taglib-discussion {
-		width: 90%;
 		margin: 0 auto;
+		width: 90%;
+
+		@include respond-to(phone) {
+			width: auto;
+		}
 	}
 
 	.taglib-ratings.stars {
@@ -567,10 +563,6 @@
 }
 
 .portlet-document-library {
-	.taglib-search-iterator .results-header input {
-		display: none;
-	}
-
 	.lfr-asset-column-details .lfr-panel {
 		margin-bottom: 0.5em;
 		padding-bottom: 0;
@@ -611,7 +603,7 @@
 			background-image: url(@theme_image_path@/application/button_bg_selected.png);
 			height: 21px;
 			position: absolute;
-			right: 0px;
+			right: 0;
 			width: 21px;
 			z-index: 1;
 		}

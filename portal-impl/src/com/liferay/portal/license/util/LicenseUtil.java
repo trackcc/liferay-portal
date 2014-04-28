@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -69,8 +69,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.crypto.KeyGenerator;
 
@@ -83,12 +81,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.HttpParams;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 
 /**
  * @author Amos Fong
@@ -151,6 +150,7 @@ public class LicenseUtil {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link PortalUtil#getComputerName()}
 	 */
+	@Deprecated
 	public static String getHostName() {
 		return PortalUtil.getComputerName();
 	}
@@ -196,102 +196,43 @@ public class LicenseUtil {
 			return new HashSet<String>(_macAddresses);
 		}
 
-		Set<String> macAddresses = new HashSet<String>();
-
-		String osName = System.getProperty("os.name");
-
-		String executable = null;
-		String arguments = null;
-
-		if (StringUtil.startsWith(osName, "win")) {
-			executable = "ipconfig";
-			arguments = "/all";
-		}
-		else {
-			if (StringUtil.startsWith(osName, "aix")) {
-				executable = "netstat";
-				arguments = "-ina";
-			}
-			else {
-				executable = "ifconfig";
-				arguments = "-a";
-			}
-
-			File sbinDir = new File("/sbin", executable);
-
-			if (sbinDir.exists()) {
-				executable = "/sbin/".concat(executable);
-			}
-		}
+		_macAddresses = new HashSet<String>();
 
 		try {
-			Runtime runtime = Runtime.getRuntime();
+			List<NetworkInterface> networkInterfaces = Collections.list(
+				NetworkInterface.getNetworkInterfaces());
 
-			Process process = runtime.exec(
-				new String[] {executable, arguments});
+			for (NetworkInterface networkInterface : networkInterfaces) {
+				byte[] hardwareAddress = networkInterface.getHardwareAddress();
 
-			macAddresses = getMacAddresses(osName, process.getInputStream());
+				if (hardwareAddress == null) {
+					continue;
+				}
+
+				StringBuilder sb = new StringBuilder(
+					(hardwareAddress.length * 3) - 1);
+
+				String hexString = StringUtil.bytesToHexString(hardwareAddress);
+
+				for (int i = 0; i < hexString.length(); i += 2) {
+					if (i != 0) {
+						sb.append(CharPool.COLON);
+					}
+
+					sb.append(Character.toLowerCase(hexString.charAt(i)));
+					sb.append(Character.toLowerCase(hexString.charAt(i + 1)));
+				}
+
+				_macAddresses.add(sb.toString());
+			}
 		}
 		catch (Exception e) {
+			_log.error("Unable to read local server's MAC addresses");
+
 			_log.error(e, e);
 		}
 
-		_macAddresses = macAddresses;
-
-		return new HashSet<String>(macAddresses);
-	}
-
-	public static Set<String> getMacAddresses(
-			String osName, InputStream processInputStream)
-		throws Exception {
-
-		Set<String> macAddresses = new HashSet<String>();
-
-		Pattern macAddressPattern = _macAddressPattern1;
-
-		if (StringUtil.startsWith(osName, "aix")) {
-			macAddressPattern = _macAddressPattern2;
-		}
-
-		String processOutput = StringUtil.read(processInputStream);
-
-		String[] lines = StringUtil.split(processOutput, CharPool.NEW_LINE);
-
-		for (String line : lines) {
-			Matcher matcher = macAddressPattern.matcher(line);
-
-			if (!matcher.find()) {
-				continue;
-			}
-
-			String macAddress = matcher.group(1);
-
-			macAddress = StringUtil.toLowerCase(macAddress);
-			macAddress = macAddress.replace(CharPool.DASH, CharPool.COLON);
-			macAddress = macAddress.replace(CharPool.PERIOD, CharPool.COLON);
-
-			StringBuilder sb = new StringBuilder(17);
-
-			sb.append(macAddress);
-
-			for (int i = 1; i < 5; ++i) {
-				int pos = (i * 3) - 1;
-
-				if (sb.charAt(pos) != CharPool.COLON) {
-					sb.insert((i - 1) * 3, CharPool.NUMBER_0);
-				}
-			}
-
-			if (sb.length() < 17) {
-				sb.insert(15, CharPool.NUMBER_0);
-			}
-
-			macAddress = sb.toString();
-
-			macAddresses.add(macAddress);
-		}
-
-		return macAddresses;
+		return new HashSet<String>(_macAddresses);
 	}
 
 	public static byte[] getServerIdBytes() throws Exception {
@@ -356,13 +297,14 @@ public class LicenseUtil {
 				catch (Exception e) {
 					_log.error(e, e);
 
-					InetAddress inetAddress = clusterNode.getInetAddress();
+					InetAddress inetAddress = clusterNode.getBindInetAddress();
 
 					String message =
 						"Error contacting " + inetAddress.getHostName();
 
-					if (clusterNode.getPort() != -1) {
-						message += StringPool.COLON + clusterNode.getPort();
+					if (clusterNode.getPortalPort() != -1) {
+						message +=
+							StringPool.COLON + clusterNode.getPortalPort();
 					}
 
 					request.setAttribute(
@@ -427,9 +369,16 @@ public class LicenseUtil {
 	}
 
 	public static String sendRequest(String request) throws Exception {
-		DefaultHttpClient defaultHttpClient = new DefaultHttpClient();
+		HttpClient httpClient = null;
+
+		HttpClientConnectionManager httpClientConnectionManager =
+			new BasicHttpClientConnectionManager();
 
 		try {
+			HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+
+			httpClientBuilder.setConnectionManager(httpClientConnectionManager);
+
 			String serverURL = LICENSE_SERVER_URL;
 
 			if (!serverURL.endsWith(StringPool.SLASH)) {
@@ -442,6 +391,11 @@ public class LicenseUtil {
 
 			HttpPost httpPost = new HttpPost(uri);
 
+			CredentialsProvider credentialsProvider =
+				new BasicCredentialsProvider();
+
+			HttpHost proxyHttpHost = null;
+
 			if (Validator.isNotNull(_PROXY_URL)) {
 				if (_log.isInfoEnabled()) {
 					_log.info(
@@ -449,23 +403,21 @@ public class LicenseUtil {
 							_PROXY_PORT);
 				}
 
-				HttpHost httpHost = new HttpHost(_PROXY_URL, _PROXY_PORT);
-
-				HttpParams httpParams = defaultHttpClient.getParams();
-
-				httpParams.setParameter(
-					ConnRoutePNames.DEFAULT_PROXY, httpHost);
+				proxyHttpHost = new HttpHost(_PROXY_URL, _PROXY_PORT);
 
 				if (Validator.isNotNull(_PROXY_USER_NAME)) {
-					CredentialsProvider credentialsProvider =
-						defaultHttpClient.getCredentialsProvider();
-
 					credentialsProvider.setCredentials(
 						new AuthScope(_PROXY_URL, _PROXY_PORT),
 						new UsernamePasswordCredentials(
 							_PROXY_USER_NAME, _PROXY_PASSWORD));
 				}
 			}
+
+			httpClientBuilder.setDefaultCredentialsProvider(
+				credentialsProvider);
+			httpClientBuilder.setProxy(proxyHttpHost);
+
+			httpClient = httpClientBuilder.build();
 
 			ByteArrayEntity byteArrayEntity = new ByteArrayEntity(
 				_encryptRequest(serverURL, request));
@@ -474,7 +426,7 @@ public class LicenseUtil {
 
 			httpPost.setEntity(byteArrayEntity);
 
-			HttpResponse httpResponse = defaultHttpClient.execute(httpPost);
+			HttpResponse httpResponse = httpClient.execute(httpPost);
 
 			HttpEntity httpEntity = httpResponse.getEntity();
 
@@ -492,10 +444,9 @@ public class LicenseUtil {
 			return response;
 		}
 		finally {
-			ClientConnectionManager clientConnectionManager =
-				defaultHttpClient.getConnectionManager();
-
-			clientConnectionManager.shutdown();
+			if (httpClient != null) {
+				httpClientConnectionManager.shutdown();
+			}
 		}
 	}
 
@@ -702,10 +653,6 @@ public class LicenseUtil {
 		new MethodHandler(new MethodKey(LicenseUtil.class, "getServerInfo"));
 	private static Set<String> _ipAddresses;
 	private static Set<String> _macAddresses;
-	private static Pattern _macAddressPattern1 = Pattern.compile(
-		"\\s((\\p{XDigit}{1,2}(-|:)){5}(\\p{XDigit}{1,2}))(?:\\s|$)");
-	private static Pattern _macAddressPattern2 = Pattern.compile(
-		"\\s((\\p{XDigit}{1,2}(\\.)){5}(\\p{XDigit}{1,2}))(?:\\s|$)");
 	private static MethodKey _registerOrderMethodKey = new MethodKey(
 		LicenseUtil.class, "registerOrder", String.class, String.class,
 		int.class);

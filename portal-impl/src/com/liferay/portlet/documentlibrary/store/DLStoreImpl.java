@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.ByteArrayFileInputStream;
+import com.liferay.portal.kernel.search.BooleanClause;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.BooleanQueryFactoryUtil;
@@ -34,6 +35,7 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeFormatter;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.security.permission.ActionKeys;
@@ -46,15 +48,20 @@ import com.liferay.portlet.documentlibrary.DirectoryNameException;
 import com.liferay.portlet.documentlibrary.FileExtensionException;
 import com.liferay.portlet.documentlibrary.FileNameException;
 import com.liferay.portlet.documentlibrary.FileSizeException;
+import com.liferay.portlet.documentlibrary.FolderNameException;
+import com.liferay.portlet.documentlibrary.InvalidFileVersionException;
 import com.liferay.portlet.documentlibrary.SourceFileNameException;
 import com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
+import com.liferay.portlet.documentlibrary.util.DLUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+
+import java.util.List;
 
 /**
  * @author Brian Wing Shun Chan
@@ -227,7 +234,7 @@ public class DLStoreImpl implements DLStore {
 			String versionLabel)
 		throws PortalException, SystemException {
 
-		validate(fileName, false);
+		validate(fileName, false, versionLabel);
 
 		store.deleteFile(companyId, repositoryId, fileName, versionLabel);
 	}
@@ -247,7 +254,7 @@ public class DLStoreImpl implements DLStore {
 			String versionLabel)
 		throws PortalException, SystemException {
 
-		validate(fileName, false);
+		validate(fileName, false, versionLabel);
 
 		return store.getFile(companyId, repositoryId, fileName, versionLabel);
 	}
@@ -268,7 +275,7 @@ public class DLStoreImpl implements DLStore {
 			String versionLabel)
 		throws PortalException, SystemException {
 
-		validate(fileName, false);
+		validate(fileName, false, versionLabel);
 
 		return store.getFileAsBytes(
 			companyId, repositoryId, fileName, versionLabel);
@@ -290,7 +297,7 @@ public class DLStoreImpl implements DLStore {
 			String versionLabel)
 		throws PortalException, SystemException {
 
-		validate(fileName, false);
+		validate(fileName, false, versionLabel);
 
 		return store.getFileAsStream(
 			companyId, repositoryId, fileName, versionLabel);
@@ -344,9 +351,51 @@ public class DLStoreImpl implements DLStore {
 			String versionLabel)
 		throws PortalException, SystemException {
 
-		validate(fileName, false);
+		validate(fileName, false, versionLabel);
 
 		return store.hasFile(companyId, repositoryId, fileName, versionLabel);
+	}
+
+	@Override
+	public boolean isValidName(String name) {
+		if (Validator.isNull(name)) {
+			return false;
+		}
+
+		for (String blacklistChar : PropsValues.DL_CHAR_BLACKLIST) {
+			if (name.contains(blacklistChar)) {
+				return false;
+			}
+		}
+
+		for (String blacklistLastChar : PropsValues.DL_CHAR_LAST_BLACKLIST) {
+			if (blacklistLastChar.startsWith(_UNICODE_PREFIX)) {
+				blacklistLastChar = UnicodeFormatter.parseString(
+					blacklistLastChar);
+			}
+
+			if (name.endsWith(blacklistLastChar)) {
+				return false;
+			}
+		}
+
+		String nameWithoutExtension = name;
+
+		if (name.contains(StringPool.PERIOD)) {
+			int index = name.lastIndexOf(StringPool.PERIOD);
+
+			nameWithoutExtension = name.substring(0, index);
+		}
+
+		for (String blacklistName : PropsValues.DL_NAME_BLACKLIST) {
+			if (StringUtil.equalsIgnoreCase(
+					nameWithoutExtension, blacklistName)) {
+
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	@Override
@@ -437,7 +486,9 @@ public class DLStoreImpl implements DLStore {
 
 			fullQuery.add(contextQuery, BooleanClauseOccur.MUST);
 
-			if (searchQuery.clauses().size() > 0) {
+			List<BooleanClause> clauses = searchQuery.clauses();
+
+			if (!clauses.isEmpty()) {
 				fullQuery.add(searchQuery, BooleanClauseOccur.MUST);
 			}
 
@@ -475,7 +526,7 @@ public class DLStoreImpl implements DLStore {
 
 		validate(
 			fileName, fileExtension, sourceFileName, validateFileExtension,
-			file);
+			file, versionLabel);
 
 		if (PropsValues.DL_STORE_ANTIVIRUS_ENABLED) {
 			AntivirusScannerUtil.scan(file);
@@ -505,7 +556,8 @@ public class DLStoreImpl implements DLStore {
 		}
 
 		validate(
-			fileName, fileExtension, sourceFileName, validateFileExtension, is);
+			fileName, fileExtension, sourceFileName, validateFileExtension, is,
+			versionLabel);
 
 		if (!PropsValues.DL_STORE_ANTIVIRUS_ENABLED ||
 			!AntivirusScannerUtil.isActive()) {
@@ -654,7 +706,8 @@ public class DLStoreImpl implements DLStore {
 		throws PortalException, SystemException {
 
 		validate(
-			fileName, fileExtension, sourceFileName, validateFileExtension);
+			fileName, fileExtension, sourceFileName, validateFileExtension,
+			StringPool.BLANK);
 
 		if ((file != null) &&
 			(PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE) > 0) &&
@@ -672,7 +725,8 @@ public class DLStoreImpl implements DLStore {
 		throws PortalException, SystemException {
 
 		validate(
-			fileName, fileExtension, sourceFileName, validateFileExtension);
+			fileName, fileExtension, sourceFileName, validateFileExtension,
+			StringPool.BLANK);
 
 		try {
 			if ((is != null) &&
@@ -688,32 +742,60 @@ public class DLStoreImpl implements DLStore {
 		}
 	}
 
-	protected boolean isValidName(String name) {
-		if ((name == null) ||
-			name.contains("\\") ||
-			name.contains("\\\\") ||
-			name.contains("//") ||
-			name.contains(":") ||
-			name.contains("*") ||
-			name.contains("?") ||
-			name.contains("\"") ||
-			name.contains("<") ||
-			name.contains(">") ||
-			name.contains("|") ||
-			name.contains("[") ||
-			name.contains("]") ||
-			name.contains("../") ||
-			name.contains("/..")) {
+	@Override
+	public void validateDirectoryName(String directoryName)
+		throws PortalException {
 
-			return false;
+		if (!isValidName(directoryName)) {
+			throw new FolderNameException(directoryName);
+		}
+	}
+
+	protected void isValidVersion(String versionLabel) throws PortalException {
+		if (Validator.isNull(versionLabel)) {
+			return;
 		}
 
-		return true;
+		if (!DLUtil.isValidVersion(versionLabel)) {
+			throw new InvalidFileVersionException();
+		}
+	}
+
+	protected void validate(
+			String fileName, boolean validateFileExtension, String versionLabel)
+		throws PortalException, SystemException {
+
+		isValidVersion(versionLabel);
+
+		validate(fileName, validateFileExtension);
 	}
 
 	protected void validate(
 			String fileName, String fileExtension, String sourceFileName,
-			boolean validateFileExtension)
+			boolean validateFileExtension, File file, String versionLabel)
+		throws PortalException, SystemException {
+
+		isValidVersion(versionLabel);
+
+		validate(
+			fileName, fileExtension, sourceFileName, validateFileExtension,
+			file);
+	}
+
+	protected void validate(
+			String fileName, String fileExtension, String sourceFileName,
+			boolean validateFileExtension, InputStream is, String versionLabel)
+		throws PortalException, SystemException {
+
+		isValidVersion(versionLabel);
+
+		validate(
+			fileName, fileExtension, sourceFileName, validateFileExtension, is);
+	}
+
+	protected void validate(
+			String fileName, String fileExtension, String sourceFileName,
+			boolean validateFileExtension, String versionLabel)
 		throws PortalException, SystemException {
 
 		String sourceFileExtension = FileUtil.getExtension(sourceFileName);
@@ -725,7 +807,7 @@ public class DLStoreImpl implements DLStore {
 			throw new SourceFileNameException(sourceFileExtension);
 		}
 
-		validate(fileName, validateFileExtension);
+		validate(fileName, validateFileExtension, versionLabel);
 	}
 
 	@BeanReference(type = GroupLocalService.class)
@@ -737,5 +819,7 @@ public class DLStoreImpl implements DLStore {
 	private static final String[] _KEYWORDS_FIELDS = {
 		Field.ASSET_TAG_NAMES, Field.CONTENT, Field.PROPERTIES
 	};
+
+	private static final String _UNICODE_PREFIX = "\\u";
 
 }

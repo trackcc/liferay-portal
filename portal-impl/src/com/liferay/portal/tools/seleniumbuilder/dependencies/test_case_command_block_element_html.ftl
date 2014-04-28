@@ -1,3 +1,5 @@
+<#assign testCaseCommand = testCaseCommandElement.attributeValue("name")>
+
 <li id="${testCaseName?uncap_first}TestCase${testCaseCommand}">
 	<#assign lineFolds = lineFolds + 1>
 
@@ -9,7 +11,21 @@
 		<div class="expand-line">
 			<h3 class="testCaseCommand">${testCaseName}#${testCaseCommand}
 				<#if testCaseCommandElement.attributeValue("depends")??>
-					[depends ~ ${testCaseCommandElement.attributeValue("depends")}]
+					[depends: ${testCaseCommandElement.attributeValue("depends")}]
+				</#if>
+
+				<#if testCaseCommandElement.attributeValue("known-issues")??>
+					<#assign knownIssues = testCaseCommandElement.attributeValue("known-issues")>
+
+					[Known Issues:
+						<#list knownIssues?split(",") as knownIssue>
+							<a href="https://issues.liferay.com/browse/${knownIssue}">${knownIssue}</a>
+
+							<#if knownIssue_has_next>
+								,
+							</#if>
+						</#list>
+					]
 				</#if>
 			</h3>
 		</div>
@@ -38,9 +54,17 @@
 
 				<#include "element_open_html.ftl">
 
-				<#assign testCaseBlockElement = testCaseSetupElement>
+				<#assign blockElement = testCaseSetupElement>
 
-				<#include "test_case_block_element_html.ftl">
+				<#assign void = testCaseNameStack.push(testCaseName)>
+
+				<#assign void = blockLevelStack.push("testcase")>
+
+				<#include "block_element_html.ftl">
+
+				<#assign void = blockLevelStack.pop()>
+
+				<#assign void = testCaseNameStack.pop()>
 
 				<#assign displayElement = testCaseSetupElement>
 
@@ -50,14 +74,18 @@
 
 		<#assign lineNumber = testCaseCommandElement.attributeValue("line-number")>
 
-		<li id="${testCaseName?uncap_first}TestCase${lineNumber}">
+		<li id="${testCaseNameStack.peek()?uncap_first}TestCase${lineNumber}">
 			<#assign displayElement = testCaseCommandElement>
 
 			<#include "element_open_html.ftl">
 
-			<#assign testCaseBlockElement = testCaseCommandElement>
+			<#assign void = blockLevelStack.push("testcase")>
 
-			<#include "test_case_block_element_html.ftl">
+			<#assign blockElement = testCaseCommandElement>
+
+			<#include "block_element_html.ftl">
+
+			<#assign void = blockLevelStack.pop()>
 
 			<#assign displayElement = testCaseCommandElement>
 
@@ -74,9 +102,17 @@
 
 				<#include "element_open_html.ftl">
 
-				<#assign testCaseBlockElement = testCaseTearDownElement>
+				<#assign void = testCaseNameStack.push(testCaseName)>
 
-				<#include "test_case_block_element_html.ftl">
+				<#assign void = blockLevelStack.push("testcase")>
+
+				<#assign blockElement = testCaseTearDownElement>
+
+				<#include "block_element_html.ftl">
+
+				<#assign void = blockLevelStack.pop()>
+
+				<#assign void = testCaseNameStack.pop()>
 
 				<#assign displayElement = testCaseTearDownElement>
 

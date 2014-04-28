@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -47,25 +47,25 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 				String taglibURL = "javascript:Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + Constants.CANCEL_CHECKOUT + "'}); void(0);";
 				%>
 
-				<aui:nav-item href="<%= taglibURL %>" label="cancel-checkout[document]" />
+				<aui:nav-item href="<%= taglibURL %>" iconCssClass="icon-remove" label="cancel-checkout[document]" />
 
 				<%
 				taglibURL = "javascript:Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + Constants.CHECKIN + "'}); void(0);";
 				%>
 
-				<aui:nav-item href="<%= taglibURL %>" label="checkin" />
+				<aui:nav-item href="<%= taglibURL %>" iconCssClass="icon-signin" label="checkin" />
 
 				<%
 				taglibURL = "javascript:Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + Constants.CHECKOUT + "'}); void(0);";
 				%>
 
-				<aui:nav-item href="<%= taglibURL %>" label="checkout[document]" />
+				<aui:nav-item href="<%= taglibURL %>" iconCssClass="icon-signout" label="checkout[document]" />
 
 				<%
 				taglibURL = "javascript:Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + Constants.MOVE + "'}); void(0);";
 				%>
 
-				<aui:nav-item href="<%= taglibURL %>" label="move" />
+				<aui:nav-item href="<%= taglibURL %>" iconCssClass="icon-move" label="move" />
 			</c:if>
 
 			<%
@@ -103,26 +103,28 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 		</c:if>
 	</aui:nav>
 
-	<aui:nav-bar-search cssClass="pull-right">
-		<div class="form-search">
-			<liferay-portlet:resourceURL varImpl="searchURL">
-				<portlet:param name="struts_action" value="/document_library/search" />
-				<portlet:param name="repositoryId" value="<%= String.valueOf(repositoryId) %>" />
-				<portlet:param name="searchRepositoryId" value="<%= String.valueOf(folderId) %>" />
-				<portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" />
-				<portlet:param name="searchFolderId" value="<%= String.valueOf(folderId) %>" />
-			</liferay-portlet:resourceURL>
+	<c:if test="<%= dlPortletInstanceSettings.getShowFoldersSearch() %>">
+		<aui:nav-bar-search cssClass="pull-right">
+			<div class="form-search">
+				<liferay-portlet:resourceURL varImpl="searchURL">
+					<portlet:param name="struts_action" value="/document_library/search" />
+					<portlet:param name="repositoryId" value="<%= String.valueOf(repositoryId) %>" />
+					<portlet:param name="searchRepositoryId" value="<%= String.valueOf(folderId) %>" />
+					<portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" />
+					<portlet:param name="searchFolderId" value="<%= String.valueOf(folderId) %>" />
+				</liferay-portlet:resourceURL>
 
-			<aui:form action="<%= searchURL.toString() %>" method="get" name="fm1" onSubmit="event.preventDefault();">
-				<liferay-portlet:renderURLParams varImpl="searchURL" />
-				<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
-				<aui:input name="breadcrumbsFolderId" type="hidden" value="<%= folderId %>" />
-				<aui:input name="searchFolderIds" type="hidden" value="<%= folderId %>" />
+				<aui:form action="<%= searchURL.toString() %>" method="get" name="fm1" onSubmit="event.preventDefault();">
+					<liferay-portlet:renderURLParams varImpl="searchURL" />
+					<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
+					<aui:input name="breadcrumbsFolderId" type="hidden" value="<%= folderId %>" />
+					<aui:input name="searchFolderIds" type="hidden" value="<%= folderId %>" />
 
-				<liferay-ui:input-search />
-			</aui:form>
-		</div>
-	</aui:nav-bar-search>
+					<liferay-ui:input-search />
+				</aui:form>
+			</div>
+		</aui:nav-bar-search>
+	</c:if>
 </aui:nav-bar>
 
 <aui:script>
@@ -155,7 +157,7 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 					destroyOnHide: true
 				},
 				refererPortletName: '<%= PortletKeys.DOCUMENT_LIBRARY %>',
-				showGlobalScope: true,
+				showAncestorScopes: true,
 				showManageTemplates: false,
 				title: '<%= UnicodeLanguageUtil.get(pageContext, "metadata-sets") %>'
 			}

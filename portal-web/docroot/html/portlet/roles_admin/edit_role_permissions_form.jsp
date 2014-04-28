@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -133,11 +133,11 @@ if (Validator.isNotNull(portletResource)) {
 
 			List resultRows = searchContainer.getResultRows();
 
-			for (TemplateHandler templateHandler : TemplateHandlerRegistryUtil.getTemplateHandlers()) {
-				if (!(templateHandler instanceof BasePortletDisplayTemplateHandler)) {
-					continue;
-				}
+			List <TemplateHandler> templateHandlers = PortletDisplayTemplateUtil.getPortletDisplayTemplateHandlers();
 
+			ListUtil.sort(templateHandlers, new TemplateHandlerComparator(locale));
+
+			for (TemplateHandler templateHandler : templateHandlers) {
 				String actionId = ActionKeys.ADD_PORTLET_DISPLAY_TEMPLATE;
 				String resource = templateHandler.getResourceName();
 				int scope = ResourceConstants.SCOPE_COMPANY;

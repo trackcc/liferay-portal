@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,6 +34,7 @@ public class PasswordPolicyServiceImpl extends PasswordPolicyServiceBaseImpl {
 	 *             int, int, int, int, String, boolean, int, boolean, long,
 	 *             long, int, boolean, int, long, long, long, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public PasswordPolicy addPasswordPolicy(
 			String name, String description, boolean changeable,
@@ -99,6 +100,7 @@ public class PasswordPolicyServiceImpl extends PasswordPolicyServiceBaseImpl {
 	 *             long, long, int, boolean, int, long, long, long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public PasswordPolicy updatePasswordPolicy(
 			long passwordPolicyId, String name, String description,

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.trash;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -21,7 +23,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.SystemEvent;
 import com.liferay.portal.model.SystemEventConstants;
@@ -35,8 +36,6 @@ import com.liferay.portlet.asset.model.AssetRenderer;
 import com.liferay.portlet.asset.model.AssetRendererFactory;
 import com.liferay.portlet.trash.model.TrashEntry;
 
-import java.io.Serializable;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -49,6 +48,7 @@ import javax.portlet.PortletRequest;
  * @author Zsolt Berentey
  * @see    TrashHandler
  */
+@ProviderType
 public abstract class BaseTrashHandler implements TrashHandler {
 
 	@Override
@@ -67,16 +67,42 @@ public abstract class BaseTrashHandler implements TrashHandler {
 			extraDataJSONObject.toString());
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #checkRestorableEntry(long,
+	 *             long, String)}
+	 */
+	@Deprecated
+	@Override
+	public void checkDuplicateEntry(
+			long classPK, long containerModelId, String newName)
+		throws PortalException, SystemException {
+
+		checkRestorableEntry(classPK, containerModelId, newName);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #checkRestorableEntry(TrashEntry, long, String)}
+	 */
+	@Deprecated
+	@Override
+	public void checkDuplicateTrashEntry(
+			TrashEntry trashEntry, long containerModelId, String newName)
+		throws PortalException, SystemException {
+
+		checkRestorableEntry(trashEntry, containerModelId, newName);
+	}
+
 	@Override
 	@SuppressWarnings("unused")
-	public void checkDuplicateEntry(
+	public void checkRestorableEntry(
 			long classPK, long containerModelId, String newName)
 		throws PortalException, SystemException {
 	}
 
 	@Override
 	@SuppressWarnings("unused")
-	public void checkDuplicateTrashEntry(
+	public void checkRestorableEntry(
 			TrashEntry trashEntry, long containerModelId, String newName)
 		throws PortalException, SystemException {
 	}
@@ -216,14 +242,6 @@ public abstract class BaseTrashHandler implements TrashHandler {
 	}
 
 	@Override
-	@SuppressWarnings("unused")
-	public ContainerModel getTrashContainer(long classPK)
-		throws PortalException, SystemException {
-
-		return null;
-	}
-
-	@Override
 	public String getTrashContainerModelName() {
 		return StringPool.BLANK;
 	}
@@ -327,33 +345,6 @@ public abstract class BaseTrashHandler implements TrashHandler {
 		throws PortalException, SystemException {
 
 		return true;
-	}
-
-	@Override
-	public boolean isTrashEntry(
-		TrashEntry trashEntry, ClassedModel classedModel) {
-
-		if ((trashEntry == null) || (classedModel == null)) {
-			return false;
-		}
-
-		String className = getClassName();
-
-		if (!className.equals(trashEntry.getClassName())) {
-			return false;
-		}
-
-		Serializable primaryKeyObj = classedModel.getPrimaryKeyObj();
-
-		if (!(primaryKeyObj instanceof Long)) {
-			return false;
-		}
-
-		if (trashEntry.getClassPK() == (Long)primaryKeyObj) {
-			return true;
-		}
-
-		return false;
 	}
 
 	@Override

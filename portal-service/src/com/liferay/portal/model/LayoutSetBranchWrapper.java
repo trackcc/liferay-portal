@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 
@@ -29,6 +31,7 @@ import java.util.Map;
  * @see LayoutSetBranch
  * @generated
  */
+@ProviderType
 public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	ModelWrapper<LayoutSetBranch> {
 	public LayoutSetBranchWrapper(LayoutSetBranch layoutSetBranch) {
@@ -49,6 +52,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("layoutSetBranchId", getLayoutSetBranchId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -60,7 +64,6 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 		attributes.put("name", getName());
 		attributes.put("description", getDescription());
 		attributes.put("master", getMaster());
-		attributes.put("logo", getLogo());
 		attributes.put("logoId", getLogoId());
 		attributes.put("themeId", getThemeId());
 		attributes.put("colorSchemeId", getColorSchemeId());
@@ -77,6 +80,12 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long layoutSetBranchId = (Long)attributes.get("layoutSetBranchId");
 
 		if (layoutSetBranchId != null) {
@@ -141,12 +150,6 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 
 		if (master != null) {
 			setMaster(master);
-		}
-
-		Boolean logo = (Boolean)attributes.get("logo");
-
-		if (logo != null) {
-			setLogo(logo);
 		}
 
 		Long logoId = (Long)attributes.get("logoId");
@@ -224,6 +227,26 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_layoutSetBranch.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this layout set branch.
+	*
+	* @return the mvcc version of this layout set branch
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _layoutSetBranch.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this layout set branch.
+	*
+	* @param mvccVersion the mvcc version of this layout set branch
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_layoutSetBranch.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -486,36 +509,6 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	@Override
 	public void setMaster(boolean master) {
 		_layoutSetBranch.setMaster(master);
-	}
-
-	/**
-	* Returns the logo of this layout set branch.
-	*
-	* @return the logo of this layout set branch
-	*/
-	@Override
-	public boolean getLogo() {
-		return _layoutSetBranch.getLogo();
-	}
-
-	/**
-	* Returns <code>true</code> if this layout set branch is logo.
-	*
-	* @return <code>true</code> if this layout set branch is logo; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isLogo() {
-		return _layoutSetBranch.isLogo();
-	}
-
-	/**
-	* Sets whether this layout set branch is logo.
-	*
-	* @param logo the logo of this layout set branch
-	*/
-	@Override
-	public void setLogo(boolean logo) {
-		_layoutSetBranch.setLogo(logo);
 	}
 
 	/**
@@ -839,6 +832,11 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	}
 
 	@Override
+	public boolean getLogo() {
+		return _layoutSetBranch.getLogo();
+	}
+
+	@Override
 	public com.liferay.portal.kernel.util.UnicodeProperties getSettingsProperties() {
 		return _layoutSetBranch.getSettingsProperties();
 	}
@@ -879,6 +877,11 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	}
 
 	@Override
+	public boolean isLogo() {
+		return _layoutSetBranch.isLogo();
+	}
+
+	@Override
 	public void setSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties settingsProperties) {
 		_layoutSetBranch.setSettingsProperties(settingsProperties);
@@ -907,6 +910,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public LayoutSetBranch getWrappedLayoutSetBranch() {
 		return _layoutSetBranch;
 	}
@@ -914,6 +918,16 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	@Override
 	public LayoutSetBranch getWrappedModel() {
 		return _layoutSetBranch;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _layoutSetBranch.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _layoutSetBranch.isFinderCacheEnabled();
 	}
 
 	@Override

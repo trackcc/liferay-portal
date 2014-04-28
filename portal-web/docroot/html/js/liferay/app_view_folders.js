@@ -22,8 +22,6 @@ AUI.add(
 
 		var DATA_VIEW_FOLDERS = 'data-view-folders';
 
-		var EXPAND_FOLDER = 'expandFolder';
-
 		var MESSAGE_TYPE_ERROR = 'error';
 
 		var PARAM_DISPLAY_STYLE = 'displayStyle';
@@ -201,6 +199,7 @@ AUI.add(
 						instance._setEntries(data);
 						instance._setFolders(data);
 						instance._setParentTitle(data);
+						instance._setSelectAllCheckbox(data);
 
 						instance._parseContent(data);
 
@@ -322,7 +321,6 @@ AUI.add(
 						var entryConfig = instance.get('entry');
 
 						var dataBrowseBy = item.attr('data-browse-by');
-						var dataExpandFolder = item.attr('data-expand-folder');
 						var dataStructureId = item.attr(entryConfig.typeId);
 						var dataFolderId = item.attr(DATA_FOLDER_ID);
 						var dataNavigation = item.attr('data-navigation');
@@ -343,10 +341,6 @@ AUI.add(
 
 						if (dataBrowseBy) {
 							requestParams[instance.ns(BROWSE_BY)] = dataBrowseBy;
-						}
-
-						if (dataExpandFolder) {
-							requestParams[instance.ns(EXPAND_FOLDER)] = dataExpandFolder;
 						}
 
 						if (dataFolderId) {
@@ -411,7 +405,6 @@ AUI.add(
 						requestParams[instance.ns(PARAM_STRUTS_ACTION)] = instance.get(STR_STRUTS_ACTION);
 						requestParams[instance.ns('action')] = 'browseFolder';
 						requestParams[instance._folderId] = event.currentTarget.attr(DATA_FOLDER_ID);
-						requestParams[instance.ns(EXPAND_FOLDER)] = false;
 
 						var viewEntries = event.currentTarget.attr(DATA_VIEW_ENTRIES);
 
@@ -636,6 +629,32 @@ AUI.add(
 						}
 					},
 
+					_setSelectAllCheckbox: function(content) {
+						var instance = this;
+
+						var portletContainer = instance._portletContainer;
+
+						var entriesContainer = instance.one('#entriesContainer');
+
+						if (entriesContainer && portletContainer) {
+							var entriesSize = entriesContainer.all('.app-view-entry').size();
+
+							var selectAllEntriesCheckbox = portletContainer.one('.select-all-entries');
+
+							if (selectAllEntriesCheckbox) {
+								var entries = (entriesSize > 0);
+								var hidden = selectAllEntriesCheckbox.hasClass('hide');
+
+								if (entries && hidden) {
+									selectAllEntriesCheckbox.removeClass('hide');
+								}
+								else if (!entries && !hidden) {
+									selectAllEntriesCheckbox.addClass('hide');
+								}
+							}
+						}
+					},
+
 					_validateEntry: function(value) {
 						return Lang.isObject(value) && Lang.isString(value.paramName) && Lang.isString(value.typeId);
 					},
@@ -659,7 +678,7 @@ AUI.add(
 							boundingBox: formatSelectorNS(instance.NS, '#listViewContainer'),
 							contentBox: folderContainer,
 							cssClass: 'folder-display-style lfr-list-view-content',
-							itemSelector: '.folder a.browse-folder, .folder a.expand-folder',
+							itemSelector: '.folder a.browse-folder',
 							srcNode: folderContainer
 						};
 					}

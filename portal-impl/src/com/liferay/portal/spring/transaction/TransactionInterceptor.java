@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,6 +27,10 @@ import org.springframework.transaction.interceptor.TransactionAttributeSource;
  * @author Shuyang Zhou
  */
 public class TransactionInterceptor implements MethodInterceptor {
+
+	public TransactionAttributeSource getTransactionAttributeSource() {
+		return transactionAttributeSource;
+	}
 
 	@Override
 	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
@@ -74,6 +78,7 @@ public class TransactionInterceptor implements MethodInterceptor {
 	 * @deprecated As of 6.1.0, replaced by {@link
 	 *             #setPlatformTransactionManager(PlatformTransactionManager)}
 	 */
+	@Deprecated
 	public void setTransactionManager(
 		PlatformTransactionManager platformTransactionManager) {
 

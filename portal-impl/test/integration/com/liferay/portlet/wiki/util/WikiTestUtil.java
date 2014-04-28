@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,23 +15,36 @@
 package com.liferay.portlet.wiki.util;
 
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.model.WikiPage;
+import com.liferay.portlet.wiki.model.WikiPageConstants;
 import com.liferay.portlet.wiki.service.WikiNodeLocalServiceUtil;
 import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
 
 import java.io.File;
+import java.io.Serializable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Julio Camarero
  */
 public class WikiTestUtil {
+
+	public static WikiNode addNode(long groupId) throws Exception {
+		return addNode(
+			TestPropsValues.getUserId(), groupId,
+			ServiceTestUtil.randomString(), ServiceTestUtil.randomString(50));
+	}
 
 	public static WikiNode addNode(
 			long userId, long groupId, String name, String description)
@@ -52,6 +65,14 @@ public class WikiTestUtil {
 		return node;
 	}
 
+	public static WikiPage addPage(long groupId, long nodeId, boolean approved)
+		throws Exception {
+
+		return addPage(
+			TestPropsValues.getUserId(), groupId, nodeId,
+			ServiceTestUtil.randomString(), approved);
+	}
+
 	public static WikiPage addPage(
 			long userId, long groupId, long nodeId, String title,
 			boolean approved)
@@ -59,6 +80,9 @@ public class WikiTestUtil {
 
 		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
 			groupId);
+
+		serviceContext.setCommand(Constants.ADD);
+		serviceContext.setLayoutFullURL("http://localhost");
 
 		return addPage(
 			userId, nodeId, title, "content", approved, serviceContext);
@@ -80,13 +104,11 @@ public class WikiTestUtil {
 				WorkflowConstants.ACTION_SAVE_DRAFT);
 
 			WikiPage page = WikiPageLocalServiceUtil.addPage(
-				userId, nodeId, title, content, "Summary", true,
+				userId, nodeId, title, content, "Summary", false,
 				serviceContext);
 
 			if (approved) {
-				page = WikiPageLocalServiceUtil.updateStatus(
-					userId, page.getResourcePrimKey(),
-					WorkflowConstants.STATUS_APPROVED, serviceContext);
+				page = updateStatus(page, serviceContext);
 			}
 
 			return page;
@@ -94,6 +116,136 @@ public class WikiTestUtil {
 		finally {
 			WorkflowThreadLocal.setEnabled(workflowEnabled);
 		}
+	}
+
+	public static WikiPage addPage(
+			long userId, long nodeId, String title, String content,
+			String parentTitle, boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		boolean workflowEnabled = WorkflowThreadLocal.isEnabled();
+
+		try {
+			WorkflowThreadLocal.setEnabled(true);
+
+			serviceContext = (ServiceContext)serviceContext.clone();
+
+			serviceContext.setWorkflowAction(
+				WorkflowConstants.ACTION_SAVE_DRAFT);
+
+			WikiPage page = WikiPageLocalServiceUtil.addPage(
+				userId, nodeId, title, WikiPageConstants.VERSION_DEFAULT,
+				content, "Summary", true, WikiPageConstants.DEFAULT_FORMAT,
+				false, parentTitle, null, serviceContext);
+
+			if (approved) {
+				page = updateStatus(page, serviceContext);
+			}
+
+			return page;
+		}
+		finally {
+			WorkflowThreadLocal.setEnabled(workflowEnabled);
+		}
+	}
+
+	public static WikiPage[] addTrashedPageWithTrashedChildPage(
+			long groupId, long nodeId, boolean explicitlyRemoveChildPage)
+		throws Exception {
+
+		WikiPage page = WikiTestUtil.addPage(
+			TestPropsValues.getUserId(), groupId, nodeId, "TestPage", true);
+
+		WikiPage childPage = WikiTestUtil.addPage(
+			TestPropsValues.getUserId(), nodeId, "TestChildPage",
+			ServiceTestUtil.randomString(), "TestPage", true,
+			ServiceTestUtil.getServiceContext(groupId));
+
+		if (explicitlyRemoveChildPage) {
+			WikiPageLocalServiceUtil.movePageToTrash(
+				TestPropsValues.getUserId(), childPage);
+		}
+
+		WikiPageLocalServiceUtil.movePageToTrash(
+			TestPropsValues.getUserId(), page);
+
+		page = WikiPageLocalServiceUtil.getPageByPageId(page.getPageId());
+		childPage = WikiPageLocalServiceUtil.getPageByPageId(
+			childPage.getPageId());
+
+		return new WikiPage[] {page, childPage};
+	}
+
+	public static WikiPage[] addTrashedPageWithTrashedRedirectPage(
+			long groupId, long nodeId, boolean explicitlyRemoveRedirectPage)
+		throws Exception {
+
+		WikiTestUtil.addPage(
+			TestPropsValues.getUserId(), groupId, nodeId, "A", true);
+
+		WikiPageLocalServiceUtil.movePage(
+			TestPropsValues.getUserId(), nodeId, "A", "B",
+			ServiceTestUtil.getServiceContext(groupId));
+
+		WikiPage page = WikiPageLocalServiceUtil.getPage(nodeId, "B");
+		WikiPage redirectPage = WikiPageLocalServiceUtil.getPage(nodeId, "A");
+
+		if (explicitlyRemoveRedirectPage) {
+			WikiPageLocalServiceUtil.movePageToTrash(
+				TestPropsValues.getUserId(), nodeId, "A");
+		}
+
+		WikiPageLocalServiceUtil.movePageToTrash(
+			TestPropsValues.getUserId(), nodeId, "B");
+
+		page = WikiPageLocalServiceUtil.getPageByPageId(page.getPageId());
+		redirectPage = WikiPageLocalServiceUtil.getPageByPageId(
+			redirectPage.getPageId());
+
+		return new WikiPage[] {page, redirectPage};
+	}
+
+	public static WikiPage[] addTrashedParentPageWithTrashedRedirectPage(
+			long groupId,  long nodeId, boolean explicitlyRemoveChildPage,
+			boolean explicitlyRemoveRedirectPage)
+		throws Exception {
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			groupId);
+
+		WikiTestUtil.addPage(
+			TestPropsValues.getUserId(), groupId, nodeId, "A", true);
+
+		WikiPageLocalServiceUtil.movePage(
+			TestPropsValues.getUserId(), nodeId, "A", "B", serviceContext);
+
+		WikiPage page = WikiPageLocalServiceUtil.getPage(nodeId, "B");
+		WikiPage redirectPage = WikiPageLocalServiceUtil.getPage(nodeId, "A");
+
+		WikiPage childPage = WikiTestUtil.addPage(
+			TestPropsValues.getUserId(), nodeId, "TestChildPage",
+			ServiceTestUtil.randomString(), "B", true, serviceContext);
+
+		if (explicitlyRemoveChildPage) {
+			WikiPageLocalServiceUtil.movePageToTrash(
+				TestPropsValues.getUserId(), nodeId, "TestChildPage");
+		}
+
+		if (explicitlyRemoveRedirectPage) {
+			WikiPageLocalServiceUtil.movePageToTrash(
+				TestPropsValues.getUserId(), nodeId, "A");
+		}
+
+		WikiPageLocalServiceUtil.movePageToTrash(
+			TestPropsValues.getUserId(), nodeId, "B");
+
+		page = WikiPageLocalServiceUtil.getPageByPageId(page.getPageId());
+		childPage = WikiPageLocalServiceUtil.getPageByPageId(
+			childPage.getPageId());
+		redirectPage = WikiPageLocalServiceUtil.getPageByPageId(
+			redirectPage.getPageId());
+
+		return new WikiPage[] {page, childPage, redirectPage};
 	}
 
 	public static File addWikiAttachment(
@@ -111,7 +263,7 @@ public class WikiTestUtil {
 		throws Exception {
 
 		byte[] fileBytes = FileUtil.getBytes(
-			clazz.getResourceAsStream("dependencies/OSX_Test.docx"));
+			clazz, "dependencies/OSX_Test.docx");
 
 		File file = null;
 
@@ -142,15 +294,72 @@ public class WikiTestUtil {
 		return copyPage;
 	}
 
+	public static WikiPage updatePage(WikiPage page) throws Exception {
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			page.getGroupId());
+
+		serviceContext.setCommand(Constants.UPDATE);
+		serviceContext.setLayoutFullURL("http://localhost");
+
+		return updatePage(
+			page, page.getUserId(), page.getTitle(),
+			ServiceTestUtil.randomString(50), true, serviceContext);
+	}
+
 	public static WikiPage updatePage(
 			WikiPage page, long userId, String content,
 			ServiceContext serviceContext)
 		throws Exception {
 
-		return WikiPageLocalServiceUtil.updatePage(
-			userId, page.getNodeId(), page.getTitle(), page.getVersion(),
-			content, page.getSummary(), false, page.getFormat(),
-			page.getParentTitle(), page.getRedirectTitle(), serviceContext);
+		return updatePage(
+			page, userId, page.getTitle(), content, true, serviceContext);
+	}
+
+	public static WikiPage updatePage(
+			WikiPage page, long userId, String title, String content,
+			boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		boolean workflowEnabled = WorkflowThreadLocal.isEnabled();
+
+		try {
+			WorkflowThreadLocal.setEnabled(true);
+
+			serviceContext = (ServiceContext)serviceContext.clone();
+
+			serviceContext.setWorkflowAction(
+				WorkflowConstants.ACTION_SAVE_DRAFT);
+
+			page = WikiPageLocalServiceUtil.updatePage(
+				userId, page.getNodeId(), title, page.getVersion(), content,
+				page.getSummary(), false, page.getFormat(),
+				page.getParentTitle(), page.getRedirectTitle(), serviceContext);
+
+			if (approved) {
+				page = updateStatus(page, serviceContext);
+			}
+
+			return page;
+		}
+		finally {
+			WorkflowThreadLocal.setEnabled(workflowEnabled);
+		}
+	}
+
+	protected static WikiPage updateStatus(
+			WikiPage page, ServiceContext serviceContext)
+		throws Exception {
+
+		Map<String, Serializable> workflowContext =
+			new HashMap<String, Serializable>();
+
+		workflowContext.put(WorkflowConstants.CONTEXT_URL, "http://localhost");
+
+		page = WikiPageLocalServiceUtil.updateStatus(
+			page.getUserId(), page, WorkflowConstants.STATUS_APPROVED,
+			serviceContext, workflowContext);
+
+		return page;
 	}
 
 }

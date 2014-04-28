@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -92,7 +92,7 @@ String scopeAvailableFields = ParamUtil.getString(request, "scopeAvailableFields
 			</div>
 		</c:if>
 
-		<aui:input name="name" />
+		<aui:input autoFocus="<%= windowState.equals(LiferayWindowState.POP_UP) %>" name="name" />
 
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id="detailsMetadataFields" persistState="<%= true %>" title="details">
 			<aui:input name="description" />
@@ -104,7 +104,7 @@ String scopeAvailableFields = ParamUtil.getString(request, "scopeAvailableFields
 
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id="additionalMetadataFields" persistState="<%= true %>" title="additional-metadata-fields">
 			<liferay-ui:search-container
-				headerNames='<%= (fileEntryType == null) ? "name,null" : "name" %>'
+				headerNames="name,null"
 				total="<%= (ddmStructures != null) ? ddmStructures.size() : 0 %>"
 			>
 				<liferay-ui:search-container-results
@@ -167,7 +167,7 @@ String scopeAvailableFields = ParamUtil.getString(request, "scopeAvailableFields
 				},
 				eventName: '<portlet:namespace />selectDDMStructure',
 				refererPortletName: '<%= PortletKeys.DOCUMENT_LIBRARY %>',
-				showGlobalScope: true,
+				showAncestorScopes: true,
 				showManageTemplates: false,
 				showToolbar: true,
 				struts_action: '/dynamic_data_mapping/select_structure',

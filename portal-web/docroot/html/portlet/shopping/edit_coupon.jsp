@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,8 +33,6 @@ if (coupon != null) {
 	}
 }
 
-String limitCategories = BeanParamUtil.getString(coupon, request, "limitCategories");
-String limitSkus = BeanParamUtil.getString(coupon, request, "limitSkus");
 double minOrder = BeanParamUtil.getDouble(coupon, request, "minOrder");
 double discount = BeanParamUtil.getDouble(coupon, request, "discount");
 String discountType = BeanParamUtil.getString(coupon, request, "discountType");
@@ -74,13 +72,11 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 				<aui:input label="autogenerate-code" name="autoCode" type="checkbox" />
 			</c:when>
 			<c:otherwise>
-				<aui:field-wrapper label="code">
-					<liferay-ui:input-resource url="<%= code %>" />
-				</aui:field-wrapper>
+				<aui:input name="code" type="resource" value="<%= code %>" />
 			</c:otherwise>
 		</c:choose>
 
-		<aui:input autoFocus="<%= (windowState.equals(WindowState.MAXIMIZED) && Validator.isNotNull(coupon)) %>" name="name" />
+		<aui:input autoFocus="<%= (windowState.equals(WindowState.MAXIMIZED) && (coupon != null)) %>" name="name" />
 
 		<aui:input name="description" />
 
@@ -137,7 +133,7 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 				List categoryIds = (List)errorException;
 				%>
 
-				<liferay-ui:message key="the-following-are-invalid-category-ids" /> <%= StringUtil.merge((String[])categoryIds.toArray(new String[0])) %>
+				<liferay-ui:message key="the-following-are-invalid-category-ids" /> <%= HtmlUtil.escape(StringUtil.merge((String[])categoryIds.toArray(new String[0]))) %>
 			</liferay-ui:error>
 
 			<liferay-ui:error exception="<%= CouponLimitSKUsException.class %>">
@@ -146,7 +142,7 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 				List skus = (List)errorException;
 				%>
 
-				<liferay-ui:message key="the-following-are-invalid-item-skus" /> <%= StringUtil.merge((String[])skus.toArray(new String[0])) %>
+				<liferay-ui:message key="the-following-are-invalid-item-skus" /> <%= HtmlUtil.escape(StringUtil.merge((String[])skus.toArray(new String[0]))) %>
 			</liferay-ui:error>
 
 			<aui:fieldset>

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,6 +25,8 @@ page import="com.liferay.portal.kernel.xml.XPath" %><%@
 page import="com.liferay.portlet.asset.NoSuchEntryException" %><%@
 page import="com.liferay.portlet.documentlibrary.util.JournalSearcher" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.NoSuchTemplateException" %><%@
+page import="com.liferay.portlet.dynamicdatamapping.StorageFieldRequiredException" %><%@
+page import="com.liferay.portlet.dynamicdatamapping.service.DDMStructureServiceUtil" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.service.DDMTemplateServiceUtil" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.service.permission.DDMStructurePermission" %><%@
 page import="com.liferay.portlet.dynamicdatamapping.storage.Fields" %><%@
@@ -47,7 +49,7 @@ page import="com.liferay.portlet.journal.FeedNameException" %><%@
 page import="com.liferay.portlet.journal.FeedTargetLayoutFriendlyUrlException" %><%@
 page import="com.liferay.portlet.journal.FeedTargetPortletIdException" %><%@
 page import="com.liferay.portlet.journal.FolderNameException" %><%@
-page import="com.liferay.portlet.journal.NoSuchArticleException" %><%@
+page import="com.liferay.portlet.journal.InvalidDDMStructureException" %><%@
 page import="com.liferay.portlet.journal.NoSuchFolderException" %><%@
 page import="com.liferay.portlet.journal.model.JournalArticleResource" %><%@
 page import="com.liferay.portlet.journal.model.JournalFeed" %><%@

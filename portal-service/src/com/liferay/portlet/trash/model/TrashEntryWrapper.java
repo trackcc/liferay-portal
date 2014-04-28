@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.trash.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
@@ -30,6 +32,7 @@ import java.util.Map;
  * @see TrashEntry
  * @generated
  */
+@ProviderType
 public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	public TrashEntryWrapper(TrashEntry trashEntry) {
 		_trashEntry = trashEntry;
@@ -541,9 +544,8 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	}
 
 	@Override
-	public boolean isTrashEntry(
-		com.liferay.portal.model.TrashedModel trashedModel) {
-		return _trashEntry.isTrashEntry(trashedModel);
+	public boolean isTrashEntry(java.lang.String className, long classPK) {
+		return _trashEntry.isTrashEntry(className, classPK);
 	}
 
 	@Override
@@ -580,6 +582,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public TrashEntry getWrappedTrashEntry() {
 		return _trashEntry;
 	}
@@ -587,6 +590,16 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	@Override
 	public TrashEntry getWrappedModel() {
 		return _trashEntry;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _trashEntry.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _trashEntry.isFinderCacheEnabled();
 	}
 
 	@Override

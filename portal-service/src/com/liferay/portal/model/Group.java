@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * The extended model interface for the Group service. Represents a row in the &quot;Group_&quot; database table, with each column mapped to a property of this class.
  *
@@ -23,15 +25,14 @@ package com.liferay.portal.model;
  * @see com.liferay.portal.model.impl.GroupModelImpl
  * @generated
  */
-public interface Group extends GroupModel, PersistedModel {
+@ProviderType
+public interface Group extends GroupModel, PersistedModel, TreeModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portal.model.impl.GroupImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
-	public java.lang.String buildTreePath()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+	public void clearStagingGroup();
 
 	public java.util.List<com.liferay.portal.model.Group> getAncestors()
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -51,6 +52,10 @@ public interface Group extends GroupModel, PersistedModel {
 	public long getDefaultPrivatePlid();
 
 	public long getDefaultPublicPlid();
+
+	public java.util.List<com.liferay.portal.model.Group> getDescendants(
+		boolean site)
+		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public java.lang.String getDescriptiveName()
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -90,6 +95,8 @@ public interface Group extends GroupModel, PersistedModel {
 
 	public int getPublicLayoutsPageCount();
 
+	public long getRemoteLiveGroupId();
+
 	public java.lang.String getScopeDescriptiveName(
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -114,13 +121,20 @@ public interface Group extends GroupModel, PersistedModel {
 
 	public boolean hasPublicLayouts();
 
+	public boolean hasRemoteStagingGroup();
+
 	public boolean hasStagingGroup();
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #hasAncestor}
+	*/
+	@java.lang.Deprecated()
 	public boolean isChild(long groupId);
 
 	/**
 	* @deprecated As of 6.1.0, renamed to {@link #isRegularSite}
 	*/
+	@java.lang.Deprecated()
 	public boolean isCommunity();
 
 	public boolean isCompany();

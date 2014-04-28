@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link RepositoryLocalService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see RepositoryLocalService
  * @generated
  */
+@ProviderType
 public class RepositoryLocalServiceWrapper implements RepositoryLocalService,
 	ServiceWrapper<RepositoryLocalService> {
 	public RepositoryLocalServiceWrapper(
@@ -236,6 +239,19 @@ public class RepositoryLocalServiceWrapper implements RepositoryLocalService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _repositoryLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _repositoryLocalService.getExportActionableDynamicQuery(portletDataContext);
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -363,6 +379,7 @@ public class RepositoryLocalServiceWrapper implements RepositoryLocalService,
 	long, long, String, String, String, UnicodeProperties,
 	boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Repository addRepository(long userId,
 		long groupId, long classNameId, long parentFolderId,
@@ -473,6 +490,7 @@ public class RepositoryLocalServiceWrapper implements RepositoryLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public RepositoryLocalService getWrappedRepositoryLocalService() {
 		return _repositoryLocalService;
 	}
@@ -480,6 +498,7 @@ public class RepositoryLocalServiceWrapper implements RepositoryLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedRepositoryLocalService(
 		RepositoryLocalService repositoryLocalService) {
 		_repositoryLocalService = repositoryLocalService;

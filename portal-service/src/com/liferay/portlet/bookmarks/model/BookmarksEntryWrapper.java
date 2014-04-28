@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.bookmarks.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see BookmarksEntry
  * @generated
  */
+@ProviderType
 public class BookmarksEntryWrapper implements BookmarksEntry,
 	ModelWrapper<BookmarksEntry> {
 	public BookmarksEntryWrapper(BookmarksEntry bookmarksEntry) {
@@ -716,9 +719,22 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 		return _bookmarksEntry.isInTrashContainer();
 	}
 
+	@Override
+	public boolean isInTrashExplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksEntry.isInTrashExplicitly();
+	}
+
+	@Override
+	public boolean isInTrashImplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksEntry.isInTrashImplicitly();
+	}
+
 	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _bookmarksEntry.getApproved();
@@ -910,6 +926,12 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 	}
 
 	@Override
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_bookmarksEntry.updateTreePath(treePath);
+	}
+
+	@Override
 	public java.lang.String buildTreePath()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -951,6 +973,7 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public BookmarksEntry getWrappedBookmarksEntry() {
 		return _bookmarksEntry;
 	}
@@ -958,6 +981,16 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 	@Override
 	public BookmarksEntry getWrappedModel() {
 		return _bookmarksEntry;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _bookmarksEntry.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _bookmarksEntry.isFinderCacheEnabled();
 	}
 
 	@Override

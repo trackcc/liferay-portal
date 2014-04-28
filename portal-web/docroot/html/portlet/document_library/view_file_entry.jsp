@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -48,7 +48,7 @@ boolean versionSpecific = false;
 if (fileVersion != null) {
 	versionSpecific = true;
 }
-else if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE)) {
+else if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE)) {
 	fileVersion = fileEntry.getLatestFileVersion();
 }
 else {
@@ -82,10 +82,10 @@ else {
 	assetClassPK = fileEntry.getFileEntryId();
 }
 
-String webDavUrl = StringPool.BLANK;
+String webDavURL = StringPool.BLANK;
 
 if (portletDisplay.isWebDAVEnabled()) {
-	webDavUrl = DLUtil.getWebDavURL(themeDisplay, folder, fileEntry);
+	webDavURL = DLUtil.getWebDavURL(themeDisplay, folder, fileEntry);
 }
 
 boolean hasAudio = AudioProcessorUtil.hasAudio(fileVersion);
@@ -97,7 +97,9 @@ AssetEntry layoutAssetEntry = AssetEntryLocalServiceUtil.fetchEntry(DLFileEntryC
 
 request.setAttribute(WebKeys.LAYOUT_ASSET_ENTRY, layoutAssetEntry);
 
-request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
+DLFileEntryActionsDisplayContext dlFileEntryActionsDisplayContext = new DLFileEntryActionsDisplayContext(request, dlPortletInstanceSettings, fileEntry, fileVersion);
+
+DLActionsDisplayContext dlActionsDisplayContext = dlFileEntryActionsDisplayContext.getDLActionsDisplayContext();
 %>
 
 <portlet:actionURL var="editFileEntry">
@@ -119,7 +121,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 </c:if>
 
 <div class="view">
-	<c:if test="<%= showActions %>">
+	<c:if test="<%= dlActionsDisplayContext.isShowActions() %>">
 		<liferay-ui:app-view-toolbar>
 			<aui:button-row cssClass="edit-toolbar" id='<%= renderResponse.getNamespace() + "fileEntryToolbar" %>' />
 		</liferay-ui:app-view-toolbar>
@@ -127,7 +129,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 
 	<aui:row>
 		<aui:col cssClass="lfr-asset-column-details" width="<%= 70 %>">
-			<c:if test="<%= showActions %>">
+			<c:if test="<%= dlActionsDisplayContext.isShowActions() %>">
 				<liferay-ui:app-view-toolbar>
 					<aui:button-row cssClass="edit-toolbar" id='<%= renderResponse.getNamespace() + "fileEntryToolbar" %>' />
 				</liferay-ui:app-view-toolbar>
@@ -166,15 +168,15 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 				<%= fileVersion.getTitle() %>
 
 				<c:if test="<%= versionSpecific %>">
-					(<liferay-ui:message key="version" /> <%= HtmlUtil.escape(fileVersion.getVersion()) %>)
+					(<liferay-ui:message key="version" /> <%= fileVersion.getVersion() %>)
 				</c:if>
 			</liferay-util:buffer>
 
 			<div class="body-row">
 				<div class="document-info">
-					<c:if test="<%= showAssetMetadata %>">
-						<h2 class="document-title" title="<%= documentTitle %>">
-							<%= documentTitle %>
+					<c:if test="<%= dlFileEntryActionsDisplayContext.isAssetMetadataVisible() %>">
+						<h2 class="document-title" title="<%= HtmlUtil.escapeAttribute(documentTitle) %>">
+							<%= HtmlUtil.escape(documentTitle) %>
 						</h2>
 
 						<span class="document-thumbnail">
@@ -191,7 +193,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							}
 							%>
 
-							<img alt="" border="no" class="thumbnail" src="<%= thumbnailSrc %>" style="max-height: <%= PropsValues.DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT %>px; max-width: <%= PropsValues.DL_FILE_ENTRY_THUMBNAIL_MAX_WIDTH %>px;" />
+							<img alt="<liferay-ui:message key="thumbnail" />" border="no" class="thumbnail" src="<%= thumbnailSrc %>" style="<%= DLUtil.getThumbnailStyle(true, 0) %>" />
 						</span>
 
 						<span class="user-date">
@@ -206,10 +208,10 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							}
 							%>
 
-							<liferay-ui:icon image="../document_library/add_document" label="<%= true %>" message='<%= LanguageUtil.format(pageContext, "uploaded-by-x-x", new Object[] {displayURL, HtmlUtil.escape(fileEntry.getUserName()), dateFormatDateTime.format(fileEntry.getCreateDate())}) %>' />
+							<liferay-ui:icon image="../document_library/add_document" label="<%= true %>" message='<%= LanguageUtil.format(pageContext, "uploaded-by-x-x", new Object[] {displayURL, HtmlUtil.escape(fileEntry.getUserName()), dateFormatDateTime.format(fileEntry.getCreateDate())}, false) %>' />
 						</span>
 
-						<c:if test="<%= enableRatings && fileEntry.isSupportsSocial() %>">
+						<c:if test="<%= dlPortletInstanceSettings.getEnableRatings() && fileEntry.isSupportsSocial() %>">
 							<span class="lfr-asset-ratings">
 								<liferay-ui:ratings
 									className="<%= DLFileEntryConstants.getClassName() %>"
@@ -218,7 +220,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							</span>
 						</c:if>
 
-						<c:if test="<%= enableRelatedAssets && fileEntry.isSupportsSocial() %>">
+						<c:if test="<%= dlPortletInstanceSettings.getEnableRelatedAssets() && fileEntry.isSupportsSocial() %>">
 							<div class="entry-links">
 								<liferay-ui:asset-links
 									assetEntryId="<%= layoutAssetEntry.getEntryId() %>"
@@ -231,7 +233,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 						<%= HtmlUtil.escape(fileVersion.getDescription()) %>
 					</span>
 
-					<c:if test="<%= showAssetMetadata && fileEntry.isSupportsSocial() %>">
+					<c:if test="<%= dlFileEntryActionsDisplayContext.isAssetMetadataVisible() && fileEntry.isSupportsSocial() %>">
 						<div class="lfr-asset-categories">
 							<liferay-ui:asset-categories-summary
 								className="<%= DLFileEntryConstants.getClassName() %>"
@@ -252,168 +254,15 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 				<aui:model-context bean="<%= fileVersion %>" model="<%= DLFileVersion.class %>" />
 
 				<c:if test="<%= PropsValues.DL_FILE_ENTRY_PREVIEW_ENABLED %>">
-					<div>
 
-						<%
-						int previewFileCount = 0;
-						String previewFileURL = null;
-						String[] previewFileURLs = null;
-						String videoThumbnailURL = null;
+					<%
+					boolean showImageContainer = true;
+					%>
 
-						String previewQueryString = null;
-
-						if (hasAudio) {
-							previewQueryString = "&audioPreview=1";
-						}
-						else if (hasImages) {
-							previewQueryString = "&imagePreview=1";
-						}
-						else if (hasPDFImages) {
-							previewFileCount = PDFProcessorUtil.getPreviewFileCount(fileVersion);
-
-							previewQueryString = "&previewFileIndex=";
-
-							previewFileURL = DLUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, previewQueryString);
-						}
-						else if (hasVideo) {
-							previewQueryString = "&videoPreview=1";
-
-							videoThumbnailURL = DLUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, "&videoThumbnail=1");
-						}
-
-						if (Validator.isNotNull(previewQueryString)) {
-							if (hasAudio) {
-								previewFileURLs = new String[PropsValues.DL_FILE_ENTRY_PREVIEW_AUDIO_CONTAINERS.length];
-
-								for (int i = 0; i < PropsValues.DL_FILE_ENTRY_PREVIEW_AUDIO_CONTAINERS.length; i++) {
-									previewFileURLs[i] = DLUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, previewQueryString + "&type=" + PropsValues.DL_FILE_ENTRY_PREVIEW_AUDIO_CONTAINERS[i]);
-								}
-							}
-							else if (hasVideo) {
-								if (PropsValues.DL_FILE_ENTRY_PREVIEW_VIDEO_CONTAINERS.length > 0) {
-									previewFileURLs = new String[PropsValues.DL_FILE_ENTRY_PREVIEW_VIDEO_CONTAINERS.length];
-
-									for (int i = 0; i < PropsValues.DL_FILE_ENTRY_PREVIEW_VIDEO_CONTAINERS.length; i++) {
-										previewFileURLs[i] = DLUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, previewQueryString + "&type=" + PropsValues.DL_FILE_ENTRY_PREVIEW_VIDEO_CONTAINERS[i]);
-									}
-								}
-								else {
-									previewFileURLs = new String[1];
-
-									previewFileURLs[0] = videoThumbnailURL;
-								}
-							}
-							else {
-								previewFileURLs = new String[1];
-
-								previewFileURLs[0] = DLUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, previewQueryString);
-							}
-
-							previewFileURL = previewFileURLs[0];
-
-							if (!hasPDFImages) {
-								previewFileCount = 1;
-							}
-						}
-
-						request.setAttribute("view_file_entry.jsp-supportedAudio", String.valueOf(hasAudio));
-						request.setAttribute("view_file_entry.jsp-supportedVideo", String.valueOf(hasVideo));
-
-						request.setAttribute("view_file_entry.jsp-previewFileURLs", previewFileURLs);
-						request.setAttribute("view_file_entry.jsp-videoThumbnailURL", videoThumbnailURL);
-						%>
-
-						<c:choose>
-							<c:when test="<%= previewFileCount == 0 %>">
-								<c:choose>
-									<c:when test="<%= !DLProcessorRegistryUtil.isPreviewableSize(fileVersion) && (AudioProcessorUtil.isAudioSupported(fileVersion.getMimeType()) || ImageProcessorUtil.isImageSupported(fileVersion.getMimeType()) || PDFProcessorUtil.isDocumentSupported(fileVersion.getMimeType()) || VideoProcessorUtil.isVideoSupported(fileVersion.getMimeType())) %>">
-										<div class="alert alert-info">
-											<liferay-ui:message key="file-is-too-large-for-preview-or-thumbnail-generation" />
-										</div>
-									</c:when>
-									<c:when test="<%= AudioProcessorUtil.isAudioSupported(fileVersion) || ImageProcessorUtil.isImageSupported(fileVersion) || PDFProcessorUtil.isDocumentSupported(fileVersion) || VideoProcessorUtil.isVideoSupported(fileVersion) %>">
-										<div class="alert alert-info">
-											<liferay-ui:message key="generating-preview-will-take-a-few-minutes" />
-										</div>
-									</c:when>
-								</c:choose>
-							</c:when>
-							<c:otherwise>
-								<c:choose>
-									<c:when test="<%= hasAudio %>">
-										<div class="lfr-preview-audio" id="<portlet:namespace />previewFile">
-											<div class="lfr-preview-audio-content" id="<portlet:namespace />previewFileContent"></div>
-										</div>
-
-										<liferay-util:include page="/html/portlet/document_library/player.jsp" />
-									</c:when>
-									<c:when test="<%= hasImages %>">
-										<div class="lfr-preview-file lfr-preview-image" id="<portlet:namespace />previewFile">
-											<div class="lfr-preview-file-content lfr-preview-image-content" id="<portlet:namespace />previewFileContent">
-												<div class="lfr-preview-file-image-current-column">
-													<div class="lfr-preview-file-image-container">
-														<img class="lfr-preview-file-image-current" src="<%= previewFileURL %>" />
-													</div>
-												</div>
-											</div>
-										</div>
-									</c:when>
-									<c:when test="<%= hasVideo %>">
-										<div class="lfr-preview-file lfr-preview-video" id="<portlet:namespace />previewFile">
-											<div class="lfr-preview-file-content lfr-preview-video-content">
-												<div class="lfr-preview-file-video-current-column">
-													<div id="<portlet:namespace />previewFileContent"></div>
-												</div>
-											</div>
-										</div>
-
-										<liferay-util:include page="/html/portlet/document_library/player.jsp" />
-									</c:when>
-									<c:otherwise>
-										<div class="lfr-preview-file" id="<portlet:namespace />previewFile">
-											<div class="lfr-preview-file-content" id="<portlet:namespace />previewFileContent">
-												<div class="lfr-preview-file-image-current-column">
-													<div class="lfr-preview-file-image-container">
-														<img class="lfr-preview-file-image-current" id="<portlet:namespace />previewFileImage" src="<%= previewFileURL + "1" %>" />
-													</div>
-													<span class="lfr-preview-file-actions hide" id="<portlet:namespace />previewFileActions">
-														<span class="lfr-preview-file-toolbar" id="<portlet:namespace />previewToolbar"></span>
-
-														<span class="lfr-preview-file-info">
-															<span class="lfr-preview-file-index" id="<portlet:namespace />previewFileIndex">1</span> of <span class="lfr-preview-file-count"><%= previewFileCount %></span>
-														</span>
-													</span>
-												</div>
-
-												<div class="lfr-preview-file-images" id="<portlet:namespace />previewImagesContent">
-													<div class="lfr-preview-file-images-content"></div>
-												</div>
-											</div>
-										</div>
-
-										<aui:script use="liferay-preview">
-											new Liferay.Preview(
-												{
-													actionContent: '#<portlet:namespace />previewFileActions',
-													baseImageURL: '<%= previewFileURL %>',
-													boundingBox: '#<portlet:namespace />previewFile',
-													contentBox: '#<portlet:namespace />previewFileContent',
-													currentPreviewImage: '#<portlet:namespace />previewFileImage',
-													imageListContent: '#<portlet:namespace />previewImagesContent',
-													maxIndex: <%= previewFileCount %>,
-													previewFileIndexNode: '#<portlet:namespace />previewFileIndex',
-													toolbar: '#<portlet:namespace />previewToolbar'
-												}
-											).render();
-										</aui:script>
-									</c:otherwise>
-								</c:choose>
-							</c:otherwise>
-						</c:choose>
-					</div>
+					<%@ include file="/html/portlet/document_library/view_file_entry_preview.jspf" %>
 				</c:if>
 
-				<c:if test="<%= showAssetMetadata && PropsValues.DL_FILE_ENTRY_COMMENTS_ENABLED %>">
+				<c:if test="<%= dlFileEntryActionsDisplayContext.isAssetMetadataVisible() && PropsValues.DL_FILE_ENTRY_COMMENTS_ENABLED %>">
 					<liferay-ui:panel collapsible="<%= true %>" cssClass="lfr-document-library-comments" extended="<%= true %>" persistState="<%= true %>" title="comments">
 						<portlet:actionURL var="discussionURL">
 							<portlet:param name="struts_action" value="/document_library/edit_file_entry_discussion" />
@@ -424,7 +273,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							classPK="<%= fileEntryId %>"
 							formAction="<%= discussionURL %>"
 							formName="fm2"
-							ratingsEnabled="<%= enableCommentRatings %>"
+							ratingsEnabled="<%= dlPortletInstanceSettings.getEnableCommentRatings() %>"
 							redirect="<%= currentURL %>"
 							userId="<%= fileEntry.getUserId() %>"
 						/>
@@ -433,19 +282,19 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 			</div>
 		</aui:col>
 
-		<aui:col cssClass="lfr-asset-column-details context-pane" last="<%= true %>" width="<%= 30 %>">
-			<div class="body-row asset-details">
-				<c:if test="<%= showAssetMetadata %>">
+		<aui:col cssClass="context-pane lfr-asset-column-details" last="<%= true %>" width="<%= 30 %>">
+			<div class="asset-details body-row">
+				<c:if test="<%= dlFileEntryActionsDisplayContext.isAssetMetadataVisible() %>">
 					<div class="asset-details-content">
 						<h3 class="version <%= fileEntry.isCheckedOut() ? "document-locked" : StringPool.BLANK %>">
 							<liferay-ui:message key="version" /> <%= HtmlUtil.escape(fileVersion.getVersion()) %>
 						</h3>
 
-						<div class="lfr-asset-icon lfr-asset-author">
-							<liferay-ui:message arguments="<%= HtmlUtil.escape(fileVersion.getStatusByUserName()) %>" key="last-updated-by-x" />
+						<div class="lfr-asset-author lfr-asset-icon">
+							<liferay-ui:message arguments="<%= HtmlUtil.escape(fileVersion.getStatusByUserName()) %>" key="last-updated-by-x" translateArguments="<%= false %>" />
 						</div>
 
-						<div class="lfr-asset-icon lfr-asset-date">
+						<div class="lfr-asset-date lfr-asset-icon">
 							<%= dateFormatDateTime.format(fileVersion.getModifiedDate()) %>
 						</div>
 
@@ -504,35 +353,25 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							</c:choose>
 						</span>
 
-						<div class="lfr-asset-field url-file-container hide">
-							<aui:field-wrapper name="url">
-								<liferay-ui:input-resource
-									id="url"
-									url="<%= DLUtil.getPreviewURL(fileEntry, fileEntry.getFileVersion(), themeDisplay, StringPool.BLANK, false, true) %>"
-								/>
-							</aui:field-wrapper>
+						<div class="hide lfr-asset-field url-file-container">
+							<aui:input name="url" type="resource" value="<%= DLUtil.getPreviewURL(fileEntry, fileEntry.getFileVersion(), themeDisplay, StringPool.BLANK, false, true) %>" />
 						</div>
 
 						<c:if test="<%= portletDisplay.isWebDAVEnabled() && fileEntry.isSupportsSocial() %>">
-							<div class="lfr-asset-field webdav-url-file-container hide">
+							<div class="hide lfr-asset-field webdav-url-file-container">
 
 								<%
 								String webDavHelpMessage = null;
 
 								if (BrowserSnifferUtil.isWindows(request)) {
-									webDavHelpMessage = LanguageUtil.format(pageContext, "webdav-windows-help", new Object[] {"http://www.microsoft.com/downloads/details.aspx?FamilyId=17C36612-632E-4C04-9382-987622ED1D64", "http://www.liferay.com/web/guest/community/wiki/-/wiki/Main/WebDAV"});
+									webDavHelpMessage = LanguageUtil.format(pageContext, "webdav-windows-help", new Object[] {"http://www.microsoft.com/downloads/details.aspx?FamilyId=17C36612-632E-4C04-9382-987622ED1D64", "http://www.liferay.com/web/guest/community/wiki/-/wiki/Main/WebDAV"}, false);
 								}
 								else {
-									webDavHelpMessage = LanguageUtil.format(pageContext, "webdav-help", "http://www.liferay.com/web/guest/community/wiki/-/wiki/Main/WebDAV");
+									webDavHelpMessage = LanguageUtil.format(pageContext, "webdav-help", "http://www.liferay.com/web/guest/community/wiki/-/wiki/Main/WebDAV", false);
 								}
 								%>
 
-								<aui:field-wrapper helpMessage="<%= webDavHelpMessage %>" name="webdavUrl">
-									<liferay-ui:input-resource
-										id="webdavUrl"
-										url="<%= webDavUrl %>"
-									/>
-								</aui:field-wrapper>
+								<aui:input helpMessage="<%= webDavHelpMessage %>" name="webDavURL"  type="resource" value="<%= webDavURL %>" />
 							</div>
 						</c:if>
 					</div>
@@ -636,14 +475,14 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 						}
 						%>
 
-						<c:if test="<%= showAssetMetadata %>">
+						<c:if test="<%= dlFileEntryActionsDisplayContext.isAssetMetadataVisible() %>">
 							<liferay-ui:panel collapsible="<%= true %>" cssClass="version-history" id="documentLibraryVersionHistoryPanel" persistState="<%= true %>" title="version-history">
 
 								<%
 								boolean comparableFileEntry = DocumentConversionUtil.isComparableVersion(fileVersion.getExtension());
 								boolean showNonApprovedDocuments = false;
 
-								if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId)) {
+								if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId)) {
 									showNonApprovedDocuments = true;
 								}
 
@@ -851,12 +690,12 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 		);
 	}
 
-	<c:if test="<%= showActions %>">
+	<c:if test="<%= dlActionsDisplayContext.isShowActions() %>">
 		var buttonRow = A.one('#<portlet:namespace />fileEntryToolbar');
 
 		var fileEntryButtonGroup = [];
 
-		<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.VIEW) %>">
+		<c:if test="<%= dlFileEntryActionsDisplayContext.isDownloadButtonVisible() %>">
 			fileEntryButtonGroup.push(
 				{
 					icon: 'icon-download',
@@ -868,29 +707,22 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 					}
 				}
 			);
-
-			<%
-			if (DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.VIEW) && DLUtil.isOfficeExtension(fileVersion.getExtension()) && portletDisplay.isWebDAVEnabled() && BrowserSnifferUtil.isIeOnWin32(request)) {
-			%>
-
-				fileEntryButtonGroup.push(
-					{
-						label: '<%= UnicodeLanguageUtil.get(pageContext, "open-in-ms-office") %>',
-						on: {
-							click: function(event) {
-								<portlet:namespace />openDocument('<%= DLUtil.getWebDavURL(themeDisplay, fileEntry.getFolder(), fileEntry, PropsValues.DL_FILE_ENTRY_OPEN_IN_MS_OFFICE_MANUAL_CHECK_IN_REQUIRED) %>');
-							}
-						}
-					}
-				);
-
-			<%
-			}
-			%>
-
 		</c:if>
 
-		<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE) && (!fileEntry.isCheckedOut() || fileEntry.hasLock()) %>">
+		<c:if test="<%= dlFileEntryActionsDisplayContext.isOpenInMsOfficeButtonVisible() %>">
+			fileEntryButtonGroup.push(
+				{
+					label: '<%= UnicodeLanguageUtil.get(pageContext, "open-in-ms-office") %>',
+					on: {
+						click: function(event) {
+							<portlet:namespace />openDocument('<%= DLUtil.getWebDavURL(themeDisplay, fileEntry.getFolder(), fileEntry, PropsValues.DL_FILE_ENTRY_OPEN_IN_MS_OFFICE_MANUAL_CHECK_IN_REQUIRED) %>');
+						}
+					}
+				}
+			);
+		</c:if>
+
+		<c:if test="<%= dlFileEntryActionsDisplayContext.isEditButtonVisible() %>">
 			fileEntryButtonGroup.push(
 				{
 
@@ -907,11 +739,16 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							location.href = '<%= editURL.toString() %>';
 						}
 					}
-				},
+				}
+			);
+		</c:if>
+
+		<c:if test="<%= dlFileEntryActionsDisplayContext.isMoveButtonVisible() %>">
+			fileEntryButtonGroup.push(
 				{
 
 					<portlet:renderURL var="moveURL">
-						<portlet:param name="struts_action" value="/document_library/move_file_entry" />
+						<portlet:param name="struts_action" value="/document_library/move_entry" />
 						<portlet:param name="redirect" value="<%= redirect %>" />
 						<portlet:param name="fileEntryId" value="<%= String.valueOf(fileEntry.getFileEntryId()) %>" />
 					</portlet:renderURL>
@@ -925,52 +762,57 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 					}
 				}
 			);
-
-			<c:if test="<%= !fileEntry.isCheckedOut() %>">
-				fileEntryButtonGroup.push(
-					{
-
-						icon: 'icon-lock',
-						label: '<%= UnicodeLanguageUtil.get(pageContext, "checkout[document]") %>',
-						on: {
-							click: function(event) {
-								document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.CHECKOUT %>';
-								submitForm(document.<portlet:namespace />fm);
-							}
-						}
-					}
-				);
-			</c:if>
-
-			<c:if test="<%= fileEntry.isCheckedOut() && fileEntry.hasLock() %>">
-				fileEntryButtonGroup.push(
-					{
-
-						icon: 'icon-undo',
-						label: '<%= UnicodeLanguageUtil.get(pageContext, "cancel-checkout[document]") %>',
-						on: {
-							click: function(event) {
-								document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.CANCEL_CHECKOUT %>';
-								submitForm(document.<portlet:namespace />fm);
-							}
-						}
-					},
-					{
-
-						icon: 'icon-unlock',
-						label: '<%= UnicodeLanguageUtil.get(pageContext, "checkin") %>',
-						on: {
-							click: function(event) {
-								document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.CHECKIN %>';
-								submitForm(document.<portlet:namespace />fm);
-							}
-						}
-					}
-				);
-			</c:if>
 		</c:if>
 
-		<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.PERMISSIONS) %>">
+		<c:if test="<%= dlFileEntryActionsDisplayContext.isCheckoutDocumentButtonVisible() %>">
+			fileEntryButtonGroup.push(
+				{
+
+					icon: 'icon-lock',
+					label: '<%= UnicodeLanguageUtil.get(pageContext, "checkout[document]") %>',
+					on: {
+						click: function(event) {
+							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.CHECKOUT %>';
+							submitForm(document.<portlet:namespace />fm);
+						}
+					}
+				}
+			);
+		</c:if>
+
+		<c:if test="<%= dlFileEntryActionsDisplayContext.isCancelCheckoutDocumentButtonVisible() %>">
+			fileEntryButtonGroup.push(
+				{
+
+					icon: 'icon-undo',
+					label: '<%= UnicodeLanguageUtil.get(pageContext, "cancel-checkout[document]") %>',
+					on: {
+						click: function(event) {
+							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.CANCEL_CHECKOUT %>';
+							submitForm(document.<portlet:namespace />fm);
+						}
+					}
+				}
+			);
+		</c:if>
+
+		<c:if test="<%= dlFileEntryActionsDisplayContext.isCheckinButtonVisible() %>">
+			fileEntryButtonGroup.push(
+				{
+
+					icon: 'icon-unlock',
+					label: '<%= UnicodeLanguageUtil.get(pageContext, "checkin") %>',
+					on: {
+						click: function(event) {
+							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.CHECKIN %>';
+							submitForm(document.<portlet:namespace />fm);
+						}
+					}
+				}
+			);
+		</c:if>
+
+		<c:if test="<%= dlFileEntryActionsDisplayContext.isPermissionsButtonVisible() %>">
 			fileEntryButtonGroup.push(
 				{
 					<liferay-security:permissionsURL
@@ -988,7 +830,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 							Liferay.Util.openWindow(
 								{
 									title: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>',
-									uri: '<%= permissionsURL.toString() %>',
+									uri: '<%= permissionsURL.toString() %>'
 								}
 							);
 						}
@@ -997,7 +839,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 			);
 		</c:if>
 
-		<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) && (fileEntry.getModel() instanceof DLFileEntry) && TrashUtil.isTrashEnabled(scopeGroupId) %>">
+		<c:if test="<%= dlFileEntryActionsDisplayContext.isMoveToTheRecycleBinButtonVisible() %>">
 			fileEntryButtonGroup.push(
 				{
 					<portlet:renderURL var="viewFolderURL">
@@ -1018,7 +860,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 			);
 		</c:if>
 
-		<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) && (!(fileEntry.getModel() instanceof DLFileEntry) || !TrashUtil.isTrashEnabled(scopeGroupId)) %>">
+		<c:if test="<%= dlFileEntryActionsDisplayContext.isDeleteButtonVisible() %>">
 			fileEntryButtonGroup.push(
 				{
 					<portlet:renderURL var="viewFolderURL">

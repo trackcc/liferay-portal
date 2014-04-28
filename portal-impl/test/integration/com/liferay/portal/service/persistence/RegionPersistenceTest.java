@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +26,9 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.Region;
 import com.liferay.portal.model.impl.RegionModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
@@ -38,6 +40,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -55,6 +58,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class RegionPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<Region> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -76,6 +88,10 @@ public class RegionPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<Region> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -111,6 +127,8 @@ public class RegionPersistenceTest {
 
 		Region newRegion = _persistence.create(pk);
 
+		newRegion.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newRegion.setCountryId(ServiceTestUtil.nextLong());
 
 		newRegion.setRegionCode(ServiceTestUtil.randomString());
@@ -123,6 +141,8 @@ public class RegionPersistenceTest {
 
 		Region existingRegion = _persistence.findByPrimaryKey(newRegion.getPrimaryKey());
 
+		Assert.assertEquals(existingRegion.getMvccVersion(),
+			newRegion.getMvccVersion());
 		Assert.assertEquals(existingRegion.getRegionId(),
 			newRegion.getRegionId());
 		Assert.assertEquals(existingRegion.getCountryId(),
@@ -131,6 +151,57 @@ public class RegionPersistenceTest {
 			newRegion.getRegionCode());
 		Assert.assertEquals(existingRegion.getName(), newRegion.getName());
 		Assert.assertEquals(existingRegion.getActive(), newRegion.getActive());
+	}
+
+	@Test
+	public void testCountByCountryId() {
+		try {
+			_persistence.countByCountryId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCountryId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByActive() {
+		try {
+			_persistence.countByActive(ServiceTestUtil.randomBoolean());
+
+			_persistence.countByActive(ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_R() {
+		try {
+			_persistence.countByC_R(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_R(0L, StringPool.NULL);
+
+			_persistence.countByC_R(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_A() {
+		try {
+			_persistence.countByC_A(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByC_A(0L, ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -167,8 +238,9 @@ public class RegionPersistenceTest {
 	}
 
 	protected OrderByComparator getOrderByComparator() {
-		return OrderByComparatorFactoryUtil.create("Region", "regionId", true,
-			"countryId", true, "regionCode", true, "name", true, "active", true);
+		return OrderByComparatorFactoryUtil.create("Region", "mvccVersion",
+			true, "regionId", true, "countryId", true, "regionCode", true,
+			"name", true, "active", true);
 	}
 
 	@Test
@@ -285,6 +357,8 @@ public class RegionPersistenceTest {
 
 		Region region = _persistence.create(pk);
 
+		region.setMvccVersion(ServiceTestUtil.nextLong());
+
 		region.setCountryId(ServiceTestUtil.nextLong());
 
 		region.setRegionCode(ServiceTestUtil.randomString());
@@ -299,6 +373,7 @@ public class RegionPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(RegionPersistenceTest.class);
+	private ModelListener<Region>[] _modelListeners;
 	private RegionPersistence _persistence = (RegionPersistence)PortalBeanLocatorUtil.locate(RegionPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

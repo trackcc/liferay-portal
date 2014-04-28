@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +26,9 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.ListType;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -35,6 +37,7 @@ import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -52,6 +55,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ListTypePersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<ListType> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -73,6 +85,10 @@ public class ListTypePersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<ListType> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -108,6 +124,8 @@ public class ListTypePersistenceTest {
 
 		ListType newListType = _persistence.create(pk);
 
+		newListType.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newListType.setName(ServiceTestUtil.randomString());
 
 		newListType.setType(ServiceTestUtil.randomString());
@@ -116,10 +134,26 @@ public class ListTypePersistenceTest {
 
 		ListType existingListType = _persistence.findByPrimaryKey(newListType.getPrimaryKey());
 
+		Assert.assertEquals(existingListType.getMvccVersion(),
+			newListType.getMvccVersion());
 		Assert.assertEquals(existingListType.getListTypeId(),
 			newListType.getListTypeId());
 		Assert.assertEquals(existingListType.getName(), newListType.getName());
 		Assert.assertEquals(existingListType.getType(), newListType.getType());
+	}
+
+	@Test
+	public void testCountByType() {
+		try {
+			_persistence.countByType(StringPool.BLANK);
+
+			_persistence.countByType(StringPool.NULL);
+
+			_persistence.countByType((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -156,8 +190,8 @@ public class ListTypePersistenceTest {
 	}
 
 	protected OrderByComparator getOrderByComparator() {
-		return OrderByComparatorFactoryUtil.create("ListType", "listTypeId",
-			true, "name", true, "type", true);
+		return OrderByComparatorFactoryUtil.create("ListType", "mvccVersion",
+			true, "listTypeId", true, "name", true, "type", true);
 	}
 
 	@Test
@@ -255,6 +289,8 @@ public class ListTypePersistenceTest {
 
 		ListType listType = _persistence.create(pk);
 
+		listType.setMvccVersion(ServiceTestUtil.nextLong());
+
 		listType.setName(ServiceTestUtil.randomString());
 
 		listType.setType(ServiceTestUtil.randomString());
@@ -265,6 +301,7 @@ public class ListTypePersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ListTypePersistenceTest.class);
+	private ModelListener<ListType>[] _modelListeners;
 	private ListTypePersistence _persistence = (ListTypePersistence)PortalBeanLocatorUtil.locate(ListTypePersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

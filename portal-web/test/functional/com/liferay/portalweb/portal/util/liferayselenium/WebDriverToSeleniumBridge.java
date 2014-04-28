@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,7 +78,7 @@ public class WebDriverToSeleniumBridge
 		initKeys();
 		initKeysSpecialChars();
 
-		_defaultWindowHandle = getWindowHandle();
+		defaultWindowHandle = getWindowHandle();
 	}
 
 	@Override
@@ -345,8 +346,27 @@ public class WebDriverToSeleniumBridge
 	}
 
 	@Override
-	public void dragAndDrop(String locator, String movementsString) {
-		throw new UnsupportedOperationException();
+	public void dragAndDrop(String locator, String coordString) {
+		WebElement webElement = getWebElement(locator);
+
+		scrollWebElementIntoView(webElement);
+
+		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
+
+		WebDriver webDriver = wrapsDriver.getWrappedDriver();
+
+		Actions actions = new Actions(webDriver);
+
+		String[] coords = coordString.split(",");
+
+		int x = GetterUtil.getInteger(coords[0]);
+		int y = GetterUtil.getInteger(coords[1]);
+
+		actions.dragAndDropBy(webElement, x, y);
+
+		Action action = actions.build();
+
+		action.perform();
 	}
 
 	@Override
@@ -783,7 +803,22 @@ public class WebDriverToSeleniumBridge
 
 	@Override
 	public boolean isAlertPresent() {
-		throw new UnsupportedOperationException();
+		boolean alertPresent = false;
+
+		switchTo();
+
+		try {
+			WebDriverWait webDriverWait = new WebDriverWait(this, 1);
+
+			webDriverWait.until(ExpectedConditions.alertIsPresent());
+
+			alertPresent = true;
+		}
+		catch (Exception e) {
+			alertPresent = false;
+		}
+
+		return alertPresent;
 	}
 
 	@Override
@@ -986,6 +1021,8 @@ public class WebDriverToSeleniumBridge
 	public void mouseDown(String locator) {
 		WebElement webElement = getWebElement(locator);
 
+		scrollWebElementIntoView(webElement);
+
 		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
 
 		WebDriver webDriver = wrapsDriver.getWrappedDriver();
@@ -993,6 +1030,7 @@ public class WebDriverToSeleniumBridge
 		Actions actions = new Actions(webDriver);
 
 		actions.moveToElement(webElement);
+
 		actions.clickAndHold(webElement);
 
 		Action action = actions.build();
@@ -1002,7 +1040,35 @@ public class WebDriverToSeleniumBridge
 
 	@Override
 	public void mouseDownAt(String locator, String coordString) {
-		throw new UnsupportedOperationException();
+		WebElement webElement = getWebElement(locator);
+
+		scrollWebElementIntoView(webElement);
+
+		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
+
+		WebDriver webDriver = wrapsDriver.getWrappedDriver();
+
+		Actions actions = new Actions(webDriver);
+
+		if (coordString.contains(",")) {
+			String[] coords = coordString.split(",");
+
+			int x = GetterUtil.getInteger(coords[0]);
+			int y = GetterUtil.getInteger(coords[1]);
+
+			actions.moveToElement(webElement, x, y);
+
+			actions.clickAndHold();
+		}
+		else {
+			actions.moveToElement(webElement);
+
+			actions.clickAndHold(webElement);
+		}
+
+		Action action = actions.build();
+
+		action.perform();
 	}
 
 	@Override
@@ -1019,6 +1085,8 @@ public class WebDriverToSeleniumBridge
 	public void mouseMove(String locator) {
 		WebElement webElement = getWebElement(locator);
 
+		scrollWebElementIntoView(webElement);
+
 		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
 
 		WebDriver webDriver = wrapsDriver.getWrappedDriver();
@@ -1026,7 +1094,6 @@ public class WebDriverToSeleniumBridge
 		Actions actions = new Actions(webDriver);
 
 		actions.moveToElement(webElement);
-		actions.clickAndHold(webElement);
 
 		Action action = actions.build();
 
@@ -1036,6 +1103,8 @@ public class WebDriverToSeleniumBridge
 	@Override
 	public void mouseMoveAt(String locator, String coordString) {
 		WebElement webElement = getWebElement(locator);
+
+		scrollWebElementIntoView(webElement);
 
 		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
 
@@ -1050,11 +1119,9 @@ public class WebDriverToSeleniumBridge
 			int y = GetterUtil.getInteger(coords[1]);
 
 			actions.moveToElement(webElement, x, y);
-			actions.clickAndHold(webElement);
 		}
 		else {
 			actions.moveToElement(webElement);
-			actions.clickAndHold(webElement);
 		}
 
 		Action action = actions.build();
@@ -1065,6 +1132,8 @@ public class WebDriverToSeleniumBridge
 	@Override
 	public void mouseOut(String locator) {
 		WebElement webElement = getWebElement(locator);
+
+		scrollWebElementIntoView(webElement);
 
 		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
 
@@ -1084,6 +1153,8 @@ public class WebDriverToSeleniumBridge
 	public void mouseOver(String locator) {
 		WebElement webElement = getWebElement(locator);
 
+		scrollWebElementIntoView(webElement);
+
 		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
 
 		WebDriver webDriver = wrapsDriver.getWrappedDriver();
@@ -1101,6 +1172,8 @@ public class WebDriverToSeleniumBridge
 	public void mouseUp(String locator) {
 		WebElement webElement = getWebElement(locator);
 
+		scrollWebElementIntoView(webElement);
+
 		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
 
 		WebDriver webDriver = wrapsDriver.getWrappedDriver();
@@ -1116,7 +1189,33 @@ public class WebDriverToSeleniumBridge
 
 	@Override
 	public void mouseUpAt(String locator, String coordString) {
-		throw new UnsupportedOperationException();
+		WebElement webElement = getWebElement(locator);
+
+		scrollWebElementIntoView(webElement);
+
+		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
+
+		WebDriver webDriver = wrapsDriver.getWrappedDriver();
+
+		Actions actions = new Actions(webDriver);
+
+		if (coordString.contains(",")) {
+			String[] coords = coordString.split(",");
+
+			int x = GetterUtil.getInteger(coords[0]);
+			int y = GetterUtil.getInteger(coords[1]);
+
+			actions.moveToElement(webElement, x, y);
+			actions.release();
+		}
+		else {
+			actions.moveToElement(webElement);
+			actions.release(webElement);
+		}
+
+		Action action = actions.build();
+
+		action.perform();
 	}
 
 	@Override
@@ -1142,8 +1241,7 @@ public class WebDriverToSeleniumBridge
 
 		for (int second = 0;; second++) {
 			if (second >= TestPropsValues.TIMEOUT_IMPLICIT_WAIT) {
-				BaseTestCase.fail(
-					"Timeout: unable to open url \"" + targetURL + "\"");
+				break;
 			}
 
 			try {
@@ -1274,15 +1372,25 @@ public class WebDriverToSeleniumBridge
 		WebDriver.TargetLocator targetLocator = switchTo();
 
 		if (locator.equals("relative=parent")) {
-			throw new UnsupportedOperationException();
+			targetLocator.window(defaultWindowHandle);
+
+			if (!_frameWebElements.isEmpty()) {
+				_frameWebElements.pop();
+
+				if (!_frameWebElements.isEmpty()) {
+					targetLocator.frame(_frameWebElements.peek());
+				}
+			}
 		}
 		else if (locator.equals("relative=top")) {
-			targetLocator.window(_defaultWindowHandle);
+			_frameWebElements = new Stack<WebElement>();
+
+			targetLocator.window(defaultWindowHandle);
 		}
 		else {
-			WebElement webElement = getWebElement(locator);
+			_frameWebElements.push(getWebElement(locator));
 
-			targetLocator.frame(webElement);
+			targetLocator.frame(_frameWebElements.peek());
 		}
 	}
 
@@ -1331,7 +1439,7 @@ public class WebDriverToSeleniumBridge
 		else if (windowID.equals("null")) {
 			WebDriver.TargetLocator targetLocator = switchTo();
 
-			targetLocator.window(_defaultWindowHandle);
+			targetLocator.window(defaultWindowHandle);
 		}
 		else {
 			String targetWindowTitle = windowID;
@@ -1467,6 +1575,10 @@ public class WebDriverToSeleniumBridge
 
 	@Override
 	public void typeKeys(String locator, String value) {
+		typeKeys(locator, value, false);
+	}
+
+	public void typeKeys(String locator, String value, boolean typeAceEditor) {
 		WebElement webElement = getWebElement(locator);
 
 		if (!webElement.isEnabled()) {
@@ -1486,7 +1598,7 @@ public class WebDriverToSeleniumBridge
 
 		sb.append("]*.*");
 
-		if (value.matches(sb.toString())) {
+		if (value.matches(sb.toString()) || typeAceEditor) {
 			char[] chars = value.toCharArray();
 
 			for (char c : chars) {
@@ -1497,6 +1609,14 @@ public class WebDriverToSeleniumBridge
 				}
 				else {
 					webElement.sendKeys(s);
+				}
+
+				if (typeAceEditor) {
+					if (s.equals("(") || s.equals("\"")) {
+						keyPress(locator, "\\46");
+					}
+
+					keyPress(locator, "\\27");
 				}
 			}
 		}
@@ -1573,7 +1693,7 @@ public class WebDriverToSeleniumBridge
 					targetLocator.window(windowHandle);
 
 					if (targetWindowTitle.equals(getTitle())) {
-						targetLocator.window(_defaultWindowHandle);
+						targetLocator.window(defaultWindowHandle);
 
 						return;
 					}
@@ -1747,13 +1867,15 @@ public class WebDriverToSeleniumBridge
 	}
 
 	protected void initKeysSpecialChars() {
-		_keysSpecialChars.put("&", "7");
+		_keysSpecialChars.put("!", "1");
+		_keysSpecialChars.put("#", "3");
 		_keysSpecialChars.put("$", "4");
 		_keysSpecialChars.put("%", "5");
-		_keysSpecialChars.put("<", ",");
-		_keysSpecialChars.put(">", ".");
+		_keysSpecialChars.put("&", "7");
 		_keysSpecialChars.put("(", "9");
 		_keysSpecialChars.put(")", "0");
+		_keysSpecialChars.put("<", ",");
+		_keysSpecialChars.put(">", ".");
 	}
 
 	protected void scrollWebElementIntoView(WebElement webElement) {
@@ -1868,10 +1990,12 @@ public class WebDriverToSeleniumBridge
 		select.selectByIndex(index);
 	}
 
+	protected String defaultWindowHandle;
+
 	private static Log _log = LogFactoryUtil.getLog(
 		WebDriverToSeleniumBridge.class);
 
-	private String _defaultWindowHandle;
+	private Stack<WebElement> _frameWebElements = new Stack<WebElement>();
 	private Keys[] _keysArray = new Keys[128];
 	private Map<String, String> _keysSpecialChars =
 		new HashMap<String, String>();

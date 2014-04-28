@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.trash.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see TrashVersionLocalService
  * @generated
  */
+@ProviderType
 public class TrashVersionLocalServiceWrapper implements TrashVersionLocalService,
 	ServiceWrapper<TrashVersionLocalService> {
 	public TrashVersionLocalServiceWrapper(
@@ -207,6 +210,12 @@ public class TrashVersionLocalServiceWrapper implements TrashVersionLocalService
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _trashVersionLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -281,10 +290,18 @@ public class TrashVersionLocalServiceWrapper implements TrashVersionLocalService
 
 	@Override
 	public void addTrashVersion(long trashEntryId, java.lang.String className,
-		long classPK, int status)
+		long classPK, int status,
+		com.liferay.portal.kernel.util.UnicodeProperties typeSettingsProperties)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_trashVersionLocalService.addTrashVersion(trashEntryId, className,
-			classPK, status);
+			classPK, status, typeSettingsProperties);
+	}
+
+	@Override
+	public com.liferay.portlet.trash.model.TrashVersion deleteTrashVersion(
+		java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _trashVersionLocalService.deleteTrashVersion(className, classPK);
 	}
 
 	@Override
@@ -310,23 +327,9 @@ public class TrashVersionLocalServiceWrapper implements TrashVersionLocalService
 	}
 
 	/**
-	* Returns all the trash versions associated with the trash entry.
-	*
-	* @param className the class name of the trash entity
-	* @param classPK the primary key of the trash entity
-	* @return all the trash versions associated with the trash entry
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public java.util.List<com.liferay.portlet.trash.model.TrashVersion> getVersions(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _trashVersionLocalService.getVersions(className, classPK);
-	}
-
-	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public TrashVersionLocalService getWrappedTrashVersionLocalService() {
 		return _trashVersionLocalService;
 	}
@@ -334,6 +337,7 @@ public class TrashVersionLocalServiceWrapper implements TrashVersionLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedTrashVersionLocalService(
 		TrashVersionLocalService trashVersionLocalService) {
 		_trashVersionLocalService = trashVersionLocalService;

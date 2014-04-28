@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 
@@ -28,6 +30,7 @@ import java.util.Map;
  * @see UserNotificationEvent
  * @generated
  */
+@ProviderType
 public class UserNotificationEventWrapper implements UserNotificationEvent,
 	ModelWrapper<UserNotificationEvent> {
 	public UserNotificationEventWrapper(
@@ -49,12 +52,14 @@ public class UserNotificationEventWrapper implements UserNotificationEvent,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("userNotificationEventId", getUserNotificationEventId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
 		attributes.put("type", getType());
 		attributes.put("timestamp", getTimestamp());
+		attributes.put("deliveryType", getDeliveryType());
 		attributes.put("deliverBy", getDeliverBy());
 		attributes.put("delivered", getDelivered());
 		attributes.put("payload", getPayload());
@@ -65,6 +70,12 @@ public class UserNotificationEventWrapper implements UserNotificationEvent,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -100,6 +111,12 @@ public class UserNotificationEventWrapper implements UserNotificationEvent,
 
 		if (timestamp != null) {
 			setTimestamp(timestamp);
+		}
+
+		Integer deliveryType = (Integer)attributes.get("deliveryType");
+
+		if (deliveryType != null) {
+			setDeliveryType(deliveryType);
 		}
 
 		Long deliverBy = (Long)attributes.get("deliverBy");
@@ -145,6 +162,26 @@ public class UserNotificationEventWrapper implements UserNotificationEvent,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_userNotificationEvent.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this user notification event.
+	*
+	* @return the mvcc version of this user notification event
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _userNotificationEvent.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this user notification event.
+	*
+	* @param mvccVersion the mvcc version of this user notification event
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_userNotificationEvent.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -287,6 +324,26 @@ public class UserNotificationEventWrapper implements UserNotificationEvent,
 	@Override
 	public void setTimestamp(long timestamp) {
 		_userNotificationEvent.setTimestamp(timestamp);
+	}
+
+	/**
+	* Returns the delivery type of this user notification event.
+	*
+	* @return the delivery type of this user notification event
+	*/
+	@Override
+	public int getDeliveryType() {
+		return _userNotificationEvent.getDeliveryType();
+	}
+
+	/**
+	* Sets the delivery type of this user notification event.
+	*
+	* @param deliveryType the delivery type of this user notification event
+	*/
+	@Override
+	public void setDeliveryType(int deliveryType) {
+		_userNotificationEvent.setDeliveryType(deliveryType);
 	}
 
 	/**
@@ -517,6 +574,7 @@ public class UserNotificationEventWrapper implements UserNotificationEvent,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public UserNotificationEvent getWrappedUserNotificationEvent() {
 		return _userNotificationEvent;
 	}
@@ -524,6 +582,16 @@ public class UserNotificationEventWrapper implements UserNotificationEvent,
 	@Override
 	public UserNotificationEvent getWrappedModel() {
 		return _userNotificationEvent;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _userNotificationEvent.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _userNotificationEvent.isFinderCacheEnabled();
 	}
 
 	@Override

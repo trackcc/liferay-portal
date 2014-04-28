@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,8 +28,10 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.ResourceBlockPermission;
 import com.liferay.portal.model.impl.ResourceBlockPermissionModelImpl;
+import com.liferay.portal.service.ResourceBlockPermissionLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -39,6 +41,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -56,6 +59,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ResourceBlockPermissionPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<ResourceBlockPermission> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -77,6 +89,10 @@ public class ResourceBlockPermissionPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<ResourceBlockPermission> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -112,6 +128,8 @@ public class ResourceBlockPermissionPersistenceTest {
 
 		ResourceBlockPermission newResourceBlockPermission = _persistence.create(pk);
 
+		newResourceBlockPermission.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newResourceBlockPermission.setResourceBlockId(ServiceTestUtil.nextLong());
 
 		newResourceBlockPermission.setRoleId(ServiceTestUtil.nextLong());
@@ -122,6 +140,8 @@ public class ResourceBlockPermissionPersistenceTest {
 
 		ResourceBlockPermission existingResourceBlockPermission = _persistence.findByPrimaryKey(newResourceBlockPermission.getPrimaryKey());
 
+		Assert.assertEquals(existingResourceBlockPermission.getMvccVersion(),
+			newResourceBlockPermission.getMvccVersion());
 		Assert.assertEquals(existingResourceBlockPermission.getResourceBlockPermissionId(),
 			newResourceBlockPermission.getResourceBlockPermissionId());
 		Assert.assertEquals(existingResourceBlockPermission.getResourceBlockId(),
@@ -130,6 +150,43 @@ public class ResourceBlockPermissionPersistenceTest {
 			newResourceBlockPermission.getRoleId());
 		Assert.assertEquals(existingResourceBlockPermission.getActionIds(),
 			newResourceBlockPermission.getActionIds());
+	}
+
+	@Test
+	public void testCountByResourceBlockId() {
+		try {
+			_persistence.countByResourceBlockId(ServiceTestUtil.nextLong());
+
+			_persistence.countByResourceBlockId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByRoleId() {
+		try {
+			_persistence.countByRoleId(ServiceTestUtil.nextLong());
+
+			_persistence.countByRoleId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByR_R() {
+		try {
+			_persistence.countByR_R(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByR_R(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -169,8 +226,8 @@ public class ResourceBlockPermissionPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("ResourceBlockPermission",
-			"resourceBlockPermissionId", true, "resourceBlockId", true,
-			"roleId", true, "actionIds", true);
+			"mvccVersion", true, "resourceBlockPermissionId", true,
+			"resourceBlockId", true, "roleId", true, "actionIds", true);
 	}
 
 	@Test
@@ -196,16 +253,18 @@ public class ResourceBlockPermissionPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new ResourceBlockPermissionActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = ResourceBlockPermissionLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					ResourceBlockPermission resourceBlockPermission = (ResourceBlockPermission)object;
 
 					Assert.assertNotNull(resourceBlockPermission);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -316,6 +375,8 @@ public class ResourceBlockPermissionPersistenceTest {
 
 		ResourceBlockPermission resourceBlockPermission = _persistence.create(pk);
 
+		resourceBlockPermission.setMvccVersion(ServiceTestUtil.nextLong());
+
 		resourceBlockPermission.setResourceBlockId(ServiceTestUtil.nextLong());
 
 		resourceBlockPermission.setRoleId(ServiceTestUtil.nextLong());
@@ -328,6 +389,7 @@ public class ResourceBlockPermissionPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ResourceBlockPermissionPersistenceTest.class);
+	private ModelListener<ResourceBlockPermission>[] _modelListeners;
 	private ResourceBlockPermissionPersistence _persistence = (ResourceBlockPermissionPersistence)PortalBeanLocatorUtil.locate(ResourceBlockPermissionPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see AssetCategoryLocalService
  * @generated
  */
+@ProviderType
 public class AssetCategoryLocalServiceWrapper
 	implements AssetCategoryLocalService,
 		ServiceWrapper<AssetCategoryLocalService> {
@@ -237,6 +240,19 @@ public class AssetCategoryLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _assetCategoryLocalService.getAssetCategory(categoryId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryLocalService.getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	@Override
@@ -557,18 +573,19 @@ public class AssetCategoryLocalServiceWrapper
 	}
 
 	@Override
-	public void deleteCategory(
+	public com.liferay.portlet.asset.model.AssetCategory deleteCategory(
 		com.liferay.portlet.asset.model.AssetCategory category)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_assetCategoryLocalService.deleteCategory(category);
+		return _assetCategoryLocalService.deleteCategory(category);
 	}
 
 	@Override
-	public void deleteCategory(long categoryId)
+	public com.liferay.portlet.asset.model.AssetCategory deleteCategory(
+		long categoryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_assetCategoryLocalService.deleteCategory(categoryId);
+		return _assetCategoryLocalService.deleteCategory(categoryId);
 	}
 
 	@Override
@@ -722,10 +739,12 @@ public class AssetCategoryLocalServiceWrapper
 	}
 
 	@Override
-	public void mergeCategories(long fromCategoryId, long toCategoryId)
+	public com.liferay.portlet.asset.model.AssetCategory mergeCategories(
+		long fromCategoryId, long toCategoryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_assetCategoryLocalService.mergeCategories(fromCategoryId, toCategoryId);
+		return _assetCategoryLocalService.mergeCategories(fromCategoryId,
+			toCategoryId);
 	}
 
 	@Override
@@ -754,6 +773,26 @@ public class AssetCategoryLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portlet.asset.model.AssetCategory> searchCategories(
+		long companyId, long groupIds, java.lang.String title,
+		long vocabularyId, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryLocalService.searchCategories(companyId, groupIds,
+			title, vocabularyId, start, end);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portlet.asset.model.AssetCategory> searchCategories(
+		long companyId, long[] groupIds, java.lang.String title,
+		long[] vocabularyIds, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryLocalService.searchCategories(companyId, groupIds,
+			title, vocabularyIds, start, end);
+	}
+
+	@Override
 	public com.liferay.portlet.asset.model.AssetCategory updateCategory(
 		long userId, long categoryId, long parentCategoryId,
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
@@ -770,6 +809,7 @@ public class AssetCategoryLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetCategoryLocalService getWrappedAssetCategoryLocalService() {
 		return _assetCategoryLocalService;
 	}
@@ -777,6 +817,7 @@ public class AssetCategoryLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetCategoryLocalService(
 		AssetCategoryLocalService assetCategoryLocalService) {
 		_assetCategoryLocalService = assetCategoryLocalService;

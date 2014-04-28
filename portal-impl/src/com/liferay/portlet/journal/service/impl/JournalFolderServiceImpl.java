@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -229,9 +229,22 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 		}
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #getSubfolderIds(List, long,
+	 *             long, boolean)}
+	 */
+	@Deprecated
 	@Override
 	public void getSubfolderIds(
 			List<Long> folderIds, long groupId, long folderId)
+		throws SystemException {
+
+		getSubfolderIds(folderIds, groupId, folderId, true);
+	}
+
+	@Override
+	public void getSubfolderIds(
+			List<Long> folderIds, long groupId, long folderId, boolean recurse)
 		throws SystemException {
 
 		List<JournalFolder> folders =
@@ -241,8 +254,11 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 		for (JournalFolder folder : folders) {
 			folderIds.add(folder.getFolderId());
 
-			getSubfolderIds(
-				folderIds, folder.getGroupId(), folder.getFolderId());
+			if (recurse) {
+				getSubfolderIds(
+					folderIds, folder.getGroupId(), folder.getFolderId(),
+					recurse);
+			}
 		}
 	}
 
@@ -253,7 +269,7 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 
 		List<Long> folderIds = new ArrayList<Long>();
 
-		getSubfolderIds(folderIds, groupId, folderId);
+		getSubfolderIds(folderIds, groupId, folderId, recurse);
 
 		return folderIds;
 	}
@@ -312,6 +328,26 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 	}
 
 	@Override
+	public void subscribe(long groupId, long folderId)
+		throws PortalException, SystemException {
+
+		JournalFolderPermission.check(
+			getPermissionChecker(), groupId, folderId, ActionKeys.SUBSCRIBE);
+
+		journalFolderLocalService.subscribe(getUserId(), groupId, folderId);
+	}
+
+	@Override
+	public void unsubscribe(long groupId, long folderId)
+		throws PortalException, SystemException {
+
+		JournalFolderPermission.check(
+			getPermissionChecker(), groupId, folderId, ActionKeys.SUBSCRIBE);
+
+		journalFolderLocalService.unsubscribe(getUserId(), groupId, folderId);
+	}
+
+	@Override
 	public JournalFolder updateFolder(
 			long folderId, long parentFolderId, String name, String description,
 			boolean mergeWithParentFolder, ServiceContext serviceContext)
@@ -325,6 +361,24 @@ public class JournalFolderServiceImpl extends JournalFolderServiceBaseImpl {
 		return journalFolderLocalService.updateFolder(
 			getUserId(), folderId, parentFolderId, name, description,
 			mergeWithParentFolder, serviceContext);
+	}
+
+	@Override
+	public JournalFolder updateFolder(
+			long folderId, long parentFolderId, String name, String description,
+			long[] ddmStructureIds, boolean overrideDDMStructures,
+			boolean mergeWithParentFolder, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		JournalFolder folder = journalFolderLocalService.getFolder(folderId);
+
+		JournalFolderPermission.check(
+			getPermissionChecker(), folder, ActionKeys.UPDATE);
+
+		return journalFolderLocalService.updateFolder(
+			getUserId(), folderId, parentFolderId, name, description,
+			ddmStructureIds, overrideDDMStructures, mergeWithParentFolder,
+			serviceContext);
 	}
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.portletfilerepository;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -33,6 +35,7 @@ import java.util.List;
  * @author Eudaldo Alonso
  * @author Alexander Chow
  */
+@ProviderType
 public interface PortletFileRepository {
 
 	public void addPortletFileEntries(
@@ -62,6 +65,10 @@ public interface PortletFileRepository {
 			long groupId, String portletId, ServiceContext serviceContext)
 		throws PortalException, SystemException;
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #deletePortletFolder}
+	 */
+	@Deprecated
 	public void deleteFolder(long folderId)
 		throws PortalException, SystemException;
 
@@ -77,6 +84,9 @@ public interface PortletFileRepository {
 
 	public void deletePortletFileEntry(
 			long groupId, long folderId, String fileName)
+		throws PortalException, SystemException;
+
+	public void deletePortletFolder(long folderId)
 		throws PortalException, SystemException;
 
 	public void deletePortletRepository(long groupId, String portletId)

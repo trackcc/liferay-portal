@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -60,6 +60,10 @@ public interface AssetRendererFactory {
 
 	public long getClassNameId();
 
+	public Tuple getClassTypeFieldName(
+			long classTypeId, String fieldName, Locale locale)
+		throws Exception;
+
 	public List<Tuple> getClassTypeFieldNames(
 			long classTypeId, Locale locale, int start, int end)
 		throws Exception;
@@ -76,7 +80,15 @@ public interface AssetRendererFactory {
 
 	public String getType();
 
+	public String getTypeName(Locale locale);
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #getTypeName(Locale)}
+	 */
+	@Deprecated
 	public String getTypeName(Locale locale, boolean hasSubtypes);
+
+	public String getTypeName(Locale locale, long subtypeId);
 
 	public PortletURL getURLAdd(
 			LiferayPortletRequest liferayPortletRequest,
@@ -87,6 +99,10 @@ public interface AssetRendererFactory {
 			LiferayPortletResponse liferayPortletResponse,
 			WindowState windowState)
 		throws PortalException, SystemException;
+
+	public boolean hasAddPermission(
+			PermissionChecker permissionChecker, long groupId, long classTypeId)
+		throws Exception;
 
 	public boolean hasClassTypeFieldNames(long classTypeId, Locale locale)
 		throws Exception;
@@ -103,6 +119,8 @@ public interface AssetRendererFactory {
 	public boolean isLinkable();
 
 	public boolean isSelectable();
+
+	public boolean isSupportsClassTypes();
 
 	public void setClassName(String className);
 

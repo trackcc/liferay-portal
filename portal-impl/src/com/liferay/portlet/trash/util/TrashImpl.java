@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,10 +23,13 @@ import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.trash.TrashRenderer;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -40,6 +43,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -60,8 +64,11 @@ import java.text.Format;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import javax.portlet.ActionRequest;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 
@@ -113,6 +120,82 @@ public class TrashImpl implements Trash {
 
 		addBreadcrumbEntries(
 			request, className, classPK, "containerModelId", containerModelURL);
+	}
+
+	@Override
+	public void addTrashSessionMessages(
+		ActionRequest actionRequest, List<TrashedModel> trashedModels) {
+
+		addTrashSessionMessages(
+			actionRequest, trashedModels, Constants.MOVE_TO_TRASH);
+	}
+
+	@Override
+	public void addTrashSessionMessages(
+		ActionRequest actionRequest, List<TrashedModel> trashedModels,
+		String cmd) {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		List<String> classNames = new ArrayList<String>();
+		List<Long> restoreTrashEntryIds = new ArrayList<Long>();
+		List<String> titles = new ArrayList<String>();
+
+		for (int i = 0; i < trashedModels.size(); i++) {
+			try {
+				TrashedModel trashedModel = trashedModels.get(i);
+
+				TrashEntry trashEntry = trashedModel.getTrashEntry();
+
+				TrashHandler trashHandler = trashedModel.getTrashHandler();
+
+				TrashRenderer trashRenderer = trashHandler.getTrashRenderer(
+					trashedModel.getTrashEntryClassPK());
+
+				classNames.add(trashRenderer.getClassName());
+				restoreTrashEntryIds.add(trashEntry.getEntryId());
+				titles.add(trashRenderer.getTitle(themeDisplay.getLocale()));
+			}
+			catch (Exception e) {
+			}
+		}
+
+		Map<String, String[]> data = new HashMap<String, String[]>();
+
+		data.put(Constants.CMD, new String[] {cmd});
+
+		data.put(
+			"deleteEntryClassName",
+			ArrayUtil.toStringArray(classNames.toArray()));
+		data.put("deleteEntryTitle", ArrayUtil.toStringArray(titles.toArray()));
+		data.put(
+			"restoreTrashEntryIds",
+			ArrayUtil.toStringArray(restoreTrashEntryIds.toArray()));
+
+		SessionMessages.add(
+			actionRequest,
+			PortalUtil.getPortletId(actionRequest) +
+				SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
+	}
+
+	@Override
+	public void addTrashSessionMessages(
+		ActionRequest actionRequest, TrashedModel trashedModel) {
+
+		addTrashSessionMessages(
+			actionRequest, trashedModel, Constants.MOVE_TO_TRASH);
+	}
+
+	@Override
+	public void addTrashSessionMessages(
+		ActionRequest actionRequest, TrashedModel trashedModel, String cmd) {
+
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
+
+		trashedModels.add(trashedModel);
+
+		addTrashSessionMessages(actionRequest, trashedModels, cmd);
 	}
 
 	@Override
@@ -216,17 +299,13 @@ public class TrashImpl implements Trash {
 	}
 
 	@Override
-	public int getMaxAge(Group group) throws PortalException, SystemException {
-		if (group.isLayout()) {
-			group = group.getParentGroup();
-		}
-
+	public int getMaxAge(Group group) throws SystemException {
 		int trashEntriesMaxAge = PrefsPropsUtil.getInteger(
 			group.getCompanyId(), PropsKeys.TRASH_ENTRIES_MAX_AGE,
 			PropsValues.TRASH_ENTRIES_MAX_AGE);
 
 		UnicodeProperties typeSettingsProperties =
-			group.getTypeSettingsProperties();
+			group.getParentLiveGroupTypeSettingsProperties();
 
 		return GetterUtil.getInteger(
 			typeSettingsProperties.getProperty("trashEntriesMaxAge"),
@@ -375,13 +454,7 @@ public class TrashImpl implements Trash {
 			return false;
 		}
 
-		if (trashHandler.isInTrash(classPK) ||
-			trashHandler.isInTrashContainer(classPK)) {
-
-			return true;
-		}
-
-		return false;
+		return trashHandler.isInTrash(classPK);
 	}
 
 	@Override
@@ -390,15 +463,15 @@ public class TrashImpl implements Trash {
 
 		Group group = GroupLocalServiceUtil.getGroup(groupId);
 
-		UnicodeProperties typeSettingsProperties =
-			group.getParentLiveGroupTypeSettingsProperties();
-
 		boolean companyTrashEnabled = PrefsPropsUtil.getBoolean(
 			group.getCompanyId(), PropsKeys.TRASH_ENABLED);
 
 		if (!companyTrashEnabled) {
 			return false;
 		}
+
+		UnicodeProperties typeSettingsProperties =
+			group.getParentLiveGroupTypeSettingsProperties();
 
 		return GetterUtil.getBoolean(
 			typeSettingsProperties.getProperty("trashEnabled"), true);
@@ -432,8 +505,6 @@ public class TrashImpl implements Trash {
 					containerModel.getModelClassName());
 
 			if (!containerModelTrashHandler.isInTrash(
-					containerModel.getContainerModelId()) &&
-				!containerModelTrashHandler.isInTrashContainer(
 					containerModel.getContainerModelId())) {
 
 				continue;

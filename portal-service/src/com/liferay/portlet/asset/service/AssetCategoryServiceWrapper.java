@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see AssetCategoryService
  * @generated
  */
+@ProviderType
 public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	ServiceWrapper<AssetCategoryService> {
 	public AssetCategoryServiceWrapper(
@@ -77,6 +80,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	* @deprecated As of 6.2.0, Replaced by {@link #deleteCategories(long[],
 	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public void deleteCategories(long[] categoryIds)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -118,6 +122,13 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	}
 
 	@Override
+	public java.lang.String getCategoryPath(long categoryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryService.getCategoryPath(categoryId);
+	}
+
+	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetCategory> getChildCategories(
 		long parentCategoryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -139,6 +150,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	* @deprecated As of 6.2.0, replaced by {@link #search(long[], String,
 	long[], int, int)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.kernel.json.JSONArray getJSONSearch(
 		long groupId, java.lang.String name, long[] vocabularyIds, int start,
@@ -154,6 +166,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	#getVocabularyCategoriesDisplay(long, int, int,
 	OrderByComparator)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.kernel.json.JSONObject getJSONVocabularyCategories(
 		long vocabularyId, int start, int end,
@@ -169,6 +182,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	#getVocabularyCategoriesDisplay(long, String, long, int, int,
 	OrderByComparator)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.kernel.json.JSONObject getJSONVocabularyCategories(
 		long groupId, java.lang.String name, long vocabularyId, int start,
@@ -248,6 +262,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	#getVocabularyRootCategories(long, long, int, int,
 	OrderByComparator)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetCategory> getVocabularyRootCategories(
 		long vocabularyId, int start, int end,
@@ -313,6 +328,26 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	}
 
 	@Override
+	public com.liferay.portlet.asset.model.AssetCategoryDisplay searchCategoriesDisplay(
+		long groupId, java.lang.String title, long vocabularyId, int start,
+		int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryService.searchCategoriesDisplay(groupId, title,
+			vocabularyId, start, end);
+	}
+
+	@Override
+	public com.liferay.portlet.asset.model.AssetCategoryDisplay searchCategoriesDisplay(
+		long[] groupIds, java.lang.String title, long[] vocabularyIds,
+		int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryService.searchCategoriesDisplay(groupIds, title,
+			vocabularyIds, start, end);
+	}
+
+	@Override
 	public com.liferay.portlet.asset.model.AssetCategory updateCategory(
 		long categoryId, long parentCategoryId,
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
@@ -329,6 +364,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetCategoryService getWrappedAssetCategoryService() {
 		return _assetCategoryService;
 	}
@@ -336,6 +372,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetCategoryService(
 		AssetCategoryService assetCategoryService) {
 		_assetCategoryService = assetCategoryService;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,10 +19,10 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.mobiledevicerules.DuplicateRuleGroupInstanceException;
 import com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance;
 import com.liferay.portlet.mobiledevicerules.service.base.MDRRuleGroupInstanceLocalServiceBaseImpl;
@@ -45,7 +45,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 
 		User user = userPersistence.findByPrimaryKey(
 			serviceContext.getUserId());
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 		Date now = new Date();
 
 		validate(classNameId, classPK, ruleGroupId);
@@ -162,7 +162,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 			String className, long classPK, long ruleGroupId)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return mdrRuleGroupInstancePersistence.fetchByC_C_R(
 			classNameId, classPK, ruleGroupId);
@@ -181,7 +181,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 			String className, long classPK, long ruleGroupId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return mdrRuleGroupInstancePersistence.findByC_C_R(
 			classNameId, classPK, ruleGroupId);
@@ -208,7 +208,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 			String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return mdrRuleGroupInstancePersistence.findByC_C(classNameId, classPK);
 	}
@@ -219,7 +219,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 			OrderByComparator orderByComparator)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return mdrRuleGroupInstancePersistence.findByC_C(
 			classNameId, classPK, start, end, orderByComparator);
@@ -236,7 +236,7 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 	public int getRuleGroupInstancesCount(String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return mdrRuleGroupInstancePersistence.countByC_C(classNameId, classPK);
 	}
@@ -265,7 +265,17 @@ public class MDRRuleGroupInstanceLocalServiceImpl
 				classNameId, classPK, ruleGroupId);
 
 		if (ruleGroupInstance != null) {
-			throw new DuplicateRuleGroupInstanceException();
+			StringBundler sb = new StringBundler(7);
+
+			sb.append("{classNameId=");
+			sb.append(classNameId);
+			sb.append(", classPK=");
+			sb.append(classPK);
+			sb.append(", ruleGroupId=");
+			sb.append(ruleGroupId);
+			sb.append("}");
+
+			throw new DuplicateRuleGroupInstanceException(sb.toString());
 		}
 
 		mdrRuleGroupLocalService.getMDRRuleGroup(ruleGroupId);

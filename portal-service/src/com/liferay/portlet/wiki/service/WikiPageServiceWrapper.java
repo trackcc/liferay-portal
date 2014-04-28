@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.wiki.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see WikiPageService
  * @generated
  */
+@ProviderType
 public class WikiPageServiceWrapper implements WikiPageService,
 	ServiceWrapper<WikiPageService> {
 	public WikiPageServiceWrapper(WikiPageService wikiPageService) {
@@ -139,6 +142,7 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	* @deprecated As of 6.2.0 replaced by {@link #discardDraft(long, String,
 	double)}
 	*/
+	@Deprecated
 	@Override
 	public void deletePage(long nodeId, java.lang.String title, double version)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -185,6 +189,14 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	}
 
 	@Override
+	public com.liferay.portlet.wiki.model.WikiPage fetchPage(long nodeId,
+		java.lang.String title, double version)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPageService.fetchPage(nodeId, title, version);
+	}
+
+	@Override
 	public java.util.List<com.liferay.portlet.wiki.model.WikiPage> getChildren(
 		long groupId, long nodeId, boolean head, java.lang.String parentTitle)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -212,6 +224,7 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	* @deprecated As of 6.2.0, replaced by {@link #getNodePagesRSS(long, int,
 	String, double, String, String, String, String)}
 	*/
+	@Deprecated
 	@Override
 	public java.lang.String getNodePagesRSS(long nodeId, int max,
 		java.lang.String type, double version, java.lang.String displayStyle,
@@ -311,6 +324,7 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	String, int, String, double, String, String, String, String,
 	java.util.Locale)}
 	*/
+	@Deprecated
 	@Override
 	public java.lang.String getPagesRSS(long companyId, long nodeId,
 		java.lang.String title, int max, java.lang.String type, double version,
@@ -448,6 +462,7 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public WikiPageService getWrappedWikiPageService() {
 		return _wikiPageService;
 	}
@@ -455,6 +470,7 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedWikiPageService(WikiPageService wikiPageService) {
 		_wikiPageService = wikiPageService;
 	}

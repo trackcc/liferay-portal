@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -260,6 +260,27 @@ public class ActionUtil {
 			return portletPreferences;
 		}
 
+		return PortletPreferencesFactoryUtil.getPortletPreferences(
+			request, portletResource);
+	}
+
+	protected static PortletPreferences getPortletSetup(
+			HttpServletRequest request,
+			PortletPreferences portletConfigPortletSetup,
+			PortletPreferences portletSetup)
+		throws PortalException, SystemException {
+
+		String portletResource = ParamUtil.getString(
+			request, "portletResource");
+
+		if (Validator.isNull(portletResource)) {
+			return portletConfigPortletSetup;
+		}
+
+		if (portletSetup != null) {
+			return portletSetup;
+		}
+
 		return PortletPreferencesFactoryUtil.getPortletSetup(
 			request, portletResource);
 	}
@@ -277,14 +298,14 @@ public class ActionUtil {
 		HttpServletRequest request = PortalUtil.getHttpServletRequest(
 			renderRequest);
 
-		PortletPreferences portletPreferences = getLayoutPortletSetup(
+		PortletPreferences portletSetup = getLayoutPortletSetup(
 			renderRequest, portlet);
 
-		portletPreferences = getPortletPreferences(
-			request, renderRequest.getPreferences(), portletPreferences);
+		portletSetup = getPortletSetup(
+			request, renderRequest.getPreferences(), portletSetup);
 
 		String title = PortletConfigurationUtil.getPortletTitle(
-			portletPreferences, themeDisplay.getLanguageId());
+			portletSetup, themeDisplay.getLanguageId());
 
 		if (Validator.isNull(title)) {
 			title = PortalUtil.getPortletTitle(

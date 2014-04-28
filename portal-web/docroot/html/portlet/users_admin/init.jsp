@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -48,7 +48,6 @@ page import="com.liferay.portal.UserEmailAddressException" %><%@
 page import="com.liferay.portal.UserFieldException" %><%@
 page import="com.liferay.portal.UserIdException" %><%@
 page import="com.liferay.portal.UserPasswordException" %><%@
-page import="com.liferay.portal.UserPortraitSizeException" %><%@
 page import="com.liferay.portal.UserScreenNameException" %><%@
 page import="com.liferay.portal.UserSmsException" %><%@
 page import="com.liferay.portal.WebsiteURLException" %><%@
@@ -62,7 +61,6 @@ page import="com.liferay.portlet.announcements.model.AnnouncementsDelivery" %><%
 page import="com.liferay.portlet.announcements.model.AnnouncementsEntryConstants" %><%@
 page import="com.liferay.portlet.announcements.model.impl.AnnouncementsDeliveryImpl" %><%@
 page import="com.liferay.portlet.announcements.service.AnnouncementsDeliveryLocalServiceUtil" %><%@
-page import="com.liferay.portlet.documentlibrary.NoSuchFileException" %><%@
 page import="com.liferay.portlet.rolesadmin.search.OrganizationRoleChecker" %><%@
 page import="com.liferay.portlet.rolesadmin.search.UserGroupRoleChecker" %><%@
 page import="com.liferay.portlet.rolesadmin.search.UserRoleChecker" %><%@

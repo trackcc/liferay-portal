@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.model.CustomizedPages;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.LayoutPrototype;
@@ -47,6 +48,11 @@ import javax.portlet.PortletPreferences;
  * @author Mate Thurzo
  */
 public class LayoutTestUtil {
+
+	public static Layout addLayout(Group group) throws Exception {
+		return LayoutTestUtil.addLayout(
+			group.getGroupId(), ServiceTestUtil.randomString(), false);
+	}
 
 	public static Layout addLayout(
 			long groupId, boolean privateLayout, Map<Locale, String> nameMap,
@@ -132,7 +138,8 @@ public class LayoutTestUtil {
 
 		return LayoutPrototypeLocalServiceUtil.addLayoutPrototype(
 			TestPropsValues.getUserId(), TestPropsValues.getCompanyId(),
-			nameMap, null, true, ServiceTestUtil.getServiceContext());
+			nameMap, (Map<Locale, String>)null, true,
+			ServiceTestUtil.getServiceContext());
 	}
 
 	public static LayoutSetPrototype addLayoutSetPrototype(String name)
@@ -144,7 +151,8 @@ public class LayoutTestUtil {
 
 		return LayoutSetPrototypeLocalServiceUtil.addLayoutSetPrototype(
 			TestPropsValues.getUserId(), TestPropsValues.getCompanyId(),
-			nameMap, null, true, true, ServiceTestUtil.getServiceContext());
+			nameMap, (Map<Locale, String>)null, true, true,
+			ServiceTestUtil.getServiceContext());
 	}
 
 	public static String addPortletToLayout(Layout layout, String portletId)
@@ -299,6 +307,39 @@ public class LayoutTestUtil {
 		return LayoutServiceUtil.updateLayout(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			layout.getTypeSettings());
+	}
+
+	public static Layout updateLayoutPortletPreference(
+			Layout layout, String portletId, String portletPreferenceName,
+			String portletPreferenceValue)
+		throws Exception {
+
+		PortletPreferences layoutPortletPreferences =
+			LayoutTestUtil.getPortletPreferences(layout, portletId);
+
+		layoutPortletPreferences.setValue(
+			portletPreferenceName, portletPreferenceValue);
+
+		layoutPortletPreferences.store();
+
+		return LayoutLocalServiceUtil.getLayout(layout.getPlid());
+	}
+
+	public static Layout updateLayoutPortletPreferences(
+			Layout layout, String portletId,
+			Map<String, String> portletPreferences)
+		throws Exception {
+
+		PortletPreferences layoutPortletPreferences =
+			LayoutTestUtil.getPortletPreferences(layout, portletId);
+
+		for (Map.Entry<String, String> entry : portletPreferences.entrySet()) {
+			layoutPortletPreferences.setValue(entry.getKey(), entry.getValue());
+		}
+
+		layoutPortletPreferences.store();
+
+		return LayoutLocalServiceUtil.getLayout(layout.getPlid());
 	}
 
 	public static Layout updateLayoutTemplateId(

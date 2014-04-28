@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.service;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.GroupLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class GroupLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -211,6 +214,11 @@ public class GroupLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getGroup(groupId);
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getActionableDynamicQuery();
 	}
 
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
@@ -859,7 +867,11 @@ public class GroupLocalServiceUtil {
 	* @param description the group's description (optionally
 	<code>null</code>)
 	* @param type the group's type. For more information see {@link
-	com.liferay.portal.model.GroupConstants}
+	GroupConstants}.
+	* @param manualMembership whether manual membership is allowed for the
+	group
+	* @param membershipRestriction the group's membership restriction. For
+	more information see {@link GroupConstants}.
 	* @param friendlyURL the group's friendlyURL (optionally
 	<code>null</code>)
 	* @param site whether the group is to be associated with a main site
@@ -898,7 +910,7 @@ public class GroupLocalServiceUtil {
 	* @param description the group's description (optionally
 	<code>null</code>)
 	* @param type the group's type. For more information see {@link
-	com.liferay.portal.model.GroupConstants}
+	GroupConstants}.
 	* @param friendlyURL the group's friendlyURL
 	* @param site whether the group is to be associated with a main site
 	* @param active whether the group is active
@@ -915,6 +927,7 @@ public class GroupLocalServiceUtil {
 	long, long, String, String, int, boolean, int, String,
 	boolean, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Group addGroup(long userId,
 		long parentGroupId, java.lang.String className, long classPK,
 		java.lang.String name, java.lang.String description, int type,
@@ -938,7 +951,7 @@ public class GroupLocalServiceUtil {
 	* @param description the group's description (optionally
 	<code>null</code>)
 	* @param type the group's type. For more information see {@link
-	com.liferay.portal.model.GroupConstants}
+	GroupConstants}.
 	* @param friendlyURL the group's friendlyURL (optionally
 	<code>null</code>)
 	* @param site whether the group is to be associated with a main site
@@ -956,6 +969,7 @@ public class GroupLocalServiceUtil {
 	long, long, String, String, int, boolean, int, String,
 	boolean, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Group addGroup(long userId,
 		java.lang.String className, long classPK, long liveGroupId,
 		java.lang.String name, java.lang.String description, int type,
@@ -978,7 +992,7 @@ public class GroupLocalServiceUtil {
 	* @param description the group's description (optionally
 	<code>null</code>)
 	* @param type the group's type. For more information see {@link
-	com.liferay.portal.model.GroupConstants}
+	GroupConstants}.
 	* @param friendlyURL the group's friendlyURL
 	* @param site whether the group is to be associated with a main site
 	* @param active whether the group is active
@@ -995,6 +1009,7 @@ public class GroupLocalServiceUtil {
 	long, long, String, String, int, boolean, int, String,
 	boolean, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Group addGroup(long userId,
 		java.lang.String className, long classPK, java.lang.String name,
 		java.lang.String description, int type, java.lang.String friendlyURL,
@@ -1052,6 +1067,20 @@ public class GroupLocalServiceUtil {
 	}
 
 	/**
+	* Returns the company's group.
+	*
+	* @param companyId the primary key of the company
+	* @return the company's group, or <code>null</code> if a matching group
+	could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Group fetchCompanyGroup(
+		long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchCompanyGroup(companyId);
+	}
+
+	/**
 	* Returns the group with the matching friendly URL.
 	*
 	* @param companyId the primary key of the company
@@ -1080,6 +1109,23 @@ public class GroupLocalServiceUtil {
 		java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchGroup(companyId, name);
+	}
+
+	/**
+	* Returns the default user's personal site group.
+	*
+	* @param companyId the primary key of the company
+	* @return the default user's personal site group, or <code>null</code> if a
+	matching group could not be found
+	* @throws PortalException if a default user for the company could not be
+	found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Group fetchUserPersonalSiteGroup(
+		long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchUserPersonalSiteGroup(companyId);
 	}
 
 	/**
@@ -1651,6 +1697,15 @@ public class GroupLocalServiceUtil {
 		return getService().getUserOrganizationsGroups(userId, start, end);
 	}
 
+	/**
+	* Returns the default user's personal site group.
+	*
+	* @param companyId the primary key of the company
+	* @return the default user's personal site group
+	* @throws PortalException if a matching group or default user for the
+	company could not be found
+	* @throws SystemException if a system exception occurred
+	*/
 	public static com.liferay.portal.model.Group getUserPersonalSiteGroup(
 		long companyId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -1778,7 +1833,7 @@ public class GroupLocalServiceUtil {
 	&quot;usersGroups&quot; mapped to the user's ID and an entry with
 	key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	For more information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param start the lower bound of the range of groups to return
 	* @param end the upper bound of the range of groups to return (not
 	inclusive)
@@ -1818,7 +1873,7 @@ public class GroupLocalServiceUtil {
 	search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param start the lower bound of the range of groups to return
 	* @param end the upper bound of the range of groups to return (not
 	inclusive)
@@ -1860,7 +1915,7 @@ public class GroupLocalServiceUtil {
 	search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param start the lower bound of the range of groups to return
 	* @param end the upper bound of the range of groups to return (not
 	inclusive)
@@ -1905,7 +1960,7 @@ public class GroupLocalServiceUtil {
 	search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @param start the lower bound of the range of groups to return
@@ -1951,7 +2006,7 @@ public class GroupLocalServiceUtil {
 	search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @param start the lower bound of the range of groups to return
@@ -2002,7 +2057,7 @@ public class GroupLocalServiceUtil {
 	&quot;usersGroups&quot; mapped to the user's ID and an entry with
 	key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	For more information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param start the lower bound of the range of groups to return
 	* @param end the upper bound of the range of groups to return (not
 	inclusive)
@@ -2048,7 +2103,7 @@ public class GroupLocalServiceUtil {
 	&quot;usersGroups&quot; mapped to the user's ID and an entry with
 	key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	For more information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param start the lower bound of the range of groups to return
 	* @param end the upper bound of the range of groups to return (not
 	inclusive)
@@ -2097,7 +2152,7 @@ public class GroupLocalServiceUtil {
 	&quot;usersGroups&quot; mapped to the user's ID and an entry with
 	key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	For more information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @param start the lower bound of the range of groups to return
@@ -2146,7 +2201,7 @@ public class GroupLocalServiceUtil {
 	&quot;usersGroups&quot; mapped to the user's ID and an entry with
 	key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	For more information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @param start the lower bound of the range of groups to return
@@ -2195,7 +2250,7 @@ public class GroupLocalServiceUtil {
 	&quot;usersGroups&quot; mapped to the user's ID and an entry with
 	key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	For more information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param start the lower bound of the range of groups to return
 	* @param end the upper bound of the range of groups to return (not
 	inclusive)
@@ -2237,7 +2292,7 @@ public class GroupLocalServiceUtil {
 	&quot;usersGroups&quot; mapped to the user's ID and an entry with
 	key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	For more information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param start the lower bound of the range of groups to return
 	* @param end the upper bound of the range of groups to return (not
 	inclusive)
@@ -2284,7 +2339,7 @@ public class GroupLocalServiceUtil {
 	&quot;usersGroups&quot; mapped to the user's ID and an entry with
 	key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	For more information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @param start the lower bound of the range of groups to return
@@ -2332,7 +2387,7 @@ public class GroupLocalServiceUtil {
 	&quot;usersGroups&quot; mapped to the user's ID and an entry with
 	key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	For more information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @param start the lower bound of the range of groups to return
@@ -2378,7 +2433,7 @@ public class GroupLocalServiceUtil {
 	search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param start the lower bound of the range of groups to return
 	* @param end the upper bound of the range of groups to return (not
 	inclusive)
@@ -2416,7 +2471,7 @@ public class GroupLocalServiceUtil {
 	search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param start the lower bound of the range of groups to return
 	* @param end the upper bound of the range of groups to return (not
 	inclusive)
@@ -2458,7 +2513,7 @@ public class GroupLocalServiceUtil {
 	search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @param start the lower bound of the range of groups to return
@@ -2502,7 +2557,7 @@ public class GroupLocalServiceUtil {
 	search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @param start the lower bound of the range of groups to return
@@ -2538,7 +2593,7 @@ public class GroupLocalServiceUtil {
 	in the search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @return the number of matching groups
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2566,7 +2621,7 @@ public class GroupLocalServiceUtil {
 	in the search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @return the number of matching groups
@@ -2599,7 +2654,7 @@ public class GroupLocalServiceUtil {
 	in the search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @return the number of matching groups
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2630,7 +2685,7 @@ public class GroupLocalServiceUtil {
 	in the search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @return the number of matching groups
@@ -2662,7 +2717,7 @@ public class GroupLocalServiceUtil {
 	in the search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @return the number of matching groups
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2690,7 +2745,7 @@ public class GroupLocalServiceUtil {
 	in the search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @return the number of matching groups
@@ -2719,7 +2774,7 @@ public class GroupLocalServiceUtil {
 	in the search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @return the number of matching groups
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2744,7 +2799,7 @@ public class GroupLocalServiceUtil {
 	in the search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param andOperator whether every field must match its keywords, or just
 	one field.
 	* @return the number of matching groups
@@ -2831,7 +2886,11 @@ public class GroupLocalServiceUtil {
 	* @param description the group's new description (optionally
 	<code>null</code>)
 	* @param type the group's new type. For more information see {@link
-	com.liferay.portal.model.GroupConstants}
+	GroupConstants}.
+	* @param manualMembership whether manual membership is allowed for the
+	group
+	* @param membershipRestriction the group's membership restriction. For
+	more information see {@link GroupConstants}.
 	* @param friendlyURL the group's new friendlyURL (optionally
 	<code>null</code>)
 	* @param active whether the group is active
@@ -2906,6 +2965,7 @@ public class GroupLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(GroupLocalService service) {
 	}
 

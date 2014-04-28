@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -130,7 +130,10 @@ public class I18nFilter extends BasePortalFilter {
 		LayoutSet layoutSet = (LayoutSet)request.getAttribute(
 			WebKeys.VIRTUAL_HOST_LAYOUT_SET);
 
-		if (layoutSet != null) {
+		if ((layoutSet != null) &&
+			requestURI.startsWith(
+				PropsValues.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING)) {
+
 			int[] groupFriendlyURLIndex = PortalUtil.getGroupFriendlyURLIndex(
 				requestURI);
 
@@ -214,15 +217,11 @@ public class I18nFilter extends BasePortalFilter {
 			return LocaleUtil.toLanguageId(PortalUtil.getLocale(request));
 		}
 		else if (prependFriendlyUrlStyle == 3) {
-			Locale locale = LocaleUtil.getDefault();
-
 			if (user != null) {
-				locale = user.getLocale();
+				HttpSession session = request.getSession();
+
+				session.setAttribute(Globals.LOCALE_KEY, user.getLocale());
 			}
-
-			HttpSession session = request.getSession();
-
-			session.setAttribute(Globals.LOCALE_KEY, locale);
 
 			return null;
 		}

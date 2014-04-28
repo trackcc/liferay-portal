@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,10 +28,13 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.Shard;
 import com.liferay.portal.model.impl.ShardModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.ShardLocalServiceUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
@@ -40,6 +43,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -57,6 +61,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ShardPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<Shard> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -78,6 +91,10 @@ public class ShardPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<Shard> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -113,6 +130,8 @@ public class ShardPersistenceTest {
 
 		Shard newShard = _persistence.create(pk);
 
+		newShard.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newShard.setClassNameId(ServiceTestUtil.nextLong());
 
 		newShard.setClassPK(ServiceTestUtil.nextLong());
@@ -123,11 +142,40 @@ public class ShardPersistenceTest {
 
 		Shard existingShard = _persistence.findByPrimaryKey(newShard.getPrimaryKey());
 
+		Assert.assertEquals(existingShard.getMvccVersion(),
+			newShard.getMvccVersion());
 		Assert.assertEquals(existingShard.getShardId(), newShard.getShardId());
 		Assert.assertEquals(existingShard.getClassNameId(),
 			newShard.getClassNameId());
 		Assert.assertEquals(existingShard.getClassPK(), newShard.getClassPK());
 		Assert.assertEquals(existingShard.getName(), newShard.getName());
+	}
+
+	@Test
+	public void testCountByName() {
+		try {
+			_persistence.countByName(StringPool.BLANK);
+
+			_persistence.countByName(StringPool.NULL);
+
+			_persistence.countByName((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_C() {
+		try {
+			_persistence.countByC_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -164,8 +212,9 @@ public class ShardPersistenceTest {
 	}
 
 	protected OrderByComparator getOrderByComparator() {
-		return OrderByComparatorFactoryUtil.create("Shard", "shardId", true,
-			"classNameId", true, "classPK", true, "name", true);
+		return OrderByComparatorFactoryUtil.create("Shard", "mvccVersion",
+			true, "shardId", true, "classNameId", true, "classPK", true,
+			"name", true);
 	}
 
 	@Test
@@ -190,16 +239,18 @@ public class ShardPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new ShardActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = ShardLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					Shard shard = (Shard)object;
 
 					Assert.assertNotNull(shard);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -304,6 +355,8 @@ public class ShardPersistenceTest {
 
 		Shard shard = _persistence.create(pk);
 
+		shard.setMvccVersion(ServiceTestUtil.nextLong());
+
 		shard.setClassNameId(ServiceTestUtil.nextLong());
 
 		shard.setClassPK(ServiceTestUtil.nextLong());
@@ -316,6 +369,7 @@ public class ShardPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ShardPersistenceTest.class);
+	private ModelListener<Shard>[] _modelListeners;
 	private ShardPersistence _persistence = (ShardPersistence)PortalBeanLocatorUtil.locate(ShardPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

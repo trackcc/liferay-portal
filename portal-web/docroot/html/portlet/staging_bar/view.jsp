@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -118,7 +118,7 @@ if (layout != null) {
 											<liferay-util:include page="/html/portlet/staging_bar/view_layout_revision_details.jsp" />
 										</div>
 
-										<liferay-ui:staging cssClass="publish-link" extended="<%= false %>" layoutSetBranchId="<%= layoutRevision.getLayoutSetBranchId() %>" onlyActions="<%= true %>" />
+										<liferay-staging:menu cssClass="branching-enabled span4" extended="<%= false %>" layoutSetBranchId="<%= layoutRevision.getLayoutSetBranchId() %>" onlyActions="<%= true %>" />
 									</c:when>
 
 									<c:otherwise>
@@ -126,7 +126,7 @@ if (layout != null) {
 											<c:choose>
 												<c:when test="<%= liveLayout == null %>">
 													<span class="last-publication-branch">
-														<liferay-ui:message arguments='<%= "<strong>" + HtmlUtil.escape(layout.getName(locale)) + "</strong>" %>' key="page-x-has-not-been-published-to-live-yet" />
+														<liferay-ui:message arguments='<%= "<strong>" + HtmlUtil.escape(layout.getName(locale)) + "</strong>" %>' key="page-x-has-not-been-published-to-live-yet" translateArguments="<%= false %>" />
 													</span>
 												</c:when>
 												<c:otherwise>
@@ -141,7 +141,7 @@ if (layout != null) {
 										</div>
 
 										<c:if test="<%= group.isStagingGroup() || group.isStagedRemotely() %>">
-											<liferay-ui:staging cssClass="publish-link" extended="<%= false %>" onlyActions="<%= true %>" />
+											<liferay-staging:menu cssClass="publish-link" extended="<%= false %>" onlyActions="<%= true %>" />
 										</c:if>
 									</c:otherwise>
 								</c:choose>
@@ -150,7 +150,7 @@ if (layout != null) {
 					</c:if>
 				</c:when>
 				<c:otherwise>
-					<aui:nav-item cssClass='<%= ((layoutSetBranches != null) ? " active" : StringPool.BLANK) + " staging-toggle" %>' href="<%= (layoutSetBranches != null) ? null : stagingFriendlyURL %>" id="stagingLink" label="staging" />
+					<aui:nav-item cssClass='<%= ((layoutSetBranches != null) ? " active" : StringPool.BLANK) + " staging-toggle" %>' href="<%= (layoutSetBranches != null) ? null : stagingFriendlyURL %>" label="staging" />
 				</c:otherwise>
 			</c:choose>
 
@@ -223,7 +223,9 @@ if (layout != null) {
 				function(obj) {
 					var incomplete = obj > 0;
 
-					stagingLink.toggle(!incomplete);
+					if (stagingLink) {
+						stagingLink.toggle(!incomplete);
+					}
 
 					if (warningMessage) {
 						warningMessage.toggle(incomplete);

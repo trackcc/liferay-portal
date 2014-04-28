@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -61,9 +61,9 @@ if (selContact != null) {
 			<%
 			UserFieldException ufe = (UserFieldException)errorException;
 
-			StringBundler sb = new StringBundler();
-
 			List<String> fields = ufe.getFields();
+
+			StringBundler sb = new StringBundler(2 * fields.size() - 1);
 
 			for (int i = 0; i < fields.size(); i++) {
 				String field = fields.get(i);
@@ -76,7 +76,7 @@ if (selContact != null) {
 			}
 			%>
 
-			<liferay-ui:message arguments="<%= sb.toString() %>" key="your-portal-administrator-has-disabled-the-ability-to-modify-the-following-fields" />
+			<liferay-ui:message arguments="<%= sb.toString() %>" key="your-portal-administrator-has-disabled-the-ability-to-modify-the-following-fields" translateArguments="<%= false %>" />
 		</liferay-ui:error>
 
 		<liferay-ui:error exception="<%= UserScreenNameException.class %>" focusField="screenName" message="please-enter-a-valid-screen-name" />
@@ -128,22 +128,17 @@ if (selContact != null) {
 			<c:if test="<%= selUser != null %>">
 				<c:choose>
 					<c:when test='<%= UsersAdminUtil.hasUpdateFieldPermission(selUser, "portrait") %>'>
-						<portlet:renderURL var="editUserPortraitURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-							<portlet:param name="struts_action" value="/users_admin/edit_user_portrait" />
-							<portlet:param name="redirect" value="<%= currentURL %>" />
-							<portlet:param name="p_u_i_d" value="<%= String.valueOf(selUser.getUserId()) %>" />
-							<portlet:param name="portrait_id" value="<%= String.valueOf(selUser.getPortraitId()) %>" />
-						</portlet:renderURL>
-
 						<liferay-ui:logo-selector
-							defaultLogoURL="<%= UserConstants.getPortraitURL(themeDisplay.getPathImage(), selUser.isMale(), 0) %>"
-							editLogoURL="<%= editUserPortraitURL %>"
-							imageId="<%= selUser.getPortraitId() %>"
+							currentLogoURL="<%= selUser.getPortraitURL(themeDisplay) %>"
+							defaultLogo="<%= selUser.getPortraitId() == 0 %>"
+							defaultLogoURL="<%= UserConstants.getPortraitURL(themeDisplay.getPathImage(), selUser.isMale(), 0, null) %>"
 							logoDisplaySelector=".user-logo"
+							maxFileSize="<%= PrefsPropsUtil.getLong(PropsKeys.USERS_IMAGE_MAX_SIZE) %>"
+							tempImageFileName="<%= String.valueOf(selUser.getUserId()) %>"
 						/>
 					</c:when>
 					<c:otherwise>
-						<img src="<%= selUser.getPortraitURL(themeDisplay) %>" />
+						<img alt="<liferay-ui:message key="portrait" />" src="<%= selUser.getPortraitURL(themeDisplay) %>" />
 					</c:otherwise>
 				</c:choose>
 			</c:if>
@@ -154,11 +149,7 @@ if (selContact != null) {
 			<liferay-ui:error exception="<%= ReservedUserIdException.class %>" message="the-user-id-you-requested-is-reserved" />
 			<liferay-ui:error exception="<%= UserIdException.class %>" message="please-enter-a-valid-user-id" />
 
-			<aui:field-wrapper name="userId">
-				<liferay-ui:input-resource url="<%= String.valueOf(selUser.getUserId()) %>" />
-
-				<aui:input name="userId" type="hidden" value="<%= selUser.getUserId() %>" />
-			</aui:field-wrapper>
+			<aui:input name="userId" type="resource" value="<%= String.valueOf(selUser.getUserId()) %>" />
 		</c:if>
 
 		<c:choose>

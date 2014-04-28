@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,12 +15,13 @@
 package com.liferay.portlet.asset.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.service.ServiceContext;
@@ -31,14 +32,24 @@ import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
 import com.liferay.portal.util.GroupTestUtil;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
 import com.liferay.portlet.asset.model.AssetCategory;
+import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetVocabulary;
 import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
 import com.liferay.portlet.asset.service.AssetTagLocalServiceUtil;
 import com.liferay.portlet.asset.service.AssetVocabularyLocalServiceUtil;
 import com.liferay.portlet.asset.util.AssetUtil;
+
+import java.text.DateFormat;
+
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,8 +65,8 @@ import org.junit.runner.RunWith;
 		TransactionalExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 @Sync
+@Transactional
 public abstract class BaseAssetSearchTestCase {
 
 	@Before
@@ -763,6 +774,58 @@ public abstract class BaseAssetSearchTestCase {
 	}
 
 	@Test
+	public void testOrderByCreateDateAsc() throws Exception {
+		AssetEntryQuery assetEntryQuery =
+			AssetEntryQueryTestUtil.createAssetEntryQuery(
+				_group.getGroupId(), new String[] {getBaseModelClassName()});
+
+		String[] titles = {
+			"open", "liferay", "social", "osgi", "content", "life"
+		};
+
+		testOrderByCreateDate(assetEntryQuery, "asc", titles, titles);
+	}
+
+	@Test
+	public void testOrderByCreateDateDesc() throws Exception {
+		AssetEntryQuery assetEntryQuery =
+			AssetEntryQueryTestUtil.createAssetEntryQuery(
+				_group.getGroupId(), new String[] {getBaseModelClassName()});
+
+		String[] titles = {
+			"open", "liferay", "social", "osgi", "content", "life"
+		};
+
+		String[] orderedTitles = {
+			"life", "content", "osgi", "social", "liferay", "open"
+		};
+
+		testOrderByCreateDate(assetEntryQuery, "desc", titles, orderedTitles);
+	}
+
+	@Test
+	public void testOrderByExpirationDateAsc() throws Exception {
+		AssetEntryQuery assetEntryQuery =
+			AssetEntryQueryTestUtil.createAssetEntryQuery(
+				_group.getGroupId(), new String[] {getBaseModelClassName()});
+
+		Date[] expirationDates = generateRandomDates(new Date(), 6);
+
+		testOrderByExpirationDate(assetEntryQuery, "asc", expirationDates);
+	}
+
+	@Test
+	public void testOrderByExpirationDateDesc() throws Exception {
+		AssetEntryQuery assetEntryQuery =
+			AssetEntryQueryTestUtil.createAssetEntryQuery(
+				_group.getGroupId(), new String[] {getBaseModelClassName()});
+
+		Date[] expirationDates = generateRandomDates(new Date(), 6);
+
+		testOrderByExpirationDate(assetEntryQuery, "desc", expirationDates);
+	}
+
+	@Test
 	public void testOrderByTitleAsc() throws Exception {
 		AssetEntryQuery assetEntryQuery =
 			AssetEntryQueryTestUtil.createAssetEntryQuery(
@@ -829,6 +892,14 @@ public abstract class BaseAssetSearchTestCase {
 		testPaginationType(assetEntryQuery, 5);
 	}
 
+	protected BaseModel<?> addBaseModel(
+			BaseModel<?> parentBaseModel, String keywords, Date expirationDate,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		return addBaseModel(parentBaseModel, keywords, serviceContext);
+	}
+
 	protected abstract BaseModel<?> addBaseModel(
 			BaseModel<?> parentBaseModel, String keywords,
 			ServiceContext serviceContext)
@@ -840,6 +911,35 @@ public abstract class BaseAssetSearchTestCase {
 		throws Exception {
 
 		return addBaseModel(parentBaseModel, keywords, serviceContext);
+	}
+
+	protected BaseModel<?> addBaseModelWithWorkflow(
+			BaseModel<?> parentBaseModel, String keywords, boolean approved,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		return addBaseModel(parentBaseModel, keywords, serviceContext);
+	}
+
+	protected Date[] generateRandomDates(Date startDate, int size) {
+		Date[] dates = new Date[size];
+
+		for (int i = 0; i < size; i++) {
+			Date date = new Date(
+				startDate.getTime() +
+				(long)(Math.random() * 60 * 60 * 24 * 365));
+
+			Calendar calendar = new GregorianCalendar();
+
+			calendar.setTime(date);
+
+			calendar.set(Calendar.SECOND, 0);
+			calendar.set(Calendar.MILLISECOND, 0);
+
+			dates[i] = calendar.getTime();
+		}
+
+		return dates;
 	}
 
 	protected abstract Class<?> getBaseModelClass();
@@ -863,7 +963,7 @@ public abstract class BaseAssetSearchTestCase {
 
 	protected abstract String getSearchKeywords();
 
-	protected Document[] search(
+	protected AssetEntry[] search(
 			AssetEntryQuery assetEntryQuery, SearchContext searchContext)
 		throws Exception {
 
@@ -871,7 +971,9 @@ public abstract class BaseAssetSearchTestCase {
 			searchContext, assetEntryQuery, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS);
 
-		return results.getDocs();
+		List<AssetEntry> assetEntries = AssetUtil.getAssetEntries(results);
+
+		return assetEntries.toArray(new AssetEntry[assetEntries.size()]);
 	}
 
 	protected int searchCount(
@@ -982,6 +1084,92 @@ public abstract class BaseAssetSearchTestCase {
 		}
 	}
 
+	protected void testOrderByCreateDate(
+			AssetEntryQuery assetEntryQuery, String orderByType,
+			String[] titles, String[] orderedTitles)
+		throws Exception {
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			_group.getGroupId());
+
+		BaseModel<?> parentBaseModel = getParentBaseModel(
+			_group, serviceContext);
+
+		SearchContext searchContext = ServiceTestUtil.getSearchContext();
+
+		searchContext.setGroupIds(assetEntryQuery.getGroupIds());
+
+		BaseModel<?>[] baseModels = new BaseModel[titles.length];
+
+		for (int i = 0; i < titles.length; i++) {
+			String title = titles[i];
+
+			baseModels[i] = addBaseModel(
+				parentBaseModel, title, serviceContext);
+		}
+
+		assetEntryQuery.setOrderByCol1("createDate");
+		assetEntryQuery.setOrderByType1(orderByType);
+
+		AssetEntry[] assetEntries = search(assetEntryQuery, searchContext);
+
+		for (int i = 0; i < assetEntries.length; i++) {
+			AssetEntry assetEntry = assetEntries[i];
+
+			String field = assetEntry.getTitle(LocaleUtil.getDefault());
+
+			Assert.assertEquals(field, orderedTitles[i]);
+		}
+	}
+
+	protected void testOrderByExpirationDate(
+			AssetEntryQuery assetEntryQuery, String orderByType,
+			Date[] expirationDates)
+		throws Exception {
+
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			_group.getGroupId());
+
+		BaseModel<?> parentBaseModel = getParentBaseModel(
+			_group, serviceContext);
+
+		SearchContext searchContext = ServiceTestUtil.getSearchContext();
+
+		searchContext.setGroupIds(assetEntryQuery.getGroupIds());
+
+		for (Date expirationDate : expirationDates) {
+			addBaseModel(
+				parentBaseModel, ServiceTestUtil.randomString(), expirationDate,
+				serviceContext);
+		}
+
+		assetEntryQuery.setOrderByCol1("expirationDate");
+		assetEntryQuery.setOrderByType1(orderByType);
+
+		Arrays.sort(expirationDates);
+
+		DateFormat dateFormat = DateFormatFactoryUtil.getSimpleDateFormat(
+			PropsValues.INDEX_DATE_FORMAT_PATTERN);
+
+		AssetEntry[] assetEntries = search(assetEntryQuery, searchContext);
+
+		for (int i = 0; i < assetEntries.length; i++) {
+			AssetEntry assetEntry = assetEntries[i];
+
+			String expirationDate = dateFormat.format(
+				assetEntry.getExpirationDate());
+
+			int index = i;
+
+			if (orderByType.equals("desc")) {
+				index = assetEntries.length - 1 - i;
+			}
+
+			Assert.assertEquals(
+				expirationDate, dateFormat.format(expirationDates[index]));
+		}
+	}
+
 	protected void testOrderByTitle(
 			AssetEntryQuery assetEntryQuery, String orderByType,
 			String[] titles, String[] orderedTitles)
@@ -1004,12 +1192,12 @@ public abstract class BaseAssetSearchTestCase {
 		assetEntryQuery.setOrderByCol1("title");
 		assetEntryQuery.setOrderByType1(orderByType);
 
-		Document[] documents = search(assetEntryQuery, searchContext);
+		AssetEntry[] assetEntries = search(assetEntryQuery, searchContext);
 
-		for (int i = 0; i < documents.length; i++) {
-			Document document = documents[i];
+		for (int i = 0; i < assetEntries.length; i++) {
+			AssetEntry assetEntry = assetEntries[i];
 
-			String field = document.get("title");
+			String field = assetEntry.getTitle(LocaleUtil.getDefault());
 
 			Assert.assertEquals(field, orderedTitles[i]);
 		}

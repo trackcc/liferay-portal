@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see DLAppHelperLocalService
  * @generated
  */
+@ProviderType
 public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	ServiceWrapper<DLAppHelperLocalService> {
 	public DLAppHelperLocalServiceWrapper(
@@ -130,6 +133,7 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getFileShortcuts(long, long,
 	boolean, int)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.documentlibrary.model.DLFileShortcut> getFileShortcuts(
 		long groupId, long folderId, int status)
@@ -150,6 +154,7 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getFileShortcutsCount(long,
 	long, boolean, int)}
 	*/
+	@Deprecated
 	@Override
 	public int getFileShortcutsCount(long groupId, long folderId, int status)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -398,18 +403,19 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 		com.liferay.portal.kernel.repository.model.FileEntry fileEntry,
 		com.liferay.portal.kernel.repository.model.FileVersion latestFileVersion,
 		int oldStatus, int newStatus,
-		java.util.Map<java.lang.String, java.io.Serializable> workflowContext,
-		com.liferay.portal.service.ServiceContext serviceContext)
+		com.liferay.portal.service.ServiceContext serviceContext,
+		java.util.Map<java.lang.String, java.io.Serializable> workflowContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_dlAppHelperLocalService.updateStatus(userId, fileEntry,
-			latestFileVersion, oldStatus, newStatus, workflowContext,
-			serviceContext);
+			latestFileVersion, oldStatus, newStatus, serviceContext,
+			workflowContext);
 	}
 
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DLAppHelperLocalService getWrappedDLAppHelperLocalService() {
 		return _dlAppHelperLocalService;
 	}
@@ -417,6 +423,7 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDLAppHelperLocalService(
 		DLAppHelperLocalService dlAppHelperLocalService) {
 		_dlAppHelperLocalService = dlAppHelperLocalService;

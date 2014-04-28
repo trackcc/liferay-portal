@@ -1,4 +1,7 @@
-<definition>
+<definition component-name="portal-workflow">
+	<property name="web.plugins.includes" value="kaleo-web" />
+	<property name="testray.main.component.name" value="Workflow" />
+
 	<var name="workflowAssetType" value="Blogs Entry" />
 
 	<set-up>
@@ -22,7 +25,7 @@
 		<execute macro="Workflow#tearDownSiteWorkflow" />
 	</tear-down>
 
-	<command name="ApproveBlogsEntryCP">
+	<command name="ApproveBlogsEntryCP" priority="5">
 		<var name="entryContent" value="Blogs Entry Content" />
 		<var name="entryTitle" value="Blogs Entry Title" />
 
@@ -83,7 +86,7 @@
 		</execute>
 	</command>
 
-	<command name="RejectBlogsEntryCP">
+	<command name="RejectBlogsEntryCP" priority="5">
 		<var name="entryContent" value="Blogs Entry Content" />
 		<var name="entryTitle" value="Blogs Entry Title" />
 

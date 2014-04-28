@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -61,7 +61,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 <div class="hide lfr-message-response" id="<portlet:namespace />discussion-status-messages"></div>
 
 <c:if test="<%= (messagesCount > 1) || MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, userId, ActionKeys.VIEW) %>">
-	<div class="taglib-discussion">
+	<div class="taglib-discussion" id="<portlet:namespace />discussion-container">
 		<aui:form action="<%= formAction %>" method="post" name="<%= formName %>">
 			<aui:input name="randomNamespace" type="hidden" value="<%= randomNamespace %>" />
 			<aui:input id="<%= randomNamespace + Constants.CMD %>" name="<%= Constants.CMD %>" type="hidden" />
@@ -171,7 +171,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 						</c:if>
 
 						<aui:button-row>
-							<aui:button cssClass="btn-comment" id='<%= namespace + randomNamespace + "postReplyButton" + i %>' onClick='<%= randomNamespace + "postReply(" + i + ");" %>' value="<%= postReplyButtonLabel %>" />
+							<aui:button cssClass="btn-comment btn-primary" id='<%= namespace + randomNamespace + "postReplyButton" + i %>' onClick='<%= randomNamespace + "postReply(" + i + ");" %>' value="<%= postReplyButtonLabel %>" />
 
 							<%
 							String taglibCancel = "document.getElementById('" + randomNamespace + "postReplyForm" + i + "').style.display = 'none'; document.getElementById('" + namespace + randomNamespace + "postReplyBody" + i + "').value = ''; void('');";
@@ -187,7 +187,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 				<a name="<%= randomNamespace %>messages_top"></a>
 
 				<c:if test="<%= treeWalker != null %>">
-				<table class="tree-walker table table-bordered table-hover table-striped">
+				<table class="table table-bordered table-hover table-striped tree-walker">
 					<thead class="table-columns">
 					<tr>
 						<th class="table-header" colspan="2">
@@ -296,7 +296,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 							<aui:row fluid="<%= true %>">
 								<aui:col cssClass="lfr-discussion-details" width="25">
 									<liferay-ui:user-display
-										displayStyle="<%= 2 %>"
+										displayStyle="2"
 										userId="<%= message.getUserId() %>"
 										userName="<%= HtmlUtil.escape(message.getUserName()) %>"
 									/>
@@ -314,9 +314,11 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 									<div class="lfr-discussion-message">
 
 										<%
-										String msgBody = BBCodeTranslatorUtil.getHTML(message.getBody());
+										String msgBody = message.getBody();
 
-										msgBody = StringUtil.replace(msgBody, "@theme_images_path@/emoticons", themeDisplay.getPathThemeImages() + "/emoticons");
+										if (message.isFormatBBCode()) {
+											msgBody = MBUtil.getBBCodeHTML(msgBody, themeDisplay.getPathThemeImages());
+										}
 										%>
 
 										<%= msgBody %>
@@ -377,7 +379,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 														String taglibEditURL = "javascript:" + randomNamespace + "showForm('" + randomNamespace + "editForm" + i + "', '" + namespace + randomNamespace + "editReplyBody" + i + "');" + randomNamespace + "hideForm('" + randomNamespace + "postReplyForm" + i + "', '" + namespace + randomNamespace + "postReplyBody" + i + "', '')";
 														%>
 
-														<li class="lfr-discussion-delete-reply">
+														<li class="lfr-discussion-edit">
 															<liferay-ui:icon
 																image="edit"
 																label="<%= true %>"
@@ -410,15 +412,15 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 								<div class="lfr-discussion-form lfr-discussion-form-reply span12" id="<%= randomNamespace %>postReplyForm<%= i %>" style='<%= "display: none; max-width: " + ModelHintsConstants.TEXTAREA_DISPLAY_WIDTH + "px;" %>'>
 
 									<liferay-ui:user-display
-										displayStyle="<%= 2 %>"
+										displayStyle="2"
 										userId="<%= user.getUserId() %>"
 										userName="<%= HtmlUtil.escape(PortalUtil.getUserName(user.getUserId(), StringPool.BLANK)) %>"
 									/>
 
-									<aui:input id='<%= randomNamespace + "postReplyBody" + i %>' label="" name='<%= "postReplyBody" + i %>' style='<%= "height: " + ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT + "px;" %>' type="textarea" wrap="soft" />
+									<aui:input id='<%= randomNamespace + "postReplyBody" + i %>' label="" name='<%= "postReplyBody" + i %>' style='<%= "height: " + ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT + "px;" %>' title="reply-body" type="textarea" wrap="soft" />
 
 									<aui:button-row>
-										<aui:button cssClass="btn-comment" id='<%= namespace + randomNamespace + "postReplyButton" + i %>' onClick='<%= randomNamespace + "postReply(" + i + ");" %>' value='<%= themeDisplay.isSignedIn() ? "reply" : "reply-as" %>' />
+										<aui:button cssClass="btn-comment btn-primary" id='<%= namespace + randomNamespace + "postReplyButton" + i %>' onClick='<%= randomNamespace + "postReply(" + i + ");" %>' value='<%= themeDisplay.isSignedIn() ? "reply" : "reply-as" %>' />
 
 										<%
 										String taglibCancel = randomNamespace + "hideForm('" + randomNamespace + "postReplyForm" + i + "', '" + namespace + randomNamespace + "postReplyBody" + i + "', '');";
@@ -430,7 +432,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 
 								<c:if test="<%= !hideControls && MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, message.getMessageId(), message.getUserId(), ActionKeys.UPDATE_DISCUSSION) %>">
 									<div class="lfr-discussion-form lfr-discussion-form-edit span12" id="<%= randomNamespace %>editForm<%= i %>" style='<%= "display: none; max-width: " + ModelHintsConstants.TEXTAREA_DISPLAY_WIDTH + "px;" %>'>
-										<aui:input id='<%= randomNamespace + "editReplyBody" + i %>' label="" name='<%= "editReplyBody" + i %>' style='<%= "height: " + ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT + "px;" %>' type="textarea" value="<%= message.getBody() %>" wrap="soft" />
+										<aui:input id='<%= randomNamespace + "editReplyBody" + i %>' label="" name='<%= "editReplyBody" + i %>' style='<%= "height: " + ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT + "px;" %>' title="reply-body" type="textarea" value="<%= message.getBody() %>" wrap="soft" />
 
 										<%
 										boolean pending = message.isPending();
@@ -463,25 +465,52 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 							<div class="lfr-discussion-posted-on">
 								<c:choose>
 									<c:when test="<%= message.getParentMessageId() == rootMessage.getMessageId() %>">
-										<%= LanguageUtil.format(pageContext, "posted-on-x", dateFormatDateTime.format(message.getModifiedDate())) %>
+										<%= LanguageUtil.format(pageContext, "posted-on-x", dateFormatDateTime.format(message.getModifiedDate()), false) %>
 									</c:when>
 									<c:otherwise>
 
 										<%
 										MBMessage parentMessage = MBMessageLocalServiceUtil.getMessage(message.getParentMessageId());
+										%>
 
+										<liferay-util:buffer var="buffer">
+
+											<%
+											User parentMessageUser = UserLocalServiceUtil.fetchUser(parentMessage.getUserId());
+
+											boolean male = (parentMessageUser == null) ? true : parentMessageUser.isMale();
+											long portraitId = (parentMessageUser == null) ? 0 : parentMessageUser.getPortraitId();
+											String userUuid = (parentMessageUser == null) ? null : parentMessageUser.getUserUuid();
+											%>
+
+											<span id="lfr-discussion-reply-user-info">
+												<div class="lfr-discussion-reply-user-avatar">
+													<img alt="<%= parentMessage.getUserName() %>" class="user-status-avatar-image" src="<%= UserConstants.getPortraitURL(themeDisplay.getPathImage(), male, portraitId, userUuid) %>" width="30" />
+												</div>
+
+												<div class="lfr-discussion-reply-user-name">
+														<%= parentMessage.getUserName() %>
+												</div>
+
+												<div class="lfr-discussion-reply-creation-date">
+													<%= dateFormatDateTime.format(parentMessage.getCreateDate()) %>
+												</div>
+											</span>
+										</liferay-util:buffer>
+
+										<%
 										StringBundler sb = new StringBundler(7);
 
-										sb.append("<a href=\"#");
-										sb.append(randomNamespace);
-										sb.append("message_");
-										sb.append(parentMessage.getMessageId());
+										sb.append("<a class=\"lfr-discussion-parent-link\" data-title=\"");
+										sb.append(HtmlUtil.escape(buffer));
+										sb.append("\"data-metaData=\"");
+										sb.append(HtmlUtil.escape(parentMessage.getBody()));
 										sb.append("\">");
 										sb.append(HtmlUtil.escape(parentMessage.getUserName()));
 										sb.append("</a>");
 										%>
 
-										<%= LanguageUtil.format(pageContext, "posted-on-x-in-reply-to-x", new Object[] {dateFormatDateTime.format(message.getModifiedDate()), sb.toString()}) %>
+										<%= LanguageUtil.format(pageContext, "posted-on-x-in-reply-to-x", new Object[] {dateFormatDateTime.format(message.getModifiedDate()), sb.toString()}, false) %>
 									</c:otherwise>
 								</c:choose>
 							</div>
@@ -603,6 +632,10 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 
 					Liferay.Util.openWindow(
 						{
+							dialog: {
+								height: 460,
+								width: 770
+							},
 							id: '<%= namespace %>signInDialog',
 							title: '<%= UnicodeLanguageUtil.get(pageContext, "sign-in") %>',
 							uri: '<%= loginURL.toString() %>'
@@ -751,6 +784,52 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 			},
 			['aui-base']
 		);
+	</aui:script>
+
+	<aui:script use="aui-popover,event-outside">
+		var discussionContainer = A.one('#<portlet:namespace />discussion-container');
+
+		var popover = new A.Popover(
+			{
+				cssClass: 'lfr-discussion-reply',
+				constrain: true,
+				position: 'top',
+				visible: false,
+				width: 400,
+				zIndex: Liferay.zIndex.TOOLTIP
+			}
+		).render(discussionContainer);
+
+		var handle;
+
+		var boundingBox = popover.get('boundingBox');
+
+		discussionContainer.delegate(
+			'click',
+			function(event) {
+				event.stopPropagation();
+
+				if (handle) {
+					handle.detach();
+
+					handle = null;
+				}
+
+				handle = boundingBox.once('clickoutside', popover.hide, popover);
+
+				popover.hide();
+
+				var currentTarget = event.currentTarget;
+
+				popover.set('align.node', currentTarget);
+				popover.set('bodyContent', currentTarget.attr('data-metaData'));
+				popover.set('headerContent', currentTarget.attr('data-title'));
+
+				popover.show();
+			},
+			'.lfr-discussion-parent-link'
+		);
+
 	</aui:script>
 </c:if>
 

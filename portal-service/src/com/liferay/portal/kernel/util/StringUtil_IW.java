@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -71,6 +71,11 @@ public class StringUtil_IW {
 		return StringUtil.endsWith(s, end);
 	}
 
+	public boolean equalsIgnoreBreakLine(java.lang.String s1,
+		java.lang.String s2) {
+		return StringUtil.equalsIgnoreBreakLine(s1, s2);
+	}
+
 	public boolean equalsIgnoreCase(java.lang.String s1, java.lang.String s2) {
 		return StringUtil.equalsIgnoreCase(s1, s2);
 	}
@@ -112,25 +117,16 @@ public class StringUtil_IW {
 	/**
 	 * @deprecated
 	 */
-	public java.lang.String highlight(java.lang.String s,
-		java.lang.String keywords) {
-		return StringUtil.highlight(s, keywords);
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public java.lang.String highlight(java.lang.String s,
-		java.lang.String keywords, java.lang.String highlight1,
-		java.lang.String highlight2) {
-		return StringUtil.highlight(s, keywords, highlight1, highlight2);
-	}
-
+	@Deprecated
 	public java.lang.String highlight(java.lang.String s,
 		java.lang.String[] queryTerms) {
 		return StringUtil.highlight(s, queryTerms);
 	}
 
+	/**
+	 * @deprecated
+	 */
+	@Deprecated
 	public java.lang.String highlight(java.lang.String s,
 		java.lang.String[] queryTerms, java.lang.String highlight1,
 		java.lang.String highlight2) {
@@ -348,13 +344,31 @@ public class StringUtil_IW {
 		StringUtil.readLines(is, lines);
 	}
 
-	public java.lang.String remove(java.lang.String s, java.lang.String remove) {
-		return StringUtil.remove(s, remove);
+	/**
+	 * @deprecated
+	 */
+	@Deprecated
+	public java.lang.String remove(java.lang.String s, java.lang.String element) {
+		return StringUtil.remove(s, element);
 	}
 
-	public java.lang.String remove(java.lang.String s, java.lang.String remove,
-		java.lang.String delimiter) {
-		return StringUtil.remove(s, remove, delimiter);
+	/**
+	 * @deprecated
+	 */
+	@Deprecated
+	public java.lang.String remove(java.lang.String s,
+		java.lang.String element, java.lang.String delimiter) {
+		return StringUtil.remove(s, element, delimiter);
+	}
+
+	public java.lang.String removeFromList(java.lang.String s,
+		java.lang.String element) {
+		return StringUtil.removeFromList(s, element);
+	}
+
+	public java.lang.String removeFromList(java.lang.String s,
+		java.lang.String element, java.lang.String delimiter) {
+		return StringUtil.removeFromList(s, element, delimiter);
 	}
 
 	public java.lang.String replace(java.lang.String s, char oldSub, char newSub) {
@@ -561,6 +575,10 @@ public class StringUtil_IW {
 	public java.lang.String stripBetween(java.lang.String s,
 		java.lang.String begin, java.lang.String end) {
 		return StringUtil.stripBetween(s, begin, end);
+	}
+
+	public java.lang.String stripCDATA(java.lang.String s) {
+		return StringUtil.stripCDATA(s);
 	}
 
 	public java.lang.String toCharCode(java.lang.String s) {

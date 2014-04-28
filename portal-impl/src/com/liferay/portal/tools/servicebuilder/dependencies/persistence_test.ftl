@@ -19,6 +19,7 @@ package ${packagePath}.service.persistence;
 import ${packagePath}.${noSuchEntity}Exception;
 import ${packagePath}.model.${entity.name};
 import ${packagePath}.model.impl.${entity.name}ModelImpl;
+import ${packagePath}.service.${entity.name}LocalServiceUtil;
 
 import ${beanLocatorUtil};
 import com.liferay.portal.kernel.dao.jdbc.OutputBlob;
@@ -39,6 +40,7 @@ import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -69,6 +71,15 @@ import org.junit.Test;
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ${entity.name}PersistenceTest {
 
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<${entity.name}> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -89,6 +100,10 @@ public class ${entity.name}PersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<${entity.name}> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -238,6 +253,158 @@ public class ${entity.name}PersistenceTest {
 			</#if>
 		</#list>
 	}
+
+	<#list entity.getFinderList() as finder>
+		@Test
+		public void testCountBy${finder.name}() {
+			try {
+				_persistence.countBy${finder.name}(
+
+				<#assign hasString = false>
+
+				<#list finder.getColumns() as finderCol>
+					<#if finderCol.type == "boolean">
+						ServiceTestUtil.randomBoolean()
+					<#elseif finderCol.type == "double">
+						ServiceTestUtil.nextDouble()
+					<#elseif finderCol.type == "int">
+						ServiceTestUtil.nextInt()
+					<#elseif finderCol.type == "long">
+						ServiceTestUtil.nextLong()
+					<#elseif finderCol.type == "Date">
+						ServiceTestUtil.nextDate()
+					<#elseif finderCol.type == "String">
+						<#assign hasString = true>
+
+						StringPool.BLANK
+					<#else>
+						(${finderCol.type})null
+					</#if>
+
+					<#if finderCol_has_next >
+						,
+					</#if>
+				</#list>
+
+				);
+
+				<#if hasString>
+					_persistence.countBy${finder.name}(
+
+						<#list finder.getColumns() as finderCol>
+							<#if finderCol.type == "boolean">
+								ServiceTestUtil.randomBoolean()
+							<#elseif finderCol.type == "double">
+								0D
+							<#elseif finderCol.type == "int">
+								0
+							<#elseif finderCol.type == "long">
+								0L
+							<#elseif finderCol.type == "Date">
+								ServiceTestUtil.nextDate()
+							<#elseif finderCol.type == "String">
+								StringPool.NULL
+							<#else>
+								(${finderCol.type})null
+							</#if>
+
+							<#if finderCol_has_next >
+								,
+							</#if>
+						</#list>
+
+					);
+				</#if>
+
+				_persistence.countBy${finder.name}(
+
+					<#list finder.getColumns() as finderCol>
+						<#if finderCol.type == "boolean">
+							ServiceTestUtil.randomBoolean()
+						<#elseif finderCol.type == "double">
+							0D
+						<#elseif finderCol.type == "int">
+							0
+						<#elseif finderCol.type == "long">
+							0L
+						<#elseif finderCol.type == "Date">
+							ServiceTestUtil.nextDate()
+						<#else>
+							(${finderCol.type})null
+						</#if>
+
+						<#if finderCol_has_next >
+							,
+						</#if>
+					</#list>
+
+				);
+			}
+			catch (Exception e) {
+				Assert.fail(e.getMessage());
+			}
+		}
+
+		<#if finder.hasArrayableOperator()>
+			@Test
+			public void testCountBy${finder.name}Arrayable() {
+				try {
+					_persistence.countBy${finder.name}(
+
+					<#list finder.getColumns() as finderCol>
+						<#if finderCol.hasArrayableOperator()>
+							new ${finderCol.type}[]{
+
+							<#if finderCol.type == "boolean">
+								ServiceTestUtil.randomBoolean()
+							<#elseif finderCol.type == "double">
+								ServiceTestUtil.nextDouble(), 0D
+							<#elseif finderCol.type == "int">
+								ServiceTestUtil.nextInt(), 0
+							<#elseif finderCol.type == "long">
+								ServiceTestUtil.nextLong(), 0L
+							<#elseif finderCol.type == "Date">
+								ServiceTestUtil.nextDate(), null
+							<#elseif finderCol.type == "String">
+								ServiceTestUtil.randomString(), StringPool.BLANK, StringPool.NULL, null, null
+							<#else>
+								null
+							</#if>
+						<#else>
+							<#if finderCol.type == "boolean">
+								ServiceTestUtil.randomBoolean()
+							<#elseif finderCol.type == "double">
+								ServiceTestUtil.nextDouble()
+							<#elseif finderCol.type == "int">
+								ServiceTestUtil.nextInt()
+							<#elseif finderCol.type == "long">
+								ServiceTestUtil.nextLong()
+							<#elseif finderCol.type == "Date">
+								ServiceTestUtil.nextDate()
+							<#elseif finderCol.type == "String">
+								ServiceTestUtil.randomString()
+							<#else>
+								null
+							</#if>
+						</#if>
+
+						<#if finderCol.hasArrayableOperator()>
+							}
+						</#if>
+
+						<#if finderCol_has_next>
+							,
+						</#if>
+					</#list>
+
+					);
+				}
+				catch (Exception e) {
+					Assert.fail(e.getMessage());
+				}
+			}
+		</#if>
+	</#list>
 
 	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
@@ -393,18 +560,21 @@ public class ${entity.name}PersistenceTest {
 		public void testActionableDynamicQuery() throws Exception {
 			final IntegerWrapper count = new IntegerWrapper();
 
-			ActionableDynamicQuery actionableDynamicQuery = new ${entity.name}ActionableDynamicQuery() {
+			ActionableDynamicQuery actionableDynamicQuery = ${entity.name}LocalServiceUtil.getActionableDynamicQuery();
 
-				@Override
-				protected void performAction(Object object) {
-					${entity.name} ${entity.varName} = (${entity.name})object;
+			actionableDynamicQuery.setPerformActionMethod(
+				new ActionableDynamicQuery.PerformActionMethod() {
 
-					Assert.assertNotNull(${entity.varName});
+					@Override
+					public void performAction(Object object) {
+						${entity.name} ${entity.varName} = (${entity.name})object;
 
-					count.increment();
-				}
+						Assert.assertNotNull(${entity.varName});
 
-			};
+						count.increment();
+					}
+
+				});
 
 			actionableDynamicQuery.performActions();
 
@@ -894,6 +1064,7 @@ public class ${entity.name}PersistenceTest {
 
 	private static Log _log = LogFactoryUtil.getLog(${entity.name}PersistenceTest.class);
 
+	private ModelListener<${entity.name}>[] _modelListeners;
 	private ${entity.name}Persistence _persistence = (${entity.name}Persistence)${beanLocatorUtilShortName}.locate(${entity.name}Persistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)${beanLocatorUtilShortName}.locate(TransactionalPersistenceAdvice.class.getName());
 

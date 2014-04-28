@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see SocialActivityInterpreterLocalService
  * @generated
  */
+@ProviderType
 public class SocialActivityInterpreterLocalServiceWrapper
 	implements SocialActivityInterpreterLocalService,
 		ServiceWrapper<SocialActivityInterpreterLocalService> {
@@ -88,6 +91,7 @@ public class SocialActivityInterpreterLocalServiceWrapper
 	* @deprecated As of 6.2.0, replaced by {@link #interpret(String,
 	SocialActivity, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.social.model.SocialActivityFeedEntry interpret(
 		com.liferay.portlet.social.model.SocialActivity activity,
@@ -106,7 +110,9 @@ public class SocialActivityInterpreterLocalServiceWrapper
 	* asset type of the activity.
 	* </p>
 	*
+	* @param selector the context in which the activity interpreter is used
 	* @param activity the activity to be translated to human readable form
+	* @param serviceContext the service context to be applied
 	* @return the activity feed that is a human readable form of the activity
 	record or <code>null</code> if a compatible interpreter is not
 	found
@@ -139,6 +145,7 @@ public class SocialActivityInterpreterLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialActivityInterpreterLocalService getWrappedSocialActivityInterpreterLocalService() {
 		return _socialActivityInterpreterLocalService;
 	}
@@ -146,6 +153,7 @@ public class SocialActivityInterpreterLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialActivityInterpreterLocalService(
 		SocialActivityInterpreterLocalService socialActivityInterpreterLocalService) {
 		_socialActivityInterpreterLocalService = socialActivityInterpreterLocalService;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -298,10 +298,6 @@ public class EditScopeAction extends PortletAction {
 			actionRequest, portlet, portletPreferences);
 
 		Tuple newScopeTuple = getNewScope(actionRequest);
-
-		long newScopeGroupId = (Long)newScopeTuple.getObject(0);
-
-		portletPreferences.setValue("groupId", String.valueOf(newScopeGroupId));
 
 		String newScopeName = (String)newScopeTuple.getObject(1);
 

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -62,7 +62,7 @@ if (Validator.isNotNull(exception)) {
 
 		<br /><br />
 
-		<code><%= HtmlUtil.escape(url) %></code>
+		<code class="lfr-url-error"><%= HtmlUtil.escape(url) %></code>
 	</c:when>
 	<c:when test="<%= SessionErrors.contains(request, PortalException.class.getName()) || SessionErrors.contains(request, SystemException.class.getName()) %>">
 		<h3 class="alert alert-error">
@@ -73,7 +73,7 @@ if (Validator.isNotNull(exception)) {
 
 		<br /><br />
 
-		<code><%= HtmlUtil.escape(url) %></code>
+		<code class="lfr-url-error"><%= HtmlUtil.escape(url) %></code>
 	</c:when>
 	<c:when test="<%= SessionErrors.contains(request, TransformException.class.getName()) %>">
 		<h3 class="alert alert-error">
@@ -84,7 +84,7 @@ if (Validator.isNotNull(exception)) {
 
 		<br /><br />
 
-		<code><%= HtmlUtil.escape(url) %></code>
+		<code class="lfr-url-error"><%= HtmlUtil.escape(url) %></code>
 
 		<br /><br />
 
@@ -105,7 +105,7 @@ if (Validator.isNotNull(exception)) {
 
 		<br /><br />
 
-		<code><%= HtmlUtil.escape(url) %></code>
+		<code class="lfr-url-error"><%= HtmlUtil.escape(url) %></code>
 	</c:when>
 	<c:otherwise>
 		<h3 class="alert alert-error">
@@ -116,7 +116,7 @@ if (Validator.isNotNull(exception)) {
 
 		<br /><br />
 
-		<code><%= HtmlUtil.escape(url) %></code>
+		<code class="lfr-url-error"><%= HtmlUtil.escape(url) %></code>
 
 		<%
 		for (String key : SessionErrors.keySet(request)) {

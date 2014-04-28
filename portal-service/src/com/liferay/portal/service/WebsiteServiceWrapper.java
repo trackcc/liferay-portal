@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link WebsiteService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see WebsiteService
  * @generated
  */
+@ProviderType
 public class WebsiteServiceWrapper implements WebsiteService,
 	ServiceWrapper<WebsiteService> {
 	public WebsiteServiceWrapper(WebsiteService websiteService) {
@@ -48,9 +51,10 @@ public class WebsiteServiceWrapper implements WebsiteService,
 	}
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addWebsite( String, long,
+	* @deprecated As of 6.2.0, replaced by {@link #addWebsite(String, long,
 	String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Website addWebsite(
 		java.lang.String className, long classPK, java.lang.String url,
@@ -105,6 +109,7 @@ public class WebsiteServiceWrapper implements WebsiteService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public WebsiteService getWrappedWebsiteService() {
 		return _websiteService;
 	}
@@ -112,6 +117,7 @@ public class WebsiteServiceWrapper implements WebsiteService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedWebsiteService(WebsiteService websiteService) {
 		_websiteService = websiteService;
 	}

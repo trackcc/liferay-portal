@@ -1,5 +1,6 @@
 @import "compass";
 @import "compass/css3/user-interface";
+@import "mixins";
 
 .portlet-staging-bar {
 	button.history {
@@ -85,6 +86,15 @@
 		[class^="icon-"] {
 			margin-left: 10px;
 		}
+
+		@include respond-to(phone, tablet) {
+			a.taglib-icon {
+				&, &:active, &:focus, &:hover {
+					padding-left: 5px;
+					padding-right: 5px;
+				}
+			}
+		}
 	}
 
 	.layout-revision-details.alert-error {
@@ -99,6 +109,10 @@
 
 	.page-variations-options, .site-pages-variation-options, .staging-details {
 		padding: 0 5px;
+	}
+
+	.staging-details {
+		line-height: 20px;
 	}
 
 	.staging-toggle .variations-options {
@@ -123,14 +137,46 @@
 			right: -5px;
 			top: 0;
 		}
+
+		.lfr-icon-menu-text {
+			display: inline-block;
+
+			@include ellipsis;
+
+			max-width: 75%;
+			padding-left: 5px;
+			vertical-align: bottom;
+		}
 	}
 
-	.publish-link-container {
-		bottom: 5px;
-		position: absolute;
+	.dropdown-menu .publish-link-container {
+		margin-left: 5px;
+
+		&.branching-enabled {
+			bottom: 5px;
+			position: absolute;
+
+			@include respond-to(phone, tablet) {
+				bottom: inherit;
+				display: inline-block;
+				position: static;
+			}
+		}
 
 		.publish-link {
-			margin: 0 5px;
+			@include ellipsis;
+
+			max-width: 95%;
+			padding: 5px;
+
+			em {
+				display: inline-block;
+
+				@include ellipsis;
+
+				max-width: 100px;
+				vertical-align: bottom;
+			}
 
 			&.btn.btn-success:hover {
 				background-color: #0ABA1D;

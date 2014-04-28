@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.Accessor;
 
 /**
@@ -25,6 +27,7 @@ import com.liferay.portal.kernel.util.Accessor;
  * @see com.liferay.portal.model.impl.PortletModelImpl
  * @generated
  */
+@ProviderType
 public interface Portlet extends PortletModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -35,6 +38,16 @@ public interface Portlet extends PortletModel, PersistedModel {
 			@Override
 			public String get(Portlet portlet) {
 				return portlet.getPortletId();
+			}
+
+			@Override
+			public Class<String> getAttributeClass() {
+				return String.class;
+			}
+
+			@Override
+			public Class<Portlet> getTypeClass() {
+				return Portlet.class;
 			}
 		};
 
@@ -1155,6 +1168,22 @@ public interface Portlet extends PortletModel, PersistedModel {
 	portlet to a layout
 	*/
 	public boolean hasAddPortletPermission(long userId);
+
+	public boolean hasFooterPortalCss();
+
+	public boolean hasFooterPortalJavaScript();
+
+	public boolean hasFooterPortletCss();
+
+	public boolean hasFooterPortletJavaScript();
+
+	public boolean hasHeaderPortalCss();
+
+	public boolean hasHeaderPortalJavaScript();
+
+	public boolean hasHeaderPortletCss();
+
+	public boolean hasHeaderPortletJavaScript();
 
 	/**
 	* Returns <code>true</code> if the portlet supports more than one mime

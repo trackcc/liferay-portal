@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -98,7 +98,7 @@ serverURL.setParameter("tabs3", tabs3);
 					</c:when>
 					<c:otherwise>
 						<div class="form-search">
-							<liferay-ui:input-search id="keywords" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' title='<%= LanguageUtil.get(locale, "search-categories") %>' />
+							<liferay-ui:input-search placeholder='<%= LanguageUtil.get(locale, "keywords") %>' title='<%= LanguageUtil.get(locale, "search-categories") %>' />
 						</div>
 
 						<%
@@ -158,7 +158,7 @@ serverURL.setParameter("tabs3", tabs3);
 
 							// Name
 
-							row.addText(name);
+							row.addText(HtmlUtil.escape(name));
 
 							// Logger
 
@@ -167,7 +167,7 @@ serverURL.setParameter("tabs3", tabs3);
 							sb.append("<select name=\"");
 							sb.append(renderResponse.getNamespace());
 							sb.append("logLevel");
-							sb.append(name);
+							sb.append(HtmlUtil.escapeAttribute(name));
 							sb.append("\">");
 
 							for (int j = 0; j < Levels.ALL_LEVELS.length; j++) {
@@ -215,7 +215,7 @@ serverURL.setParameter("tabs3", tabs3);
 				/>
 
 				<div class="form-search">
-					<liferay-ui:input-search id="keywords" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
+					<liferay-ui:input-search placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
 				</div>
 
 				<%
@@ -378,7 +378,7 @@ serverURL.setParameter("tabs3", tabs3);
 				<liferay-ui:error key="reCaptchaPublicKey" message="the-recaptcha-public-key-is-not-valid" />
 
 				<aui:fieldset>
-					<aui:input helpMessage='<%= LanguageUtil.format(pageContext, "recaptcha-help", "https://www.google.com/recaptcha/admin/create") %>' label="enable-recaptcha" name="reCaptchaEnabled" type="checkbox" value="<%= PrefsPropsUtil.getString(PropsKeys.CAPTCHA_ENGINE_IMPL, PropsValues.CAPTCHA_ENGINE_IMPL).equals(ReCaptchaImpl.class.getName()) %>" />
+					<aui:input helpMessage='<%= LanguageUtil.format(pageContext, "recaptcha-help", "https://www.google.com/recaptcha/admin/create", false) %>' label="enable-recaptcha" name="reCaptchaEnabled" type="checkbox" value="<%= PrefsPropsUtil.getString(PropsKeys.CAPTCHA_ENGINE_IMPL, PropsValues.CAPTCHA_ENGINE_IMPL).equals(ReCaptchaImpl.class.getName()) %>" />
 
 					<aui:input cssClass="lfr-input-text-container" label="recaptcha-public-key" name="reCaptchaPublicKey" type="text" value="<%= PrefsPropsUtil.getString(PropsKeys.CAPTCHA_ENGINE_RECAPTCHA_KEY_PUBLIC, PropsValues.CAPTCHA_ENGINE_RECAPTCHA_KEY_PUBLIC) %>" />
 
@@ -578,7 +578,15 @@ serverURL.setParameter("tabs3", tabs3);
 
 							<aui:input cssClass="lfr-input-text-container" label="user-name" name="pop3User" type="text" value="<%= PrefsPropsUtil.getString(PropsKeys.MAIL_SESSION_MAIL_POP3_USER) %>" />
 
-							<aui:input cssClass="lfr-input-text-container" label="password" name="pop3Password" type="password" value="<%= PrefsPropsUtil.getString(PropsKeys.MAIL_SESSION_MAIL_POP3_PASSWORD) %>" />
+							<%
+							String pop3Password = PrefsPropsUtil.getString(PropsKeys.MAIL_SESSION_MAIL_POP3_PASSWORD);
+
+							if (Validator.isNotNull(pop3Password)) {
+								pop3Password = Portal.TEMP_OBFUSCATION_VALUE;
+							}
+							%>
+
+							<aui:input cssClass="lfr-input-text-container" label="password" name="pop3Password" type="password" value="<%= pop3Password %>" />
 
 							<aui:input cssClass="lfr-input-text-container" label="outgoing-smtp-server" name="smtpHost" type="text" value="<%= PrefsPropsUtil.getString(PropsKeys.MAIL_SESSION_MAIL_SMTP_HOST) %>" />
 
@@ -588,7 +596,15 @@ serverURL.setParameter("tabs3", tabs3);
 
 							<aui:input cssClass="lfr-input-text-container" label="user-name" name="smtpUser" type="text" value="<%= PrefsPropsUtil.getString(PropsKeys.MAIL_SESSION_MAIL_SMTP_USER) %>" />
 
-							<aui:input cssClass="lfr-input-text-container" label="password" name="smtpPassword" type="password" value="<%= PrefsPropsUtil.getString(PropsKeys.MAIL_SESSION_MAIL_SMTP_PASSWORD) %>" />
+							<%
+							String smtpPassword = PrefsPropsUtil.getString(PropsKeys.MAIL_SESSION_MAIL_SMTP_PASSWORD);
+
+							if (Validator.isNotNull(smtpPassword)) {
+								smtpPassword = Portal.TEMP_OBFUSCATION_VALUE;
+							}
+							%>
+
+							<aui:input cssClass="lfr-input-text-container" label="password" name="smtpPassword" type="password" value="<%= smtpPassword %>" />
 
 							<aui:input cssClass="lfr-textarea-container" label="manually-specify-additional-javamail-properties-to-override-the-above-configuration" name="advancedProperties" type="textarea" value="<%= PrefsPropsUtil.getString(PropsKeys.MAIL_SESSION_MAIL_ADVANCED_PROPERTIES, StringPool.BLANK) %>" />
 						</liferay-ui:panel>
@@ -648,7 +664,7 @@ serverURL.setParameter("tabs3", tabs3);
 								<c:otherwise>
 
 									<%
-									String xugglerHelp = LanguageUtil.format(pageContext, "xuggler-help", "http://www.xuggle.com/xuggler/downloads");
+									String xugglerHelp = LanguageUtil.format(pageContext, "xuggler-help", "http://www.xuggle.com/xuggler/downloads", false);
 
 									String[] xugglerOptions = PropsUtil.getArray(PropsKeys.XUGGLER_JAR_OPTIONS);
 
@@ -811,7 +827,7 @@ serverURL.setParameter("tabs3", tabs3);
 									<aui:validator name="required" />
 								</aui:input>
 
-								<aui:input cssClass="lfr-textarea-container" label="custom-message" name='<%= "message" + GetterUtil.getString(ShutdownUtil.getMessage()) %>' type="textarea" />
+								<aui:input cssClass="lfr-textarea-container" label="custom-message" name="message" type="textarea" />
 							</aui:fieldset>
 
 							<aui:button onClick="<%= taglibShutdown %>" value="shutdown" />
@@ -838,7 +854,7 @@ serverURL.setParameter("tabs3", tabs3);
 						<portlet:param name="usedMemory" value="<%= String.valueOf(usedMemory) %>" />
 					</portlet:resourceURL>
 
-					<img border="0" src="<%= totalMemoryChartURL %>" />
+					<img alt="<liferay-ui:message key="memory-used-vs-total-memory" />" border="0" src="<%= totalMemoryChartURL %>" />
 
 					<portlet:resourceURL var="maxMemoryChartURL">
 						<portlet:param name="struts_action" value="/admin_server/view_chart" />
@@ -847,7 +863,7 @@ serverURL.setParameter("tabs3", tabs3);
 						<portlet:param name="usedMemory" value="<%= String.valueOf(usedMemory) %>" />
 					</portlet:resourceURL>
 
-					<img border="0" src="<%= maxMemoryChartURL %>" />
+					<img alt="<liferay-ui:message key="memory-used-vs-max-memory" />" border="0" src="<%= maxMemoryChartURL %>" />
 				</div>
 
 				<br />

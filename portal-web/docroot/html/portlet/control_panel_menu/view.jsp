@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -47,16 +47,16 @@
 
 			String panelPageCategoryId = "panel-manage-" + siteAdministrationCategory;
 
-			if (siteAdministrationCategory == PortletCategoryKeys.SITE_ADMINISTRATION_CONFIGURATION) {
+			if (siteAdministrationCategory.equals(PortletCategoryKeys.SITE_ADMINISTRATION_CONFIGURATION)) {
 				iconCssClass = "icon-hdd";
 			}
-			else if (siteAdministrationCategory == PortletCategoryKeys.SITE_ADMINISTRATION_CONTENT) {
+			else if (siteAdministrationCategory.equals(PortletCategoryKeys.SITE_ADMINISTRATION_CONTENT)) {
 				iconCssClass = "icon-file-text";
 			}
-			else if (siteAdministrationCategory == PortletCategoryKeys.SITE_ADMINISTRATION_PAGES) {
+			else if (siteAdministrationCategory.equals(PortletCategoryKeys.SITE_ADMINISTRATION_PAGES)) {
 				iconCssClass = "icon-sitemap";
 			}
-			else if (siteAdministrationCategory == PortletCategoryKeys.SITE_ADMINISTRATION_USERS) {
+			else if (siteAdministrationCategory.equals(PortletCategoryKeys.SITE_ADMINISTRATION_USERS)) {
 				iconCssClass = "icon-group";
 			}
 		%>

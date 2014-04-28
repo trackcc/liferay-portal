@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link RegionService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see RegionService
  * @generated
  */
+@ProviderType
 public class RegionServiceWrapper implements RegionService,
 	ServiceWrapper<RegionService> {
 	public RegionServiceWrapper(RegionService regionService) {
@@ -53,6 +56,12 @@ public class RegionServiceWrapper implements RegionService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _regionService.addRegion(countryId, regionCode, name, active);
+	}
+
+	@Override
+	public com.liferay.portal.model.Region fetchRegion(long regionId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _regionService.fetchRegion(regionId);
 	}
 
 	@Override
@@ -107,6 +116,7 @@ public class RegionServiceWrapper implements RegionService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public RegionService getWrappedRegionService() {
 		return _regionService;
 	}
@@ -114,6 +124,7 @@ public class RegionServiceWrapper implements RegionService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedRegionService(RegionService regionService) {
 		_regionService = regionService;
 	}

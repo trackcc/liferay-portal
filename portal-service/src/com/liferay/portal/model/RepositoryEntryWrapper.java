@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -30,6 +32,7 @@ import java.util.Map;
  * @see RepositoryEntry
  * @generated
  */
+@ProviderType
 public class RepositoryEntryWrapper implements RepositoryEntry,
 	ModelWrapper<RepositoryEntry> {
 	public RepositoryEntryWrapper(RepositoryEntry repositoryEntry) {
@@ -50,6 +53,7 @@ public class RepositoryEntryWrapper implements RepositoryEntry,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("repositoryEntryId", getRepositoryEntryId());
 		attributes.put("groupId", getGroupId());
@@ -67,6 +71,12 @@ public class RepositoryEntryWrapper implements RepositoryEntry,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -153,6 +163,26 @@ public class RepositoryEntryWrapper implements RepositoryEntry,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_repositoryEntry.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this repository entry.
+	*
+	* @return the mvcc version of this repository entry
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _repositoryEntry.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this repository entry.
+	*
+	* @param mvccVersion the mvcc version of this repository entry
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_repositoryEntry.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -540,6 +570,7 @@ public class RepositoryEntryWrapper implements RepositoryEntry,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public RepositoryEntry getWrappedRepositoryEntry() {
 		return _repositoryEntry;
 	}
@@ -547,6 +578,16 @@ public class RepositoryEntryWrapper implements RepositoryEntry,
 	@Override
 	public RepositoryEntry getWrappedModel() {
 		return _repositoryEntry;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _repositoryEntry.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _repositoryEntry.isFinderCacheEnabled();
 	}
 
 	@Override

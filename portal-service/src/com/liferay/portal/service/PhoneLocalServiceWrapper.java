@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PhoneLocalService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see PhoneLocalService
  * @generated
  */
+@ProviderType
 public class PhoneLocalServiceWrapper implements PhoneLocalService,
 	ServiceWrapper<PhoneLocalService> {
 	public PhoneLocalServiceWrapper(PhoneLocalService phoneLocalService) {
@@ -214,6 +217,19 @@ public class PhoneLocalServiceWrapper implements PhoneLocalService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _phoneLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _phoneLocalService.getExportActionableDynamicQuery(portletDataContext);
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -306,6 +322,7 @@ public class PhoneLocalServiceWrapper implements PhoneLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #addPhone(long, String, long,
 	String, String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Phone addPhone(long userId,
 		java.lang.String className, long classPK, java.lang.String number,
@@ -360,6 +377,7 @@ public class PhoneLocalServiceWrapper implements PhoneLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PhoneLocalService getWrappedPhoneLocalService() {
 		return _phoneLocalService;
 	}
@@ -367,6 +385,7 @@ public class PhoneLocalServiceWrapper implements PhoneLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPhoneLocalService(PhoneLocalService phoneLocalService) {
 		_phoneLocalService = phoneLocalService;
 	}

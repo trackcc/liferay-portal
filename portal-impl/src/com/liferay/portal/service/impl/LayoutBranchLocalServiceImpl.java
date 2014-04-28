@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,7 @@ import com.liferay.portal.LayoutBranchNameException;
 import com.liferay.portal.NoSuchLayoutBranchException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.LayoutBranch;
@@ -67,6 +68,10 @@ public class LayoutBranchLocalServiceImpl
 
 		layoutBranchPersistence.update(layoutBranch);
 
+		StagingUtil.setRecentLayoutBranchId(
+			user, layoutBranch.getLayoutSetBranchId(), layoutBranch.getPlid(),
+			layoutBranch.getLayoutBranchId());
+
 		return layoutBranch;
 	}
 
@@ -111,7 +116,7 @@ public class LayoutBranchLocalServiceImpl
 			layoutBranch.getLayoutSetBranchId(), layoutBranchId,
 			layoutBranch.getPlid());
 
-		return layoutBranchLocalService.deleteLayoutBranch(layoutBranch);
+		return deleteLayoutBranch(layoutBranch);
 	}
 
 	@Override

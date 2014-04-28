@@ -1,4 +1,7 @@
-<definition>
+<definition component-name="portal-security">
+	<property name="hook.plugins.includes" value="antisamy-hook" />
+	<property name="testray.main.component.name" value="Security" />
+
 	<var name="pageName" value="Antisamy Test Page" />
 	<var name="portletName" value="Wiki" />
 
@@ -24,7 +27,7 @@
 		<execute macro="Page#tearDownPG" />
 	</tear-down>
 
-	<command name="AddWikiFrontPageContentJavascript">
+	<command name="AddWikiFrontPageContentJavascript" priority="5">
 		<var name="wikiPageContent">
 			<![CDATA[
 				<p id='demo'>PASS</p>
@@ -37,7 +40,8 @@
 
 		<var name="wikiPageText" value="PASS" />
 
-		<execute macro="WikiPage#addFrontPagePGHTMLSource">
+		<execute macro="WikiPage#addFrontPagePG">
+			<var name="htmlSource" value="true" />
 			<var name="pageName" value="${pageName}" />
 			<var name="wikiPageContent" value="${wikiPageContent}" />
 			<var name="wikiPageText" value="${wikiPageText}" />

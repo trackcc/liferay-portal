@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -61,6 +61,21 @@ public class UserTestUtil {
 			userIds, group.getGroupId(), role.getRoleId());
 
 		return groupUser;
+	}
+
+	public static User addOmniAdmin() throws Exception {
+		User user = addUser();
+
+		user.setCompanyId(PortalInstances.getDefaultCompanyId());
+
+		UserLocalServiceUtil.updateUser(user);
+
+		Role administratorRole = RoleLocalServiceUtil.getRole(
+			PortalInstances.getDefaultCompanyId(), RoleConstants.ADMINISTRATOR);
+
+		UserLocalServiceUtil.addRoleUser(administratorRole.getRoleId(), user);
+
+		return user;
 	}
 
 	public static User addOrganizationAdminUser(Organization organization)

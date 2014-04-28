@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.wiki.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see WikiNodeLocalService
  * @generated
  */
+@ProviderType
 public class WikiNodeLocalServiceWrapper implements WikiNodeLocalService,
 	ServiceWrapper<WikiNodeLocalService> {
 	public WikiNodeLocalServiceWrapper(
@@ -230,6 +233,19 @@ public class WikiNodeLocalServiceWrapper implements WikiNodeLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _wikiNodeLocalService.getWikiNode(nodeId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiNodeLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiNodeLocalService.getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	@Override
@@ -586,6 +602,7 @@ public class WikiNodeLocalServiceWrapper implements WikiNodeLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public WikiNodeLocalService getWrappedWikiNodeLocalService() {
 		return _wikiNodeLocalService;
 	}
@@ -593,6 +610,7 @@ public class WikiNodeLocalServiceWrapper implements WikiNodeLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedWikiNodeLocalService(
 		WikiNodeLocalService wikiNodeLocalService) {
 		_wikiNodeLocalService = wikiNodeLocalService;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see LayoutService
  * @generated
  */
+@ProviderType
 public class LayoutServiceWrapper implements LayoutService,
 	ServiceWrapper<LayoutService> {
 	public LayoutServiceWrapper(LayoutService layoutService) {
@@ -94,6 +97,7 @@ public class LayoutServiceWrapper implements LayoutService,
 	long, Map, Map, Map, Map, Map, String, String, boolean, Map,
 	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Layout addLayout(long groupId,
 		boolean privateLayout, long parentLayoutId,
@@ -857,8 +861,8 @@ public class LayoutServiceWrapper implements LayoutService,
 	* @param sourceGroupId the primary key of the source group
 	* @param targetGroupId the primary key of the target group
 	* @param privateLayout whether the layout is private to the group
-	* @param layoutIdMap the layouts considered for publishing, specified by
-	the layout IDs and booleans indicating whether they have children
+	* @param layoutIds the layouts considered for publishing, specified by the
+	layout IDs
 	* @param parameterMap the mapping of parameters indicating which
 	information will be used. See {@link
 	com.liferay.portal.kernel.lar.PortletDataHandlerKeys}
@@ -878,6 +882,56 @@ public class LayoutServiceWrapper implements LayoutService,
 	and publish
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
+	public void schedulePublishToLive(long sourceGroupId, long targetGroupId,
+		boolean privateLayout, long[] layoutIds,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.lang.String scope, java.util.Date startDate,
+		java.util.Date endDate, java.lang.String groupName,
+		java.lang.String cronText, java.util.Date schedulerStartDate,
+		java.util.Date schedulerEndDate, java.lang.String description)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_layoutService.schedulePublishToLive(sourceGroupId, targetGroupId,
+			privateLayout, layoutIds, parameterMap, scope, startDate, endDate,
+			groupName, cronText, schedulerStartDate, schedulerEndDate,
+			description);
+	}
+
+	/**
+	* Schedules a range of layouts to be published.
+	*
+	* @param sourceGroupId the primary key of the source group
+	* @param targetGroupId the primary key of the target group
+	* @param privateLayout whether the layout is private to the group
+	* @param layoutIdMap the layouts considered for publishing, specified
+	by the layout IDs and booleans indicating whether they have
+	children
+	* @param parameterMap the mapping of parameters indicating which
+	information will be used. See {@link
+	com.liferay.portal.kernel.lar.PortletDataHandlerKeys}
+	* @param scope the scope of the pages. It can be
+	<code>all-pages</code> or <code>selected-pages</code>.
+	* @param startDate the start date
+	* @param endDate the end date
+	* @param groupName the group name (optionally {@link
+	com.liferay.portal.kernel.messaging.DestinationNames#LAYOUTS_LOCAL_PUBLISHER}).
+	See {@link
+	com.liferay.portal.kernel.messaging.DestinationNames}.
+	* @param cronText the cron text. See {@link
+	com.liferay.portal.kernel.cal.RecurrenceSerializer
+	#toCronText}
+	* @param schedulerStartDate the scheduler start date
+	* @param schedulerEndDate the scheduler end date
+	* @param description the scheduler description
+	* @throws PortalException if the group did not have permission to
+	manage and publish
+	* @throws SystemException if a system exception occurred
+	* @deprecated As of 7.0.0, replaced by {@link #schedulePublishToLive(long,
+	long, boolean, long[], Map, String, Date, Date, String,
+	String, Date, Date, String)}
+	*/
+	@Deprecated
 	@Override
 	public void schedulePublishToLive(long sourceGroupId, long targetGroupId,
 		boolean privateLayout,
@@ -1012,6 +1066,14 @@ public class LayoutServiceWrapper implements LayoutService,
 		_layoutService.unschedulePublishToRemote(groupId, jobName, groupName);
 	}
 
+	@Override
+	public com.liferay.portal.model.Layout updateIconImage(long plid,
+		byte[] bytes)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutService.updateIconImage(plid, bytes);
+	}
+
 	/**
 	* Updates the layout with additional parameters.
 	*
@@ -1056,7 +1118,7 @@ public class LayoutServiceWrapper implements LayoutService,
 		java.util.Map<java.util.Locale, java.lang.String> robotsMap,
 		java.lang.String type, boolean hidden,
 		java.util.Map<java.util.Locale, java.lang.String> friendlyURLMap,
-		java.lang.Boolean iconImage, byte[] iconBytes,
+		boolean iconImage, byte[] iconBytes,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -1105,6 +1167,7 @@ public class LayoutServiceWrapper implements LayoutService,
 	long, long, Map, Map, Map, Map, Map, String, boolean, Map,
 	Boolean, byte[], ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Layout updateLayout(long groupId,
 		boolean privateLayout, long layoutId, long parentLayoutId,
@@ -1379,6 +1442,7 @@ public class LayoutServiceWrapper implements LayoutService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutService getWrappedLayoutService() {
 		return _layoutService;
 	}
@@ -1386,6 +1450,7 @@ public class LayoutServiceWrapper implements LayoutService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutService(LayoutService layoutService) {
 		_layoutService = layoutService;
 	}

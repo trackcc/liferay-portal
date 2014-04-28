@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -53,6 +53,7 @@ public class PasswordPolicyLocalServiceImpl
 	 *             boolean, long, long, int, boolean, int, long, long, long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public PasswordPolicy addPasswordPolicy(
 			long userId, boolean defaultPolicy, String name, String description,
@@ -267,6 +268,7 @@ public class PasswordPolicyLocalServiceImpl
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	@Override
 	public PasswordPolicy getPasswordPolicy(
 			long companyId, long organizationId, long locationId)
@@ -370,6 +372,7 @@ public class PasswordPolicyLocalServiceImpl
 	 *             long, long, int, boolean, int, long, long, long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public PasswordPolicy updatePasswordPolicy(
 			long passwordPolicyId, String name, String description,
@@ -462,12 +465,11 @@ public class PasswordPolicyLocalServiceImpl
 		PasswordPolicy passwordPolicy = passwordPolicyPersistence.fetchByC_N(
 			companyId, name);
 
-		if (passwordPolicy != null) {
-			if ((passwordPolicyId <= 0) ||
-				(passwordPolicy.getPasswordPolicyId() != passwordPolicyId)) {
+		if ((passwordPolicy != null) &&
+			(passwordPolicy.getPasswordPolicyId() != passwordPolicyId)) {
 
-				throw new DuplicatePasswordPolicyException();
-			}
+			throw new DuplicatePasswordPolicyException(
+				"{passwordPolicyId=" + passwordPolicyId + "}");
 		}
 	}
 

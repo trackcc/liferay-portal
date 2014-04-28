@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -30,6 +32,7 @@ import java.util.Map;
  * @see LayoutPrototype
  * @generated
  */
+@ProviderType
 public class LayoutPrototypeWrapper implements LayoutPrototype,
 	ModelWrapper<LayoutPrototype> {
 	public LayoutPrototypeWrapper(LayoutPrototype layoutPrototype) {
@@ -50,6 +53,7 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("layoutPrototypeId", getLayoutPrototypeId());
 		attributes.put("companyId", getCompanyId());
@@ -67,6 +71,12 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -152,6 +162,26 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_layoutPrototype.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this layout prototype.
+	*
+	* @return the mvcc version of this layout prototype
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _layoutPrototype.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this layout prototype.
+	*
+	* @param mvccVersion the mvcc version of this layout prototype
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_layoutPrototype.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -467,6 +497,74 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 	}
 
 	/**
+	* Returns the localized description of this layout prototype in the language. Uses the default language if no localization exists for the requested language.
+	*
+	* @param locale the locale of the language
+	* @return the localized description of this layout prototype
+	*/
+	@Override
+	public java.lang.String getDescription(java.util.Locale locale) {
+		return _layoutPrototype.getDescription(locale);
+	}
+
+	/**
+	* Returns the localized description of this layout prototype in the language, optionally using the default language if no localization exists for the requested language.
+	*
+	* @param locale the local of the language
+	* @param useDefault whether to use the default language if no localization exists for the requested language
+	* @return the localized description of this layout prototype. If <code>useDefault</code> is <code>false</code> and no localization exists for the requested language, an empty string will be returned.
+	*/
+	@Override
+	public java.lang.String getDescription(java.util.Locale locale,
+		boolean useDefault) {
+		return _layoutPrototype.getDescription(locale, useDefault);
+	}
+
+	/**
+	* Returns the localized description of this layout prototype in the language. Uses the default language if no localization exists for the requested language.
+	*
+	* @param languageId the ID of the language
+	* @return the localized description of this layout prototype
+	*/
+	@Override
+	public java.lang.String getDescription(java.lang.String languageId) {
+		return _layoutPrototype.getDescription(languageId);
+	}
+
+	/**
+	* Returns the localized description of this layout prototype in the language, optionally using the default language if no localization exists for the requested language.
+	*
+	* @param languageId the ID of the language
+	* @param useDefault whether to use the default language if no localization exists for the requested language
+	* @return the localized description of this layout prototype
+	*/
+	@Override
+	public java.lang.String getDescription(java.lang.String languageId,
+		boolean useDefault) {
+		return _layoutPrototype.getDescription(languageId, useDefault);
+	}
+
+	@Override
+	public java.lang.String getDescriptionCurrentLanguageId() {
+		return _layoutPrototype.getDescriptionCurrentLanguageId();
+	}
+
+	@Override
+	public java.lang.String getDescriptionCurrentValue() {
+		return _layoutPrototype.getDescriptionCurrentValue();
+	}
+
+	/**
+	* Returns a map of the locales and localized descriptions of this layout prototype.
+	*
+	* @return the locales and localized descriptions of this layout prototype
+	*/
+	@Override
+	public java.util.Map<java.util.Locale, java.lang.String> getDescriptionMap() {
+		return _layoutPrototype.getDescriptionMap();
+	}
+
+	/**
 	* Sets the description of this layout prototype.
 	*
 	* @param description the description of this layout prototype
@@ -474,6 +572,60 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 	@Override
 	public void setDescription(java.lang.String description) {
 		_layoutPrototype.setDescription(description);
+	}
+
+	/**
+	* Sets the localized description of this layout prototype in the language.
+	*
+	* @param description the localized description of this layout prototype
+	* @param locale the locale of the language
+	*/
+	@Override
+	public void setDescription(java.lang.String description,
+		java.util.Locale locale) {
+		_layoutPrototype.setDescription(description, locale);
+	}
+
+	/**
+	* Sets the localized description of this layout prototype in the language, and sets the default locale.
+	*
+	* @param description the localized description of this layout prototype
+	* @param locale the locale of the language
+	* @param defaultLocale the default locale
+	*/
+	@Override
+	public void setDescription(java.lang.String description,
+		java.util.Locale locale, java.util.Locale defaultLocale) {
+		_layoutPrototype.setDescription(description, locale, defaultLocale);
+	}
+
+	@Override
+	public void setDescriptionCurrentLanguageId(java.lang.String languageId) {
+		_layoutPrototype.setDescriptionCurrentLanguageId(languageId);
+	}
+
+	/**
+	* Sets the localized descriptions of this layout prototype from the map of locales and localized descriptions.
+	*
+	* @param descriptionMap the locales and localized descriptions of this layout prototype
+	*/
+	@Override
+	public void setDescriptionMap(
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap) {
+		_layoutPrototype.setDescriptionMap(descriptionMap);
+	}
+
+	/**
+	* Sets the localized descriptions of this layout prototype from the map of locales and localized descriptions, and sets the default locale.
+	*
+	* @param descriptionMap the locales and localized descriptions of this layout prototype
+	* @param defaultLocale the default locale
+	*/
+	@Override
+	public void setDescriptionMap(
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		java.util.Locale defaultLocale) {
+		_layoutPrototype.setDescriptionMap(descriptionMap, defaultLocale);
 	}
 
 	/**
@@ -703,6 +855,7 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public LayoutPrototype getWrappedLayoutPrototype() {
 		return _layoutPrototype;
 	}
@@ -710,6 +863,16 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 	@Override
 	public LayoutPrototype getWrappedModel() {
 		return _layoutPrototype;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _layoutPrototype.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _layoutPrototype.isFinderCacheEnabled();
 	}
 
 	@Override

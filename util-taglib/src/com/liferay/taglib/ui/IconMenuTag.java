@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -100,6 +100,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 				_showExpanded = false;
 				_showWhenSingleIcon = false;
 				_startPage = null;
+				_triggerCssClass = null;
 			}
 		}
 	}
@@ -222,6 +223,10 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 		_startPage = startPage;
 	}
 
+	public void setTriggerCssClass(String triggerCssClass) {
+		_triggerCssClass = triggerCssClass;
+	}
+
 	public void setUseIconCaret(boolean useIconCaret) {
 		_useIconCaret = useIconCaret;
 	}
@@ -273,7 +278,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 
 					if (Validator.isNotNull(_cssClass)) {
 						jspWriter.write(StringPool.SPACE);
-						jspWriter.print(_cssClass);
+						jspWriter.write(_cssClass);
 					}
 
 					jspWriter.write("\" id=\"");
@@ -285,7 +290,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 
 					if (Validator.isNotNull(_cssClass)) {
 						jspWriter.write(StringPool.SPACE);
-						jspWriter.print(_cssClass);
+						jspWriter.write(_cssClass);
 					}
 
 					if (_direction.equals("up")) {
@@ -309,6 +314,10 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 						jspWriter.write(" select");
 					}
 
+					if (Validator.isNotNull(_triggerCssClass)) {
+						jspWriter.write(StringPool.SPACE + _triggerCssClass);
+					}
+
 					String message = _message;
 
 					if (_localizeMessage) {
@@ -328,7 +337,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 							caret = "icon-caret-left";
 						}
 
-						jspWriter.write("<i class=\"");
+						jspWriter.write("<i class=\"lfr-icon-menu-arrow ");
 						jspWriter.write(caret);
 						jspWriter.write("\"></i> ");
 					}
@@ -342,10 +351,13 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 							jspWriter.write(" <i class=\"icon-");
 							jspWriter.write(
 								_icon.substring(_AUI_PATH.length()));
-							jspWriter.write("\"></i>");
+							jspWriter.write(" lfr-icon-menu-icon");
+							jspWriter.write("\"></i> ");
 						}
 						else {
-							jspWriter.write("<img alt=\"\" src=\"");
+							jspWriter.write(
+								"<img alt=\"\" class=\"lfr-icon-menu-icon\" ");
+							jspWriter.write("src=\"");
 							jspWriter.write(_icon);
 							jspWriter.write("\" /> ");
 						}
@@ -364,7 +376,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 							caret = "icon-caret-" + _direction;
 						}
 
-						jspWriter.write("<i class=\"");
+						jspWriter.write(" <i class=\"lfr-icon-menu-arrow ");
 						jspWriter.write(caret);
 						jspWriter.write("\"></i> ");
 					}
@@ -442,6 +454,7 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 	private boolean _showExpanded;
 	private boolean _showWhenSingleIcon;
 	private String _startPage;
+	private String _triggerCssClass;
 	private boolean _useIconCaret;
 
 }

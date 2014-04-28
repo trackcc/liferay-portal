@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.taglib.aui;
 import com.liferay.portal.kernel.servlet.taglib.aui.ValidatorTag;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
@@ -121,7 +122,6 @@ public class InputTag extends BaseInputTag {
 	protected void cleanUp() {
 		super.cleanUp();
 
-		_forLabel = null;
 		_validators = null;
 	}
 
@@ -218,13 +218,35 @@ public class InputTag extends BaseInputTag {
 			}
 		}
 
+		String forLabel = id;
+
+		if (Validator.equals(type,"assetTags")) {
+			forLabel = forLabel.concat("assetTagNames");
+		}
+		else if (Validator.equals(type, "checkbox")) {
+			forLabel = forLabel.concat("Checkbox");
+		}
+
+		String languageId = getLanguageId();
+
+		if (Validator.isNotNull(languageId)) {
+			forLabel = LocalizationUtil.getLocalizedName(forLabel, languageId);
+		}
+
 		String label = getLabel();
 
 		if (label == null) {
-			label = TextFormatter.format(name, TextFormatter.K);
+			label = TextFormatter.format(name, TextFormatter.P);
 		}
 
-		_forLabel = id;
+		String title = getTitle();
+
+		if ((title == null) && (Validator.isNull(label) ||
+			 Validator.equals(type, "image"))) {
+
+			title = TextFormatter.format(name, TextFormatter.P);
+		}
+
 		_inputName = getName();
 
 		String baseType = null;
@@ -240,7 +262,8 @@ public class InputTag extends BaseInputTag {
 		}
 		else if (Validator.isNotNull(type)) {
 			if (Validator.equals(type, "checkbox") ||
-				Validator.equals(type, "radio")) {
+				Validator.equals(type, "radio") ||
+				Validator.equals(type, "resource")) {
 
 				baseType = type;
 			}
@@ -263,11 +286,12 @@ public class InputTag extends BaseInputTag {
 		setNamespacedAttribute(request, "bean", bean);
 		setNamespacedAttribute(request, "defaultLanguageId", defaultLanguageId);
 		setNamespacedAttribute(request, "field", field);
-		setNamespacedAttribute(request, "forLabel", _forLabel);
+		setNamespacedAttribute(request, "forLabel", forLabel);
 		setNamespacedAttribute(request, "formName", formName);
 		setNamespacedAttribute(request, "id", id);
 		setNamespacedAttribute(request, "label", label);
 		setNamespacedAttribute(request, "model", model);
+		setNamespacedAttribute(request, "title", String.valueOf(title));
 		setNamespacedAttribute(request, "wrappedField", wrappedField);
 
 		request.setAttribute(getAttributeNamespace() + "value", getValue());
@@ -300,13 +324,19 @@ public class InputTag extends BaseInputTag {
 				inputName = inputName.concat("Checkbox");
 			}
 
+			String languageId = getLanguageId();
+
+			if (Validator.isNotNull(languageId)) {
+				inputName = LocalizationUtil.getLocalizedName(
+					inputName, languageId);
+			}
+
 			validatorTagsMap.put(inputName, validatorTags);
 		}
 	}
 
 	private static final boolean _CLEAN_UP_SET_ATTRIBUTES = true;
 
-	private String _forLabel;
 	private String _inputName;
 	private Map<String, ValidatorTag> _validators;
 

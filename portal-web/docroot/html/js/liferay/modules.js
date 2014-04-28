@@ -6,7 +6,15 @@
 
 	var CORE_MODULES = YUI.Env.core;
 
+	var INPUT_EL = document.createElement('input');
+
 	var PATH_JAVASCRIPT = LiferayAUI.getJavaScriptRootPath();
+
+	var SUPPORTS_INPUT_SELECTION = ((typeof INPUT_EL.selectionStart === 'number') && (typeof INPUT_EL.selectionEnd === 'number'));
+
+	var testTouch = function(A) {
+		return A.UA.touch;
+	};
 
 	window.YUI_config = {
 		base: PATH_JAVASCRIPT + '/aui/',
@@ -29,6 +37,17 @@
 				base: PATH_JAVASCRIPT + '/liferay/',
 				combine: COMBINE,
 				modules: {
+					'liferay-ajax-session': {
+						condition: {
+							trigger: 'aui-io-request'
+						},
+						path: 'ajax_session.js',
+						requires: [
+							'aui-io-request',
+							'liferay-session'
+						]
+					},
+
 					'liferay-app-view-folders': {
 						path: 'app_view_folders.js',
 						requires: [
@@ -43,6 +62,15 @@
 					},
 					'liferay-app-view-move': {
 						path: 'app_view_move.js',
+						plugins: {
+							'liferay-app-view-move-touch': {
+								condition: {
+									name: 'liferay-app-view-move-touch',
+									test: testTouch,
+									trigger: 'liferay-app-view-move'
+								}
+							}
+						},
 						requires: [
 							'aui-base',
 							'dd-constrain',
@@ -55,12 +83,18 @@
 							'liferay-util-list-fields'
 						]
 					},
+					'liferay-app-view-move-touch': {
+						path: 'app_view_move_touch.js',
+						requires: [
+							'aui-base'
+						]
+					},
 					'liferay-app-view-paginator': {
 						path: 'app_view_paginator.js',
 						requires: [
-							'aui-pagination',
 							'aui-parse-content',
 							'liferay-history-manager',
+							'liferay-pagination',
 							'liferay-portlet-base'
 						]
 					},
@@ -86,7 +120,6 @@
 							'array-extras',
 							'async-queue',
 							'aui-autocomplete-deprecated',
-							'aui-form-textfield-deprecated',
 							'aui-io-plugin-deprecated',
 							'aui-io-request',
 							'aui-live-search-deprecated',
@@ -107,6 +140,68 @@
 							'base',
 							'liferay-undo-manager',
 							'sortable'
+						]
+					},
+					'liferay-autocomplete-input': {
+						path: 'autocomplete_input.js',
+						requires: [
+							'aui-base',
+							'autocomplete',
+							'autocomplete',
+							'autocomplete-filters',
+							'autocomplete-highlighters'
+						]
+					},
+					'liferay-autocomplete-input-caretindex': {
+						condition: {
+							name: 'liferay-autocomplete-input-caretindex',
+							test: function() {
+								return SUPPORTS_INPUT_SELECTION;
+							},
+							trigger: 'liferay-autocomplete-input'
+						},
+						path: 'autocomplete_input_caretindex.js',
+						requires: [
+							'liferay-autocomplete-input'
+						]
+					},
+					'liferay-autocomplete-input-caretindex-sel': {
+						condition: {
+							name: 'liferay-autocomplete-input-caretindex-sel',
+							test: function() {
+								return !SUPPORTS_INPUT_SELECTION;
+							},
+							trigger: 'liferay-autocomplete-input'
+						},
+						path: 'autocomplete_input_caretindex_sel.js',
+						requires: [
+							'liferay-autocomplete-input'
+						]
+					},
+					'liferay-autocomplete-input-caretoffset': {
+						condition: {
+							name: 'liferay-autocomplete-input-caretoffset',
+							test: function(A) {
+								return !(A.UA.ie && A.UA.ie < 9);
+							},
+							trigger: 'liferay-autocomplete-input'
+						},
+						path: 'autocomplete_input_caretoffset.js',
+						requires: [
+							'liferay-autocomplete-input'
+						]
+					},
+					'liferay-autocomplete-input-caretoffset-sel': {
+						condition: {
+							name: 'liferay-autocomplete-input-caretoffset-sel',
+							test: function(A) {
+								return (A.UA.ie && A.UA.ie < 9);
+							},
+							trigger: 'liferay-autocomplete-input'
+						},
+						path: 'autocomplete_input_caretoffset_sel.js',
+						requires: [
+							'liferay-autocomplete-input'
 						]
 					},
 					'liferay-browser-selectors': {
@@ -234,6 +329,13 @@
 							'liferay-widget-size-animation-plugin'
 						]
 					},
+					'liferay-dockbar-keyboard-interaction': {
+						path: 'dockbar_keyboard_interaction.js',
+						requires: [
+							'node-focusmanager',
+							'plugin'
+						]
+					},
 					'liferay-dockbar-underlay': {
 						path: 'dockbar_underlay.js',
 						requires: [
@@ -259,7 +361,7 @@
 						condition: {
 							name: 'liferay-form-placeholders',
 							test: function(A) {
-								return !('placeholder' in document.createElement('input'));
+								return !('placeholder' in INPUT_EL);
 							},
 							trigger: 'liferay-form'
 						},
@@ -277,7 +379,6 @@
 						]
 					},
 					'liferay-history-html5': {
-						path: 'history_html5.js',
 						condition: {
 							name: 'liferay-history-html5',
 							test: function(A) {
@@ -292,9 +393,10 @@
 							},
 							trigger: 'liferay-history'
 						},
+						path: 'history_html5.js',
 						requires: [
-							'liferay-history',
 							'history-html5',
+							'liferay-history',
 							'querystring-stringify-simple'
 						]
 					},
@@ -337,9 +439,27 @@
 					},
 					'liferay-input-move-boxes': {
 						path: 'input_move_boxes.js',
+						plugins: {
+							'liferay-input-move-boxes-touch': {
+								condition: {
+									name: 'liferay-input-move-boxes-touch',
+									test: testTouch,
+									trigger: 'liferay-input-move-boxes'
+								}
+							}
+						},
 						requires: [
 							'aui-base',
 							'aui-toolbar'
+						]
+					},
+					'liferay-input-move-boxes-touch': {
+						path: 'input_move_boxes_touch.js',
+						requires: [
+							'aui-base',
+							'aui-template-deprecated',
+							'liferay-input-move-boxes',
+							'sortable'
 						]
 					},
 					'liferay-layout': {
@@ -383,7 +503,8 @@
 						requires: [
 							'aui-image-cropper',
 							'aui-io-request',
-							'liferay-portlet-base'
+							'liferay-portlet-base',
+							'liferay-storage-formatter'
 						]
 					},
 					'liferay-logo-selector': {
@@ -409,6 +530,15 @@
 							'aui-node'
 						]
 					},
+					'liferay-menu-toggle': {
+						path: 'menu_toggle.js',
+						requires: [
+							'aui-node',
+							'event-move',
+							'event-outside',
+							'liferay-store'
+						]
+					},
 					'liferay-message': {
 						path: 'message.js',
 						requires: [
@@ -422,13 +552,15 @@
 							'liferay-navigation-touch': {
 								condition: {
 									name: 'liferay-navigation-touch',
-									test: function(A) {
-										return A.UA.touch;
-									},
+									test: testTouch,
 									trigger: 'liferay-navigation'
 								}
 							}
-						}
+						},
+						requires: [
+							'aui-component',
+							'event-mouseenter'
+						]
 					},
 					'liferay-navigation-interaction': {
 						path: 'navigation_interaction.js',
@@ -436,9 +568,7 @@
 							'liferay-navigation-interaction-touch': {
 								condition: {
 									name: 'liferay-navigation-interaction-touch',
-									test: function(A) {
-										return A.UA.touch;
-									},
+									test: testTouch,
 									trigger: 'liferay-navigation-interaction'
 								}
 							}
@@ -473,6 +603,12 @@
 						path: 'node.js',
 						requires: [
 							'dom-base'
+						]
+					},
+					'liferay-pagination': {
+						path: 'pagination.js',
+						requires: [
+							'aui-pagination'
 						]
 					},
 					'liferay-poller': {
@@ -520,6 +656,15 @@
 							'aui-rating'
 						]
 					},
+					'liferay-resize-rtl': {
+						path: 'resize_rtl.js',
+						condition: {
+							test: function(A) {
+								return document.documentElement.dir === 'rtl';
+							},
+							trigger: 'resize-base'
+						}
+					},
 					'liferay-restore-entry': {
 						path: 'restore_entry.js',
 						requires: [
@@ -565,31 +710,30 @@
 							'plugin'
 						]
 					},
-					'liferay-staging': {
-						path: 'staging.js',
+					'liferay-social-bookmarks': {
+						path: 'social_bookmarks.js',
 						requires: [
-							'aui-io-plugin-deprecated',
-							'aui-modal',
-							'liferay-node'
+							'aui-component',
+							'aui-node'
 						]
 					},
-					'liferay-staging-branch': {
-						path: 'staging_branch.js',
+					'liferay-storage-formatter': {
+						path: 'storage_formatter.js',
 						requires: [
-							'liferay-staging'
-						]
-					},
-					'liferay-staging-version': {
-						path: 'staging_version.js',
-						requires: [
-							'aui-button',
-							'liferay-staging'
+							'aui-base',
+							'datatype-number-format'
 						]
 					},
 					'liferay-store': {
 						path: 'store.js',
 						requires: [
 							'aui-io-request'
+						]
+					},
+					'liferay-toggler-interaction': {
+						path: 'toggler_interaction.js',
+						requires: [
+							'liferay-toggler-key-filter'
 						]
 					},
 					'liferay-toggler-key-filter': {
@@ -625,6 +769,7 @@
 							'aui-template-deprecated',
 							'collection',
 							'liferay-portlet-base',
+							'liferay-storage-formatter',
 							'uploader'
 						]
 					},

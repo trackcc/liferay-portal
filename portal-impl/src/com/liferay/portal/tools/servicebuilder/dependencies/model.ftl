@@ -1,5 +1,7 @@
 package ${packagePath}.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 <#if entity.hasCompoundPK()>
 	import ${packagePath}.service.persistence.${entity.name}PK;
 </#if>
@@ -15,6 +17,7 @@ import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.ResourcedModel;
 import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.TypedModel;
@@ -48,6 +51,11 @@ import java.util.Map;
  * @see ${packagePath}.model.impl.${entity.name}ModelImpl
  * @generated
  */
+
+<#if pluginName == "">
+	@ProviderType
+</#if>
+
 public interface ${entity.name}Model extends
 	<#assign overrideColumnNames = []>
 
@@ -73,6 +81,12 @@ public interface ${entity.name}Model extends
 		, GroupedModel
 
 		<#assign overrideColumnNames = overrideColumnNames + ["companyId", "createDate", "groupId", "modifiedDate", "userId", "userName", "userUuid"]>
+	</#if>
+
+	<#if entity.isMvccEnabled()>
+		, MVCCModel
+
+		<#assign overrideColumnNames = overrideColumnNames + ["mvccVersion"]>
 	</#if>
 
 	<#if entity.isResourcedModel()>
@@ -385,12 +399,19 @@ public interface ${entity.name}Model extends
 		 */
 		@Override
 		public boolean isInTrashContainer();
+
+		@Override
+		public boolean isInTrashExplicitly() throws SystemException;
+
+		@Override
+		public boolean isInTrashImplicitly() throws SystemException;
 	</#if>
 
 	<#if entity.isWorkflowEnabled()>
 		/**
 		 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 		 */
+		@Deprecated
 		@Override
 		public boolean getApproved();
 

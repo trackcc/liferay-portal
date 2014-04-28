@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
@@ -97,29 +98,8 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
-	public String buildTreePath() throws PortalException, SystemException {
-		List<Group> groups = new ArrayList<Group>();
-
-		Group group = this;
-
-		while (group != null) {
-			groups.add(group);
-
-			group = group.getParentGroup();
-		}
-
-		StringBundler sb = new StringBundler(groups.size() * 2 + 1);
-
-		sb.append(StringPool.SLASH);
-
-		for (int i = groups.size() - 1; i >= 0; i--) {
-			group = groups.get(i);
-
-			sb.append(group.getGroupId());
-			sb.append(StringPool.SLASH);
-		}
-
-		return sb.toString();
+	public void clearStagingGroup() {
+		_stagingGroup = null;
 	}
 
 	@Override
@@ -174,6 +154,18 @@ public class GroupImpl extends GroupBaseImpl {
 	@Override
 	public long getDefaultPublicPlid() {
 		return getDefaultPlid(false);
+	}
+
+	@Override
+	public List<Group> getDescendants(boolean site) throws SystemException {
+		List<Group> descendants = new UniqueList<Group>();
+
+		for (Group group : getChildren(site)) {
+			descendants.add(group);
+			descendants.addAll(group.getDescendants(site));
+		}
+
+		return descendants;
 	}
 
 	@Override
@@ -403,6 +395,15 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
+	public long getRemoteLiveGroupId() {
+		if (!isStagedRemotely()) {
+			return GroupConstants.DEFAULT_LIVE_GROUP_ID;
+		}
+
+		return GetterUtil.getLong(getTypeSettingsProperty("remoteGroupId"));
+	}
+
+	@Override
 	public String getScopeDescriptiveName(ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
@@ -565,7 +566,7 @@ public class GroupImpl extends GroupBaseImpl {
 
 	@Override
 	public boolean hasLocalOrRemoteStagingGroup() {
-		if (hasStagingGroup() || (getRemoteStagingGroupCount() > 0)) {
+		if (hasRemoteStagingGroup() || hasStagingGroup()) {
 			return true;
 		}
 
@@ -593,6 +594,15 @@ public class GroupImpl extends GroupBaseImpl {
 	}
 
 	@Override
+	public boolean hasRemoteStagingGroup() {
+		if (getRemoteStagingGroupCount() > 0) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
 	public boolean hasStagingGroup() {
 		if (isStagingGroup()) {
 			return false;
@@ -610,21 +620,19 @@ public class GroupImpl extends GroupBaseImpl {
 		}
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #hasAncestor}
+	 */
+	@Deprecated
 	@Override
 	public boolean isChild(long groupId) {
-		String treePath = getTreePath();
-
-		if (treePath.contains(StringPool.SLASH + groupId + StringPool.SLASH)) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return hasAncestor(groupId);
 	}
 
 	/**
 	 * @deprecated As of 6.1.0, renamed to {@link #isRegularSite}
 	 */
+	@Deprecated
 	@Override
 	public boolean isCommunity() {
 		return isRegularSite();
@@ -743,7 +751,7 @@ public class GroupImpl extends GroupBaseImpl {
 		Layout defaultLayout = null;
 
 		int siteLayoutsCount = LayoutLocalServiceUtil.getLayoutsCount(
-			this, true);
+			this, privateSite);
 
 		if (siteLayoutsCount == 0) {
 			boolean hasPowerUserRole = RoleLocalServiceUtil.hasUserRole(

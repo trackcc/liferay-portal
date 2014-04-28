@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see DLFileShortcutLocalService
  * @generated
  */
+@ProviderType
 public class DLFileShortcutLocalServiceWrapper
 	implements DLFileShortcutLocalService,
 		ServiceWrapper<DLFileShortcutLocalService> {
@@ -237,6 +240,19 @@ public class DLFileShortcutLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFileShortcutLocalService.getDLFileShortcut(fileShortcutId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileShortcutLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileShortcutLocalService.getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	@Override
@@ -472,8 +488,7 @@ public class DLFileShortcutLocalServiceWrapper
 
 	@Override
 	public void rebuildTree(long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.SystemException {
 		_dlFileShortcutLocalService.rebuildTree(companyId);
 	}
 
@@ -516,6 +531,7 @@ public class DLFileShortcutLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DLFileShortcutLocalService getWrappedDLFileShortcutLocalService() {
 		return _dlFileShortcutLocalService;
 	}
@@ -523,6 +539,7 @@ public class DLFileShortcutLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDLFileShortcutLocalService(
 		DLFileShortcutLocalService dlFileShortcutLocalService) {
 		_dlFileShortcutLocalService = dlFileShortcutLocalService;

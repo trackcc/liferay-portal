@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -40,7 +40,7 @@ WorkflowDefinition workflowDefinition = (WorkflowDefinition)row.getObject();
 	<c:if test='<%= DeployManagerUtil.isDeployed("kaleo-designer-portlet") %>'>
 
 		<%
-		String taglibOnClick = "javascript:Liferay.Util.getOpener()." + renderResponse.getNamespace() + "openKaleoDesigner('" + workflowDefinition.getName() + "', '" + workflowDefinition.getVersion() + "', '', Liferay.Util.getWindowName());";
+		String taglibOnClick = "javascript:Liferay.Util.getOpener()." + renderResponse.getNamespace() + "openKaleoDesigner('" + HtmlUtil.escapeJS(workflowDefinition.getName()) + "', '" + workflowDefinition.getVersion() + "', '', Liferay.Util.getWindowName());";
 		%>
 
 		<liferay-ui:icon

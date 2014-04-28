@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -39,13 +39,22 @@ portletURL.setParameter("backURL", backURL);
 portletURL.setParameter("roleId", String.valueOf(role.getRoleId()));
 %>
 
-<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" varImpl="editPermissionsURL">
+<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" varImpl="editPermissionsResourceURL">
 	<portlet:param name="struts_action" value="/roles_admin/edit_role_permissions" />
 	<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.EDIT %>" />
 	<portlet:param name="tabs1" value="roles" />
 	<portlet:param name="redirect" value="<%= backURL %>" />
 	<portlet:param name="roleId" value="<%= String.valueOf(role.getRoleId()) %>" />
 </liferay-portlet:resourceURL>
+
+<liferay-portlet:renderURL copyCurrentRenderParameters="<%= false %>" varImpl="editPermissionsURL">
+	<portlet:param name="struts_action" value="/roles_admin/edit_role_permissions" />
+	<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.EDIT %>" />
+	<portlet:param name="tabs1" value="roles" />
+	<portlet:param name="redirect" value="<%= backURL %>" />
+	<portlet:param name="backURL" value="<%= backURL %>" />
+	<portlet:param name="roleId" value="<%= String.valueOf(role.getRoleId()) %>" />
+</liferay-portlet:renderURL>
 
 <c:choose>
 	<c:when test="<%= !portletName.equals(PortletKeys.ADMIN_SERVER) %>">
@@ -132,7 +141,7 @@ portletURL.setParameter("roleId", String.valueOf(role.getRoleId()));
 		}
 
 		if (groupsHTML == '') {
-			groupsHTML = '<%= UnicodeLanguageUtil.get(pageContext, "all-sites") %>';
+			groupsHTML = '<liferay-ui:message key="all-sites" />';
 		}
 
 		nameEl.innerHTML = groupsHTML;
@@ -192,7 +201,7 @@ portletURL.setParameter("roleId", String.valueOf(role.getRoleId()));
 
 		var getNoResultsNode = function() {
 			if (!noResultsNode) {
-				noResultsNode = A.Node.create('<div class="alert"><%= LanguageUtil.get(pageContext, "there-are-no-results") %></div>');
+				noResultsNode = A.Node.create('<div class="alert"><liferay-ui:message key="there-are-no-results" /></div>');
 			}
 
 			return noResultsNode;
@@ -278,7 +287,7 @@ portletURL.setParameter("roleId", String.valueOf(role.getRoleId()));
 			notification = new Liferay.Notice(
 				{
 					closeText: false,
-					content: '<%= UnicodeLanguageUtil.get(pageContext, "sorry,-we-were-not-able-to-access-the-server") %>' + '<button type="button" class="close">&times;</button>',
+					content: '<liferay-ui:message key="sorry,-we-were-not-able-to-access-the-server" /><button class="close" type="button">&times;</button>',
 					noticeClass: 'hide',
 					timeout: 10000,
 					toggleText: false,
@@ -308,7 +317,7 @@ portletURL.setParameter("roleId", String.valueOf(role.getRoleId()));
 				permissionContentContainerNode.unplug(AParseContent);
 
 				A.io.request(
-					event.currentTarget.attr('href'),
+					event.currentTarget.attr('data-resource-href'),
 					{
 						on: {
 							failure: function() {
@@ -371,7 +380,6 @@ portletURL.setParameter("roleId", String.valueOf(role.getRoleId()));
 		function(event) {
 			togglerDelegate = new A.TogglerDelegate(
 				{
-					animated: true,
 					container: <portlet:namespace />permissionNavigationDataContainer,
 					content: '.permission-navigation-item-content',
 					header: '.permission-navigation-item-header'

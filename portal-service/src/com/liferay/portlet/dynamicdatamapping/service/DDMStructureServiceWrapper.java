@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.dynamicdatamapping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see DDMStructureService
  * @generated
  */
+@ProviderType
 public class DDMStructureServiceWrapper implements DDMStructureService,
 	ServiceWrapper<DDMStructureService> {
 	public DDMStructureServiceWrapper(DDMStructureService ddmStructureService) {
@@ -252,6 +255,15 @@ public class DDMStructureServiceWrapper implements DDMStructureService,
 			structureKey);
 	}
 
+	@Override
+	public java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getJournalFolderStructures(
+		long[] groupIds, long journalFolderId, boolean inherited)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _ddmStructureService.getJournalFolderStructures(groupIds,
+			journalFolderId, inherited);
+	}
+
 	/**
 	* Returns the structure with the ID.
 	*
@@ -350,6 +362,32 @@ public class DDMStructureServiceWrapper implements DDMStructureService,
 		long[] groupIds)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _ddmStructureService.getStructures(groupIds);
+	}
+
+	/**
+	* Returns all the structures matching the groups and class name ID that the
+	* user has permission to view.
+	*
+	* @param groupIds the primary keys of the groups
+	* @param classNameId the primary key of the class name for the structure's
+	related model
+	* @return the structures matching the groups and class name ID that the
+	user has permission to view
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructures(
+		long[] groupIds, long classNameId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddmStructureService.getStructures(groupIds, classNameId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructures(
+		long[] groupIds, long classNameId, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddmStructureService.getStructures(groupIds, classNameId, start,
+			end);
 	}
 
 	/**
@@ -559,6 +597,7 @@ public class DDMStructureServiceWrapper implements DDMStructureService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DDMStructureService getWrappedDDMStructureService() {
 		return _ddmStructureService;
 	}
@@ -566,6 +605,7 @@ public class DDMStructureServiceWrapper implements DDMStructureService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDDMStructureService(
 		DDMStructureService ddmStructureService) {
 		_ddmStructureService = ddmStructureService;

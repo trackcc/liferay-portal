@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -37,7 +39,8 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.OrganizationModelImpl
  * @generated
  */
-public interface OrganizationModel extends BaseModel<Organization>,
+@ProviderType
+public interface OrganizationModel extends BaseModel<Organization>, MVCCModel,
 	StagedAuditedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -58,6 +61,22 @@ public interface OrganizationModel extends BaseModel<Organization>,
 	 * @param primaryKey the primary key of this organization
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this organization.
+	 *
+	 * @return the mvcc version of this organization
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this organization.
+	 *
+	 * @param mvccVersion the mvcc version of this organization
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this organization.
@@ -323,6 +342,20 @@ public interface OrganizationModel extends BaseModel<Organization>,
 	 * @param comments the comments of this organization
 	 */
 	public void setComments(String comments);
+
+	/**
+	 * Returns the logo ID of this organization.
+	 *
+	 * @return the logo ID of this organization
+	 */
+	public long getLogoId();
+
+	/**
+	 * Sets the logo ID of this organization.
+	 *
+	 * @param logoId the logo ID of this organization
+	 */
+	public void setLogoId(long logoId);
 
 	@Override
 	public boolean isNew();

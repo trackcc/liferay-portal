@@ -27,6 +27,7 @@ import ${packagePath}.model.${entity.name}Soap;
 import ${packagePath}.service.${entity.name}LocalServiceUtil;
 
 import com.liferay.portal.LocaleException;
+import com.liferay.portal.NoSuchModelException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -47,8 +48,10 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.TrashedModel;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
@@ -386,6 +389,9 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 			attributes.put("${column.name}", get${column.methodName}());
 		</#list>
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -627,12 +633,18 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		<#if column.userUuid>
 			@Override
 			public String get${column.methodUserUuidName}() throws SystemException {
-				return PortalUtil.getUserValue(get${column.methodName}(), "uuid", _${column.userUuidName});
+				try {
+					User user = UserLocalServiceUtil.getUserById(get${column.methodName}());
+
+					return user.getUuid();
+				}
+				catch (PortalException pe) {
+					return StringPool.BLANK;
+				}
 			}
 
 			@Override
 			public void set${column.methodUserUuidName}(String ${column.userUuidName}) {
-				_${column.userUuidName} = ${column.userUuidName};
 			}
 		</#if>
 
@@ -652,17 +664,19 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		<#assign methodName = textFormatter.format(variableName, 6)>
 		<#assign typeName = cacheField.getType().getGenericValue()>
 
-		public ${typeName} get${methodName}() {
-			<#if cacheField.getType().isPrimitive()>
-				<#if typeName == "boolean">
-					return false;
+		<#if methodName != "DefaultLanguageId">
+			public ${typeName} get${methodName}() {
+				<#if cacheField.getType().isPrimitive()>
+					<#if typeName == "boolean">
+						return false;
+					<#else>
+						return 0;
+					</#if>
 				<#else>
-					return 0;
+					return null;
 				</#if>
-			<#else>
-				return null;
-			</#if>
-		}
+			}
+		</#if>
 
 		public void set${methodName}(${typeName} ${variableName}) {
 		}
@@ -741,7 +755,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 		@Override
 		public TrashEntry getTrashEntry() throws PortalException, SystemException {
-			if (!isInTrash() && !isInTrashContainer()) {
+			if (!isInTrash()) {
 				return null;
 			}
 
@@ -754,7 +768,14 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 			TrashHandler trashHandler = getTrashHandler();
 
 			if (!Validator.isNull(trashHandler.getContainerModelClassName())) {
-				ContainerModel containerModel = trashHandler.getParentContainerModel(this);
+				ContainerModel containerModel = null;
+
+				try {
+					containerModel = trashHandler.getParentContainerModel(this);
+				}
+				catch (NoSuchModelException nsme) {
+					return null;
+				}
 
 				while (containerModel != null) {
 					if (containerModel instanceof TrashedModel) {
@@ -820,12 +841,43 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 			return false;
 		}
+
+		@Override
+		public boolean isInTrashExplicitly() throws SystemException {
+			if (!isInTrash()) {
+				return false;
+			}
+
+			TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(), getTrashEntryClassPK());
+
+			if (trashEntry != null) {
+				return true;
+			}
+
+			return false;
+		}
+
+		@Override
+		public boolean isInTrashImplicitly() throws SystemException {
+			if (!isInTrash()) {
+				return false;
+			}
+
+			TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(), getTrashEntryClassPK());
+
+			if (trashEntry != null) {
+				return false;
+			}
+
+			return true;
+		}
 	</#if>
 
 	<#if entity.isWorkflowEnabled()>
 		/**
 		 * @deprecated As of 6.1.0, replaced by {@link #isApproved}
 		 */
+		@Deprecated
 		@Override
 		public boolean getApproved() {
 			return isApproved();
@@ -1144,6 +1196,16 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		<#list entity.regularColList as column>
 			<#if column.isFinderPath() || ((parentPKColumn != "") && (parentPKColumn.name == column.name)) || ((column.type == "Blob") && column.lazy)>
@@ -1165,6 +1227,13 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 			<#if (column.type == "Blob") && column.lazy>
 				${entity.varName}ModelImpl._${column.name}BlobModel = null;
 			</#if>
+		</#list>
+
+		<#list cacheFields as cacheField>
+			<#assign variableName = serviceBuilder.getVariableName(cacheField)>
+			<#assign methodName = textFormatter.format(variableName, 6)>
+
+			set${methodName}(null);
 		</#list>
 
 		<#if columnBitmaskEnabled>
@@ -1266,10 +1335,6 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 			<#if column.localized>
 				private String _${column.name}CurrentLanguageId;
-			</#if>
-
-			<#if column.userUuid>
-				private String _${column.userUuidName};
 			</#if>
 
 			<#if column.isFinderPath() || ((parentPKColumn != "") && (parentPKColumn.name == column.name))>

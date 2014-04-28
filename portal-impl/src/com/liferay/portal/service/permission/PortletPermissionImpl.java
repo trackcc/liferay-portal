@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -266,8 +266,8 @@ public class PortletPermissionImpl implements PortletPermission {
 		Group group = layout.getGroup();
 
 		if (!group.isLayoutSetPrototype() &&
-			!SitesUtil.isLayoutUpdateable(layout) &&
-			actionId.equals(ActionKeys.CONFIGURATION)) {
+			actionId.equals(ActionKeys.CONFIGURATION) &&
+			!SitesUtil.isLayoutUpdateable(layout)) {
 
 			return false;
 		}
@@ -593,7 +593,9 @@ public class PortletPermissionImpl implements PortletPermission {
 				Portlet portlet = PortletLocalServiceUtil.getPortletById(
 					layout.getCompanyId(), portletId);
 
-				if (portlet.isPreferencesUniquePerLayout()) {
+				if (portlet.isInstanceable() ||
+					portlet.isPreferencesUniquePerLayout()) {
+
 					return true;
 				}
 			}

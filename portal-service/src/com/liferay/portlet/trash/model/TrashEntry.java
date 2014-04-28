@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.trash.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.model.PersistedModel;
 
 /**
@@ -25,6 +27,7 @@ import com.liferay.portal.model.PersistedModel;
  * @see com.liferay.portlet.trash.model.impl.TrashEntryModelImpl
  * @generated
  */
+@ProviderType
 public interface TrashEntry extends TrashEntryModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -42,8 +45,7 @@ public interface TrashEntry extends TrashEntryModel, PersistedModel {
 
 	public boolean isTrashEntry(java.lang.Class<?> clazz, long classPK);
 
-	public boolean isTrashEntry(
-		com.liferay.portal.model.TrashedModel trashedModel);
+	public boolean isTrashEntry(java.lang.String className, long classPK);
 
 	public void setRootEntry(
 		com.liferay.portlet.trash.model.TrashEntry rootEntry);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.documentlibrary.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see DLFileVersion
  * @generated
  */
+@ProviderType
 public class DLFileVersionWrapper implements DLFileVersion,
 	ModelWrapper<DLFileVersion> {
 	public DLFileVersionWrapper(DLFileVersion dlFileVersion) {
@@ -827,6 +830,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _dlFileVersion.getApproved();
@@ -1018,6 +1022,12 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	}
 
 	@Override
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_dlFileVersion.updateTreePath(treePath);
+	}
+
+	@Override
 	public java.lang.String buildTreePath()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -1088,6 +1098,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DLFileVersion getWrappedDLFileVersion() {
 		return _dlFileVersion;
 	}
@@ -1095,6 +1106,16 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	@Override
 	public DLFileVersion getWrappedModel() {
 		return _dlFileVersion;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _dlFileVersion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _dlFileVersion.isFinderCacheEnabled();
 	}
 
 	@Override

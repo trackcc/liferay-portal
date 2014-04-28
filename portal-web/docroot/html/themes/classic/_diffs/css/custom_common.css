@@ -25,6 +25,12 @@
 		}
 	}
 
+	legend {
+		color: #8D8D8D;
+		font-size: 18px;
+		font-weight: 200;
+	}
+
 	.alert {
 		word-wrap: break-word;
 	}
@@ -62,7 +68,7 @@
 		}
 	}
 
-	input[type="color"], input[type="date"], input[type="datetime"], input[type="datetime-local"], input[type="email"], input[type="month"], input[type="number"], input[type="password"], input[type="search"], input[type="tel"], input[type="text"], input[type="time"], input[type="url"], input[type="week"], select, textarea, .uneditable-input {
+	#{$form_text_fields}, select {
 		border: 1px solid #DDD;
 		color: #8D8D8D;
 		font-weight: 200;
@@ -98,6 +104,12 @@
 		outline-offset: -2px;
 	}
 
+	.control-group-inline {
+		#{$form_text_fields}, select {
+			margin-bottom: 0;
+		}
+	}
+
 	.form-search, .lfr-translation-manager-selector {
 		.control-group-inline {
 			margin: 0;
@@ -131,16 +143,16 @@
 
 	.control-group {
 		margin-bottom: 30px;
+
+		.input-resource-wrapper {
+			margin-bottom: 0;
+		}
 	}
 
 	.lfr-ddm-container, .portlet-staging-bar {
 		.control-group {
 			margin-bottom: 15px;
 		}
-	}
-
-	.input-append {
-		padding-right: 12px;
 	}
 
 	.navbar .nav > li > a {
@@ -212,16 +224,27 @@
 
 	.dockbar-split {
 		.dockbar {
-			.nav {
+			.navbar-inner .container .nav-collapse > .nav {
+				&.nav-add-controls ul.dropdown-menu > li > a {
+					background: #45CBF5;
+
+					@include respond-to(phone, tablet) {
+						background: transparent;
+					}
+				}
+
 				li.dropdown {
 					> .dropdown-toggle {
 						@extend %dockbar-caret;
 					}
 
-					&.open, &.active, &.open.active {
+					&.active, &.open {
 						> .dropdown-toggle {
-							background-color: transparent;
 							color: #FFF;
+
+							@include respond-to(phone, tablet) {
+								background-color: #3EA9DB;
+							}
 
 							@extend %dockbar-caret;
 						}
@@ -242,110 +265,138 @@
 
 	.dockbar {
 		&.navbar .navbar-inner {
+			border-bottom-width: 0;
 			min-height: 40px;
 		}
 
 		.navbar-inner {
 			background: #333;
 
-			.container .btn-navbar {
-				color: #FFF;
-			}
-		}
-
-		.nav {
-			> li {
-				> a {
-					color: #FFF;
-					line-height: 31px;
-
-					&:focus, &:hover {
-						color: #FFF;
-					}
-
-					[class^="icon-"], [class*=" icon-"] {
-						margin-top: 3px;
-					}
-				}
-
-				&.active > a {
+			.container {
+				.btn-navbar {
 					color: #FFF;
 
-					&, &:hover, &:focus {
-						background: #0066B3;
-					}
-				}
-			}
-
-			%dockbar-caret {
-				&, &:hover {
-					.caret {
-						border-bottom-color: #FFF;
-						border-top-color: #FFF;
-					}
-				}
-			}
-
-			li.dropdown {
-				> .dropdown-toggle {
-					@extend %dockbar-caret;
-				}
-
-				&.open, &.active, &.open.active {
-					> .dropdown-toggle {
+					&.active, &.open {
 						background-color: #3EA9DB;
-						color: #FFF;
+					}
 
-						@extend %dockbar-caret;
+					.user-avatar-image {
+						position: relative;
+						top: 2px;
+						width: 28px;
 					}
 				}
 
-				.dropdown-menu, .site-administration-menu {
-					background: #009AE5;
-					border-width: 0;
-					left: 0;
-					margin: 0;
-					right: auto;
+				.nav-collapse {
+					> .nav {
+						&.nav-add-controls, &.nav-navigation {
+							> li.dropdown ul.dropdown-menu {
+								background: transparent;
 
-					> li > a {
-						color: #FFF;
-						font-size: 0.9em;
-						font-weight: 300;
-
-						&:hover {
-							background: #2FA4F5;
-							@include filter-gradient(#2FA4F5, #2FA4F5, vertical);
+								@include respond-to(phone, tablet) {
+									background: #009AE5;
+								}
+							}
 						}
 
-						[class^="icon-"], [class*=" icon-"] {
-							margin-right: 3px;
+						@include respond-to(phone, tablet) {
+							&.nav-account-controls > li > a .nav-item-icon {
+								margin-top: 0;
+							}
 						}
 
-						.icon-spacer {
-							margin-right: 17px;
+						> li {
+							> a {
+								color: #FFF;
+								line-height: 31px;
+
+								@include respond-to(phone, tablet) {
+									line-height: 20px;
+								}
+
+								&:focus, &:hover {
+									color: #FFF;
+								}
+							}
+
+							&.active > a {
+								color: #FFF;
+
+								&, &:hover, &:focus {
+									background: #0066B3;
+								}
+							}
+						}
+
+						%dockbar-caret {
+							&, &:hover {
+								.caret {
+									border-bottom-color: #FFF;
+									border-top-color: #FFF;
+								}
+							}
+						}
+
+						li.dropdown {
+							> .dropdown-toggle {
+								@extend %dockbar-caret;
+							}
+
+							&.active, &.open {
+								> .dropdown-toggle {
+									background-color: #2FA4F5;
+									color: #FFF;
+
+									@extend %dockbar-caret;
+								}
+							}
+
+							ul.dropdown-menu, .site-administration-menu {
+								border-width: 0;
+								margin: 0;
+
+								> li > a {
+									color: #FFF;
+									font-weight: 300;
+									line-height: 31px;
+
+									@include respond-to(phone, tablet) {
+										font-size: 16px;
+									}
+
+									&:focus, &:hover {
+										background: #2FA4F5;
+										color: #FFF;
+
+										@include filter-gradient(#2FA4F5, #2FA4F5, vertical);
+									}
+
+									[class^="icon-"], [class*=" icon-"] {
+										margin-right: 3px;
+									}
+
+									.icon-spacer {
+										margin-right: 17px;
+									}
+								}
+
+								li.active > a {
+									background: #3B6DCC;
+								}
+							}
+
+							.dropdown-menu {
+								background: #009AE5;
+								max-height: 300px;
+								overflow-x: hidden;
+								overflow-y: auto;
+
+								&:after, &:before {
+									border-width: 0;
+								}
+							}
 						}
 					}
-
-					li.active > a {
-						background: #3B6DCC;
-					}
-				}
-
-				.dropdown-menu {
-					max-height: 300px;
-					overflow-x: hidden;
-					overflow-y: auto;
-
-					&:after, &:before {
-						border-width: 0;
-					}
-				}
-			}
-
-			li.dropdown.user-avatar {
-				.dropdown-menu {
-					right: 0;
-					left: auto;
 				}
 			}
 		}
@@ -434,6 +485,20 @@
 		padding: 3px 15px 2px;
 
 		li {
+			@include ellipsis;
+
+			max-width: 300px;
+
+			a {
+				display: inline-block;
+
+				@include ellipsis;
+
+				line-height: normal;
+				max-width: 300px;
+				vertical-align: text-bottom;
+			}
+
 			span.divider {
 				color: #999;
 				font-weight: bold;
@@ -454,31 +519,28 @@
 			display: none;
 		}
 
-		@include respond-to(phone) {
-			padding-left: 5px;
-			padding-right: 5px;
+		&.breadcrumb-horizontal {
+			@include respond-to(phone, tablet) {
+				padding-left: 5px;
+				padding-right: 5px;
 
-			li {
-				display: none;
+				li {
+					display: none;
 
-				&.only, &.first, &.last, &.current-parent {
-					display: inline-block;
-				}
-
-				&.breadcrumb-truncate {
-					&.only, &.first a, &.last a, &.active, &.current-parent a {
+					&.only, &.first, &.last, &.current-parent {
 						display: inline-block;
-						max-width: 65px;
-						overflow: hidden;
-						text-overflow: ellipsis;
-						vertical-align: bottom;
-						white-space: nowrap;
 					}
 
-					&.current-parent:before {
-						color: #999;
-						content: " ... / ";
-						font-weight: bold;
+					&.breadcrumb-truncate {
+						&.only, &.first a, &.last a, &.active, &.current-parent a {
+							max-width: 65px;
+						}
+
+						&.current-parent:before {
+							color: #999;
+							content: ' ... / ';
+							font-weight: bold;
+						}
 					}
 				}
 			}
@@ -489,6 +551,8 @@
 
 	@include respond-to(phone, tablet) {
 		.taglib-form-navigator {
+			position: relative;
+
 			.form-navigator-content {
 				clear: both;
 				float: none;
@@ -513,6 +577,12 @@
 						margin: 0;
 						padding: 0.1em 1em;
 					}
+				}
+
+				.button-holder {
+					padding-bottom: 20px;
+					position: absolute;
+					top: 100%;
 				}
 			}
 
@@ -545,6 +615,8 @@
 		background-color: #E5E5E5;
 		border: solid #DDD;
 		border-width: 1px 0;
+
+		@include ellipsis;
 	}
 
 	.accordion .accordion-group {
@@ -673,6 +745,15 @@
 		}
 	}
 
+	/* ---------- Quick access ---------- */
+
+	.quick-access-nav {
+		a {
+			background: #009AE5;
+			background: rgba(0, 154, 229, 0.9);
+		}
+	}
+
 	/* ---------- Side accordion navigations ---------- */
 
 	.add-content-menu, .lfr-edit-layout-panel, .panel-page-menu .portlet-borderless-container {
@@ -710,7 +791,7 @@
 					@include user-select(none);
 
 					.accordion-toggle {
-						background: #F2F2F2 url(../images/arrows/13_left.png) no-repeat 100% -20px;
+						background: #F2F2F2 url(../images/arrows/13_right.png) no-repeat 100% -20px;
 					}
 				}
 
@@ -780,9 +861,21 @@
 
 	.lfr-add-panel, .lfr-device-preview-panel, .lfr-edit-layout-panel {
 		&.lfr-admin-panel h1 {
-			color: #3EA9DB;
+			color: #009AE5;
 			font-size: 26px;
+			font-weight: normal;
 			line-height: 26px;
+		}
+	}
+
+	.yui3-aclist-list {
+		.yui3-aclist-item-active {
+			background-color: #0AF;
+		}
+
+		.yui3-aclist-item-hover {
+			background-color: #EEE;
+			color: inherit;
 		}
 	}
 
@@ -799,6 +892,17 @@
 		}
 	}
 
+	@mixin user-avatar-circle() {
+		@include border-radius(50%);
+		@include box-shadow(0 0 0 2px #5594E0);
+	}
+
+	@include respond-to(phone, tablet) {
+		#navigation.open .navbar-inner .nav-collapse li a {
+			@include border-radius(0);
+		}
+	}
+
 	.breadcrumb > li {
 		@include text-shadow(none);
 	}
@@ -809,7 +913,9 @@
 	}
 
 	.nav-header {
-		background-image: linear-gradient(#FFF, #F2F2F2);
+		background-color: #FFF;
+
+		@include background-image(linear-gradient(#FFF 0%, #F2F2F2 100%));
 	}
 
 	.portlet-options {
@@ -824,13 +930,17 @@
 		@include border-radius(5px);
 	}
 
-	input[type="color"], input[type="date"], input[type="datetime"], input[type="datetime-local"], input[type="month"], input[type="number"], input[type="password"], input[type="text"], input[type="time"], input[type="week"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], textarea, .uneditable-input {
+	#{$form_text_fields} {
 		@include border-radius(0);
 		@include box-shadow(none);
 
 		&:focus {
 			@include box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(82, 168, 236, 0.6));
 		}
+	}
+
+	input.search-query {
+		border-radius: 15px;
 	}
 
 	.tagselector-focused .tagselector-content .textboxlistentry-holder {
@@ -846,16 +956,19 @@
 			}
 
 			li.dropdown {
-				&.user-avatar {
-					.user-avatar-image {
-						@include border-radius(50%);
-						@include box-shadow(0 0 0 2px #5594E0);
-					}
-				}
-
 				.dropdown-menu {
 					@include border-radius(0);
+
+					> li > a {
+						@include border-radius(0);
+					}
 				}
+			}
+		}
+
+		.container .btn, .nav li.dropdown.user-avatar {
+			.user-avatar-image {
+				@include user-avatar-circle();
 			}
 		}
 	}
@@ -869,12 +982,6 @@
 
 		.icon-caret-down {
 			@include border-radius(50%);
-		}
-
-		.nav {
-			> li.open > a {
-				@include box-shadow(inset 0 3px 8px rgba(0, 0, 0, 0.125));
-			}
 		}
 	}
 

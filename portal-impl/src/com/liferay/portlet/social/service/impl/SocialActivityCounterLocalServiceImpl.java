@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -100,6 +100,7 @@ public class SocialActivityCounterLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link #addActivityCounter(long,
 	 *             long, long, String, int, int, long, int)}
 	 */
+	@Deprecated
 	@Override
 	public SocialActivityCounter addActivityCounter(
 			long groupId, long classNameId, long classPK, String name,
@@ -152,6 +153,7 @@ public class SocialActivityCounterLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link #addActivityCounter(long,
 	 *             long, long, String, int, int, long, int)}
 	 */
+	@Deprecated
 	@Override
 	public SocialActivityCounter addActivityCounter(
 			long groupId, long classNameId, long classPK, String name,
@@ -444,6 +446,7 @@ public class SocialActivityCounterLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link #addActivityCounter(long,
 	 *             long, long, String, int, int, long, int)}
 	 */
+	@Deprecated
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public SocialActivityCounter createActivityCounter(
@@ -496,6 +499,7 @@ public class SocialActivityCounterLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link #addActivityCounter(long,
 	 *             long, long, String, int, int, long, int)}
 	 */
+	@Deprecated
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public SocialActivityCounter createActivityCounter(
@@ -598,7 +602,7 @@ public class SocialActivityCounterLocalServiceImpl
 			deleteActivityCounters(assetEntry);
 		}
 		else {
-			long classNameId = PortalUtil.getClassNameId(className);
+			long classNameId = classNameLocalService.getClassNameId(className);
 
 			socialActivityCounterPersistence.removeByC_C(classNameId, classPK);
 
@@ -1151,7 +1155,7 @@ public class SocialActivityCounterLocalServiceImpl
 		SocialActivityCounter latestContributionActivityCounter =
 			fetchLatestActivityCounter(
 				assetEntry.getGroupId(),
-				PortalUtil.getClassNameId(User.class.getName()),
+				classNameLocalService.getClassNameId(User.class.getName()),
 				assetEntry.getUserId(),
 				SocialActivityCounterConstants.NAME_CONTRIBUTION,
 				SocialActivityCounterConstants.TYPE_CREATOR);
@@ -1241,7 +1245,7 @@ public class SocialActivityCounterLocalServiceImpl
 			return assetEntry.getClassNameId();
 		}
 
-		return PortalUtil.getClassNameId(User.class.getName());
+		return classNameLocalService.getClassNameId(User.class.getName());
 	}
 
 	protected long getClassPK(User user, AssetEntry assetEntry, int ownerType) {

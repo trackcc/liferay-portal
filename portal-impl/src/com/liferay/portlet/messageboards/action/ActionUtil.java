@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,7 +22,6 @@ import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.messageboards.NoSuchMessageException;
 import com.liferay.portlet.messageboards.model.MBCategory;
-import com.liferay.portlet.messageboards.model.MBCategoryConstants;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.service.MBBanLocalServiceUtil;
@@ -63,9 +62,7 @@ public class ActionUtil {
 
 		MBCategory category = null;
 
-		if ((categoryId > 0) &&
-			(categoryId != MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID)) {
-
+		if (categoryId > 0) {
 			category = MBCategoryServiceUtil.getCategory(categoryId);
 		}
 		else {
@@ -96,7 +93,7 @@ public class ActionUtil {
 		}
 
 		if ((message != null) && message.isInTrash()) {
-			throw new NoSuchMessageException();
+			throw new NoSuchMessageException("{messageId=" + messageId + "}");
 		}
 
 		request.setAttribute(WebKeys.MESSAGE_BOARDS_MESSAGE, message);
@@ -126,7 +123,7 @@ public class ActionUtil {
 		}
 
 		if ((message != null) && message.isInTrash()) {
-			throw new NoSuchMessageException();
+			throw new NoSuchMessageException("{threadId=" + threadId + "}");
 		}
 
 		request.setAttribute(WebKeys.MESSAGE_BOARDS_MESSAGE, message);

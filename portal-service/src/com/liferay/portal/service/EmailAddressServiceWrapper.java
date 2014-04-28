@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link EmailAddressService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see EmailAddressService
  * @generated
  */
+@ProviderType
 public class EmailAddressServiceWrapper implements EmailAddressService,
 	ServiceWrapper<EmailAddressService> {
 	public EmailAddressServiceWrapper(EmailAddressService emailAddressService) {
@@ -48,9 +51,10 @@ public class EmailAddressServiceWrapper implements EmailAddressService,
 	}
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addEmailAddress( String,
+	* @deprecated As of 6.2.0, replaced by {@link #addEmailAddress(String,
 	long, String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.EmailAddress addEmailAddress(
 		java.lang.String className, long classPK, java.lang.String address,
@@ -108,6 +112,7 @@ public class EmailAddressServiceWrapper implements EmailAddressService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public EmailAddressService getWrappedEmailAddressService() {
 		return _emailAddressService;
 	}
@@ -115,6 +120,7 @@ public class EmailAddressServiceWrapper implements EmailAddressService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedEmailAddressService(
 		EmailAddressService emailAddressService) {
 		_emailAddressService = emailAddressService;

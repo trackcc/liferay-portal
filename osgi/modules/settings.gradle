@@ -1,0 +1,3 @@
+include 'portal-deploy-hot-extender', 'portal-spring-extender', 'registry'
+
+rootProject.name = 'osgi-modules'

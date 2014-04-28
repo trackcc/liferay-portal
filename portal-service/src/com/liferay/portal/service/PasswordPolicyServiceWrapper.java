@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PasswordPolicyService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see PasswordPolicyService
  * @generated
  */
+@ProviderType
 public class PasswordPolicyServiceWrapper implements PasswordPolicyService,
 	ServiceWrapper<PasswordPolicyService> {
 	public PasswordPolicyServiceWrapper(
@@ -54,6 +57,7 @@ public class PasswordPolicyServiceWrapper implements PasswordPolicyService,
 	int, int, int, int, String, boolean, int, boolean, long,
 	long, int, boolean, int, long, long, long, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.PasswordPolicy addPasswordPolicy(
 		java.lang.String name, java.lang.String description,
@@ -110,6 +114,7 @@ public class PasswordPolicyServiceWrapper implements PasswordPolicyService,
 	long, long, int, boolean, int, long, long, long,
 	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.PasswordPolicy updatePasswordPolicy(
 		long passwordPolicyId, java.lang.String name,
@@ -156,6 +161,7 @@ public class PasswordPolicyServiceWrapper implements PasswordPolicyService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PasswordPolicyService getWrappedPasswordPolicyService() {
 		return _passwordPolicyService;
 	}
@@ -163,6 +169,7 @@ public class PasswordPolicyServiceWrapper implements PasswordPolicyService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPasswordPolicyService(
 		PasswordPolicyService passwordPolicyService) {
 		_passwordPolicyService = passwordPolicyService;

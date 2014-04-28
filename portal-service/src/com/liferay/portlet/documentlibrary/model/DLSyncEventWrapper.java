@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.documentlibrary.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
@@ -29,6 +31,7 @@ import java.util.Map;
  * @see DLSyncEvent
  * @generated
  */
+@ProviderType
 public class DLSyncEventWrapper implements DLSyncEvent,
 	ModelWrapper<DLSyncEvent> {
 	public DLSyncEventWrapper(DLSyncEvent dlSyncEvent) {
@@ -338,6 +341,7 @@ public class DLSyncEventWrapper implements DLSyncEvent,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DLSyncEvent getWrappedDLSyncEvent() {
 		return _dlSyncEvent;
 	}
@@ -345,6 +349,16 @@ public class DLSyncEventWrapper implements DLSyncEvent,
 	@Override
 	public DLSyncEvent getWrappedModel() {
 		return _dlSyncEvent;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _dlSyncEvent.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _dlSyncEvent.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see MBMessageService
  * @generated
  */
+@ProviderType
 public class MBMessageServiceWrapper implements MBMessageService,
 	ServiceWrapper<MBMessageService> {
 	public MBMessageServiceWrapper(MBMessageService mbMessageService) {
@@ -68,6 +71,7 @@ public class MBMessageServiceWrapper implements MBMessageService,
 	String, String, java.util.List, boolean, double, boolean,
 	com.liferay.portal.service.ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.messageboards.model.MBMessage addMessage(
 		long groupId, long categoryId, long threadId, long parentMessageId,
@@ -331,6 +335,7 @@ public class MBMessageServiceWrapper implements MBMessageService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MBMessageService getWrappedMBMessageService() {
 		return _mbMessageService;
 	}
@@ -338,6 +343,7 @@ public class MBMessageServiceWrapper implements MBMessageService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMBMessageService(MBMessageService mbMessageService) {
 		_mbMessageService = mbMessageService;
 	}

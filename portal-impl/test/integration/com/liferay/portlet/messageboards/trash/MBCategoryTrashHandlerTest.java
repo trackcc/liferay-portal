@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -95,6 +95,12 @@ public class MBCategoryTrashHandlerTest extends BaseTrashHandlerTestCase {
 	public void testTrashVersionParentBaseModel() throws Exception {
 	}
 
+	@Ignore()
+	@Override
+	@Test
+	public void testTrashVersionParentBaseModelAndRestore() throws Exception {
+	}
+
 	@Override
 	protected BaseModel<?> addBaseModelWithWorkflow(
 			BaseModel<?> parentBaseModel, boolean approved,
@@ -159,13 +165,22 @@ public class MBCategoryTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 	@Override
 	protected BaseModel<?> getParentBaseModel(
-			Group group, ServiceContext serviceContext)
+			Group group, long parentBaseModelId, ServiceContext serviceContext)
 		throws Exception {
 
 		return MBCategoryLocalServiceUtil.addCategory(
-			TestPropsValues.getUserId(),
-			MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID, getSearchKeywords(),
+			TestPropsValues.getUserId(), parentBaseModelId, getSearchKeywords(),
 			StringPool.BLANK, serviceContext);
+	}
+
+	@Override
+	protected BaseModel<?> getParentBaseModel(
+			Group group, ServiceContext serviceContext)
+		throws Exception {
+
+		return getParentBaseModel(
+			group, MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID,
+			serviceContext);
 	}
 
 	@Override
@@ -180,6 +195,11 @@ public class MBCategoryTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 	@Override
 	protected boolean isAssetableModel() {
+		return false;
+	}
+
+	@Override
+	protected boolean isAssetableParentModel() {
 		return false;
 	}
 
@@ -216,6 +236,25 @@ public class MBCategoryTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 		MBCategoryLocalServiceUtil.moveCategoryToTrash(
 			TestPropsValues.getUserId(), primaryKey);
+	}
+
+	@Override
+	protected BaseModel<?> updateBaseModel(
+			long primaryKey, ServiceContext serviceContext)
+		throws Exception {
+
+		MBCategory category = MBCategoryLocalServiceUtil.getCategory(
+			primaryKey);
+
+		if (serviceContext.getWorkflowAction() ==
+				WorkflowConstants.ACTION_SAVE_DRAFT) {
+
+			category = MBCategoryLocalServiceUtil.updateStatus(
+				TestPropsValues.getUserId(), primaryKey,
+				WorkflowConstants.STATUS_DRAFT);
+		}
+
+		return category;
 	}
 
 }

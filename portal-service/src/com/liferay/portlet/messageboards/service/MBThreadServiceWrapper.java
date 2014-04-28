@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see MBThreadService
  * @generated
  */
+@ProviderType
 public class MBThreadServiceWrapper implements MBThreadService,
 	ServiceWrapper<MBThreadService> {
 	public MBThreadServiceWrapper(MBThreadService mbThreadService) {
@@ -215,6 +218,7 @@ public class MBThreadServiceWrapper implements MBThreadService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MBThreadService getWrappedMBThreadService() {
 		return _mbThreadService;
 	}
@@ -222,6 +226,7 @@ public class MBThreadServiceWrapper implements MBThreadService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMBThreadService(MBThreadService mbThreadService) {
 		_mbThreadService = mbThreadService;
 	}

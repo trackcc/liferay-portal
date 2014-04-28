@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,8 @@ String tabs1 = (String)request.getAttribute("edit_site_assignments.jsp-tabs1");
 String tabs2 = (String)request.getAttribute("edit_site_assignments.jsp-tabs2");
 
 int cur = (Integer)request.getAttribute("edit_site_assignments.jsp-cur");
+
+String redirect = ParamUtil.getString(request, "redirect");
 
 Group group = (Group)request.getAttribute("edit_site_assignments.jsp-group");
 
@@ -120,7 +122,7 @@ searchContainer.setEmptyResultsMessage(emptyResultsMessage);
 		>
 
 			<%
-			buffer.append(HtmlUtil.escape(user2.getFullName()));
+			buffer.append(user2.getFullName());
 
 			List<String> names = new ArrayList<String>();
 
@@ -136,10 +138,10 @@ searchContainer.setEmptyResultsMessage(emptyResultsMessage);
 
 			if (organizationUser || userGroupUser) {
 				if (names.size() == 1) {
-					message = LanguageUtil.format(pageContext, "this-user-is-a-member-of-x-because-he-belongs-to-x", new Object[] {HtmlUtil.escape(group.getDescriptiveName(locale)), names.get(0)});
+					message = LanguageUtil.format(pageContext, "this-user-is-a-member-of-x-because-he-belongs-to-x", new Object[] {HtmlUtil.escape(group.getDescriptiveName(locale)), names.get(0)}, false);
 				}
 				else {
-					message = LanguageUtil.format(pageContext, "this-user-is-a-member-of-x-because-he-belongs-to-x-and-x", new Object[] {HtmlUtil.escape(group.getDescriptiveName(locale)), StringUtil.merge(names.subList(0, names.size() - 1).toArray(new String[names.size() - 1]), ", "), names.get(names.size() - 1)});
+					message = LanguageUtil.format(pageContext, "this-user-is-a-member-of-x-because-he-belongs-to-x-and-x", new Object[] {HtmlUtil.escape(group.getDescriptiveName(locale)), StringUtil.merge(names.subList(0, names.size() - 1).toArray(new String[names.size() - 1]), ", "), names.get(names.size() - 1)}, false);
 				}
 			%>
 
@@ -213,6 +215,7 @@ searchContainer.setEmptyResultsMessage(emptyResultsMessage);
 
 				<%
 				viewUsersURL.setParameter("tabs2", "available");
+				viewUsersURL.setParameter("redirect", currentURL);
 				%>
 
 				<liferay-ui:icon
@@ -232,7 +235,7 @@ searchContainer.setEmptyResultsMessage(emptyResultsMessage);
 				<%
 				portletURL.setParameter("tabs2", "current");
 
-				String taglibOnClick = renderResponse.getNamespace() + "updateGroupUsers('" + portletURL.toString() + StringPool.AMPERSAND + renderResponse.getNamespace() + "cur=" + cur + "');";
+				String taglibOnClick = renderResponse.getNamespace() + "updateGroupUsers('" + redirect + StringPool.AMPERSAND + renderResponse.getNamespace() + "cur=" + cur + "');";
 				%>
 
 				<aui:button-row>
@@ -244,7 +247,7 @@ searchContainer.setEmptyResultsMessage(emptyResultsMessage);
 
 	<c:choose>
 		<c:when test='<%= tabs1.equals("summary") && (total > 0) %>'>
-			<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" persistState="<%= true %>" title='<%= LanguageUtil.format(pageContext, (total > 1) ? "x-users" : "x-user", total) %>'>
+			<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" persistState="<%= true %>" title='<%= LanguageUtil.format(pageContext, (total > 1) ? "x-users" : "x-user", total, false) %>'>
 				<span class="form-search">
 					<liferay-ui:input-search name='<%= DisplayTerms.KEYWORDS + "_users" %>' />
 				</span>
@@ -257,7 +260,7 @@ searchContainer.setEmptyResultsMessage(emptyResultsMessage);
 			</liferay-ui:panel>
 		</c:when>
 		<c:when test='<%= !tabs1.equals("summary") %>'>
-			<c:if test="<%= total > searchContainer.getDelta() %>">
+			<c:if test="<%= PropsValues.SEARCH_CONTAINER_SHOW_PAGINATION_TOP && (results.size() > PropsValues.SEARCH_CONTAINER_SHOW_PAGINATION_TOP_DELTA) %>">
 				<%= formButton %>
 			</c:if>
 

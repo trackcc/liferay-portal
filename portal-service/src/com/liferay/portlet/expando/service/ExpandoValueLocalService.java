@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.expando.service;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -34,6 +36,7 @@ import com.liferay.portal.service.PersistedModelLocalService;
  * @see com.liferay.portlet.expando.service.impl.ExpandoValueLocalServiceImpl
  * @generated
  */
+@ProviderType
 @Transactional(isolation = Isolation.PORTAL, rollbackFor =  {
 	PortalException.class, SystemException.class})
 public interface ExpandoValueLocalService extends BaseLocalService,
@@ -183,6 +186,10 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 		long valueId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException;
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -375,6 +382,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, boolean[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, boolean data)
@@ -385,6 +393,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, boolean[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, boolean[] data)
@@ -395,6 +404,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, Date[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, java.util.Date data)
@@ -405,6 +415,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, Date[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, java.util.Date[] data)
@@ -415,6 +426,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, double[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, double data)
@@ -425,6 +437,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, double[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, double[] data)
@@ -435,6 +448,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, float[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, float data)
@@ -445,6 +459,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, float[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, float[] data)
@@ -455,6 +470,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, int[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, int data)
@@ -465,6 +481,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, int[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, int[] data)
@@ -475,6 +492,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, long[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, long data)
@@ -485,6 +503,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, long[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, long[] data)
@@ -495,6 +514,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, Object)}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, java.lang.Object data)
@@ -505,6 +525,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, short[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, short data)
@@ -515,6 +536,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, short[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, short[] data)
@@ -525,6 +547,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, String[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, java.lang.String data)
@@ -535,6 +558,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #addValue(long, String,
 	String, String, long, String[])}
 	*/
+	@Deprecated
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, java.lang.String[] data)
@@ -629,6 +653,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getColumnValues(long,
 	String, String, String, String, int, int)}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.List<com.liferay.portlet.expando.model.ExpandoValue> getColumnValues(
 		java.lang.String className, java.lang.String tableName,
@@ -665,6 +690,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getColumnValuesCount(long,
 	String, String, String, String)}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getColumnValuesCount(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName,
@@ -825,6 +851,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long)}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.io.Serializable getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK)
@@ -835,6 +862,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, boolean[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -846,6 +874,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, boolean[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean[] getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -857,6 +886,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, Date[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.Date getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -868,6 +898,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, Date[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.util.Date[] getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -879,6 +910,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, double[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public double getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -890,6 +922,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, double[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public double[] getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -901,6 +934,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, float[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public float getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -912,6 +946,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, float[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public float[] getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -923,6 +958,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, int[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getData(java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, int defaultData)
@@ -933,6 +969,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, int[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int[] getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -944,6 +981,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, long[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public long getData(java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, long defaultData)
@@ -954,6 +992,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, long[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public long[] getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -965,6 +1004,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, short[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public short getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -976,6 +1016,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, short[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public short[] getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -987,6 +1028,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, String[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.lang.String getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -998,6 +1040,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getData(long, String,
 	String, String, long, String[])}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public java.lang.String[] getData(java.lang.String className,
 		java.lang.String tableName, java.lang.String columnName, long classPK,
@@ -1088,6 +1131,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getValue(long, long, String,
 	String, long)}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.expando.model.ExpandoValue getValue(
 		long classNameId, java.lang.String tableName,
@@ -1104,6 +1148,7 @@ public interface ExpandoValueLocalService extends BaseLocalService,
 	* @deprecated As of 6.1.0, replaced by {@link #getValue(long, String,
 	String, String, long)}
 	*/
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portlet.expando.model.ExpandoValue getValue(
 		java.lang.String className, java.lang.String tableName,

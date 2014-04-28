@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -56,10 +56,6 @@ String headerCssClass = StringPool.BLANK;
 if (collapsible) {
 	contentCssClass += "toggler-content";
 	headerCssClass += "toggler-header";
-
-	if (BrowserSnifferUtil.isMobile(request)) {
-		state = "closed";
-	}
 
 	if (state == null) {
 		state = GetterUtil.getString(SessionClicks.get(request, id, null), defaultState);

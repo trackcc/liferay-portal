@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.journal.action;
 
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -198,7 +200,7 @@ public class ActionUtil {
 			article = JournalArticleServiceUtil.getLatestArticle(
 				groupId, className, classPK);
 		}
-		else if (Validator.isNotNull(structureId)) {
+		else {
 			DDMStructure ddmStructure = null;
 
 			try {
@@ -378,12 +380,8 @@ public class ActionUtil {
 		long classNameId = ParamUtil.getLong(request, "classNameId");
 		String structureId = ParamUtil.getString(request, "structureId");
 
-		DDMStructure ddmStructure = null;
-
-		if (Validator.isNotNull(structureId)) {
-			ddmStructure = DDMStructureServiceUtil.getStructure(
-				groupId, classNameId, structureId);
-		}
+		DDMStructure ddmStructure = DDMStructureServiceUtil.getStructure(
+			groupId, classNameId, structureId);
 
 		request.setAttribute(WebKeys.JOURNAL_STRUCTURE, ddmStructure);
 	}
@@ -448,12 +446,6 @@ public class ActionUtil {
 			List<Serializable> values = field.getValues(locale);
 
 			for (int i = 0; i < values.size(); i++) {
-				String content = (String)values.get(i);
-
-				if (content.equals("update")) {
-					continue;
-				}
-
 				StringBundler sb = new StringBundler(6);
 
 				sb.append(StringPool.UNDERLINE);
@@ -462,6 +454,11 @@ public class ActionUtil {
 				sb.append(i);
 				sb.append(StringPool.UNDERLINE);
 				sb.append(LanguageUtil.getLanguageId(locale));
+
+				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+					(String)values.get(i));
+
+				String content = jsonObject.getString("data");
 
 				images.put(sb.toString(), UnicodeFormatter.hexToBytes(content));
 			}

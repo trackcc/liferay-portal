@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -84,7 +84,7 @@ portletURL.setParameter("fileShortcutId", String.valueOf(fileShortcutId));
 
 	<liferay-ui:header
 		backURL="<%= redirect %>"
-		title='<%= (fileShortcut != null)? LanguageUtil.format(pageContext, "shortcut-to-x", fileShortcut.getToTitle()) : "new-file-shortcut" %>'
+		title='<%= (fileShortcut != null)? LanguageUtil.format(pageContext, "shortcut-to-x", fileShortcut.getToTitle(), false) : "new-file-shortcut" %>'
 	/>
 
 	<liferay-ui:error exception="<%= FileShortcutPermissionException.class %>" message="you-do-not-have-permission-to-create-a-shortcut-to-the-selected-document" />
@@ -95,31 +95,25 @@ portletURL.setParameter("fileShortcutId", String.valueOf(fileShortcutId));
 			<liferay-ui:message key="you-can-create-a-shortcut-to-any-document-that-you-have-read-access-for" />
 		</div>
 
-		<aui:field-wrapper label="site">
+		<%
+		String toGroupName = BeanPropertiesUtil.getString(toGroup, "name");
+		%>
 
-			<%
-			String toGroupName = BeanPropertiesUtil.getString(toGroup, "name");
-			%>
+		<div class="control-group">
+			<aui:input label="site" name="toGroupName" type="resource" value="<%= toGroupName %>" />
 
-			<div class="input-append">
-				<liferay-ui:input-resource id="toGroupName" url="<%= toGroupName %>" />
+			<aui:button name="selectGroupButton" value="select" />
+		</div>
 
-				<aui:button name="selectGroupButton" value="select" />
-			</div>
-		</aui:field-wrapper>
+		<%
+		String toFileEntryTitle = BeanPropertiesUtil.getString(toFileEntry, "title");
+		%>
 
-		<aui:field-wrapper label="document">
+		<div class="control-group">
+			<aui:input label="document" name="toFileEntryTitle" type="resource" url="<%= toFileEntryTitle %>" />
 
-			<%
-			String toFileEntryTitle = BeanPropertiesUtil.getString(toFileEntry, "title");
-			%>
-
-			<div class="input-append">
-				<liferay-ui:input-resource id="toFileEntryTitle" url="<%= toFileEntryTitle %>" />
-
-				<aui:button disabled="<%= (toGroup == null) %>" name="selectToFileEntryButton" value="select" />
-			</div>
-		</aui:field-wrapper>
+			<aui:button disabled="<%= (toGroup == null) %>" name="selectToFileEntryButton" value="select" />
+		</div>
 
 		<c:if test="<%= fileShortcut == null %>">
 			<aui:field-wrapper label="permissions">

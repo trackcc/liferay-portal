@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,23 @@
 
 package com.liferay.taglib.aui;
 
+import com.liferay.portal.kernel.dao.search.DisplayTerms;
+import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.User;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.taglib.aui.base.BaseNavTag;
 
 import javax.portlet.PortletResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.tagext.BodyTag;
 
 /**
  * @author Eduardo Lundgren
@@ -31,7 +38,7 @@ import javax.servlet.jsp.JspException;
  * @author Nathan Cavanaugh
  * @author Julio Camarero
  */
-public class NavTag extends BaseNavTag {
+public class NavTag extends BaseNavTag implements BodyTag {
 
 	@Override
 	public int doStartTag() throws JspException {
@@ -43,14 +50,31 @@ public class NavTag extends BaseNavTag {
 
 			setCollapsible(true);
 
+			ThemeDisplay themeDisplay = (ThemeDisplay)pageContext.getAttribute(
+				"themeDisplay");
+
 			StringBundler sb = navBarTag.getResponsiveButtonsSB();
 
-			sb.append("<a class=\"btn btn-navbar\" id=\"");
+			sb.append("<a class=\"btn btn-navbar");
+
+			String cssClass = getCssClass();
+
+			if (Validator.isNotNull(cssClass)) {
+				sb.append(StringPool.SPACE);
+				sb.append(cssClass);
+				sb.append("-btn");
+			}
+
+			if (_hasSearchResults()) {
+				sb.append(" hide");
+			}
+
+			sb.append("\" id=\"");
 			sb.append(_getNamespacedId());
 			sb.append("NavbarBtn\" ");
 			sb.append("data-navId=\"");
 			sb.append(_getNamespacedId());
-			sb.append("\">");
+			sb.append("\" tabindex=\"0\">");
 
 			String icon = getIcon();
 
@@ -58,6 +82,21 @@ public class NavTag extends BaseNavTag {
 				sb.append("<span class=\"icon-bar\"></span>");
 				sb.append("<span class=\"icon-bar\"></span>");
 				sb.append("<span class=\"icon-bar\"></span>");
+			}
+			else if (icon.equals("user") && themeDisplay.isSignedIn()) {
+				try {
+					User user = themeDisplay.getUser();
+
+					sb.append("<img alt=\"");
+					sb.append(LanguageUtil.get(pageContext, "my-account"));
+					sb.append("\" class=\"user-avatar-image\" ");
+					sb.append("src=\"");
+					sb.append(user.getPortraitURL(themeDisplay));
+					sb.append("\">");
+				}
+				catch (Exception e) {
+					throw new JspException(e);
+				}
 			}
 			else {
 				sb.append("<i class=\"icon-");
@@ -84,6 +123,11 @@ public class NavTag extends BaseNavTag {
 
 		_calledCollapsibleSetter = false;
 		_namespacedId = null;
+	}
+
+	@Override
+	protected int processStartTag() throws Exception {
+		return EVAL_BODY_BUFFERED;
 	}
 
 	@Override
@@ -115,6 +159,26 @@ public class NavTag extends BaseNavTag {
 		}
 
 		return _namespacedId;
+	}
+
+	private boolean _hasSearchResults() {
+		SearchContainer<?> searchContainer = getSearchContainer();
+
+		if (searchContainer == null) {
+			return false;
+		}
+
+		DisplayTerms displayTerms = searchContainer.getDisplayTerms();
+
+		String keywords = displayTerms.getKeywords();
+
+		if (displayTerms.isAdvancedSearch() ||
+			!keywords.equals(StringPool.BLANK)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private boolean _calledCollapsibleSetter;

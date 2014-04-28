@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -266,7 +266,7 @@ public class BackgroundTaskLocalServiceImpl
 		long folderId = backgroundTask.getAttachmentsFolderId();
 
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			PortletFileRepositoryUtil.deleteFolder(folderId);
+			PortletFileRepositoryUtil.deletePortletFolder(folderId);
 		}
 
 		if (backgroundTask.getStatus() ==
@@ -318,6 +318,16 @@ public class BackgroundTaskLocalServiceImpl
 		throws SystemException {
 
 		return backgroundTaskPersistence.fetchByPrimaryKey(backgroundTaskId);
+	}
+
+	@Override
+	public BackgroundTask fetchFirstBackgroundTask(
+			long groupId, String taskExecutorClassName, boolean completed,
+			OrderByComparator orderByComparator)
+		throws SystemException {
+
+		return backgroundTaskPersistence.fetchByG_T_C_First(
+			groupId, taskExecutorClassName, completed, orderByComparator);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,23 @@
 
 package com.liferay.portlet.documentlibrary.service.impl;
 
+import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.util.TreePathUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
+import com.liferay.portlet.documentlibrary.model.impl.DLFileShortcutModelImpl;
+import com.liferay.portlet.documentlibrary.model.impl.DLFolderModelImpl;
 import com.liferay.portlet.documentlibrary.service.base.DLFileShortcutLocalServiceBaseImpl;
 
 import java.util.Date;
@@ -91,11 +97,8 @@ public class DLFileShortcutLocalServiceImpl
 		// Folder
 
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
-
-			dlFolder.setLastPostDate(fileShortcut.getModifiedDate());
-
-			dlFolderPersistence.update(dlFolder);
+			dlFolderLocalService.updateLastPostDate(
+				folderId, fileShortcut.getModifiedDate());
 		}
 
 		// Asset
@@ -164,6 +167,7 @@ public class DLFileShortcutLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public void deleteFileShortcut(DLFileShortcut fileShortcut)
 		throws PortalException, SystemException {
 
@@ -185,8 +189,16 @@ public class DLFileShortcutLocalServiceImpl
 
 		// Trash
 
-		trashEntryLocalService.deleteEntry(
-			DLFileShortcut.class.getName(), fileShortcut.getFileShortcutId());
+		if (fileShortcut.isInTrashExplicitly()) {
+			trashEntryLocalService.deleteEntry(
+				DLFileShortcut.class.getName(),
+				fileShortcut.getFileShortcutId());
+		}
+		else {
+			trashVersionLocalService.deleteTrashVersion(
+				DLFileShortcut.class.getName(),
+				fileShortcut.getFileShortcutId());
+		}
 	}
 
 	@Override
@@ -196,7 +208,7 @@ public class DLFileShortcutLocalServiceImpl
 		DLFileShortcut fileShortcut =
 			dlFileShortcutLocalService.getDLFileShortcut(fileShortcutId);
 
-		deleteFileShortcut(fileShortcut);
+		dlFileShortcutLocalService.deleteFileShortcut(fileShortcut);
 	}
 
 	@Override
@@ -207,7 +219,7 @@ public class DLFileShortcutLocalServiceImpl
 			dlFileShortcutPersistence.findByToFileEntryId(toFileEntryId);
 
 		for (DLFileShortcut fileShortcut : fileShortcuts) {
-			deleteFileShortcut(fileShortcut);
+			dlFileShortcutLocalService.deleteFileShortcut(fileShortcut);
 		}
 	}
 
@@ -227,8 +239,8 @@ public class DLFileShortcutLocalServiceImpl
 			dlFileShortcutPersistence.findByG_F(groupId, folderId);
 
 		for (DLFileShortcut fileShortcut : fileShortcuts) {
-			if (includeTrashedEntries || !fileShortcut.isInTrash()) {
-				deleteFileShortcut(fileShortcut);
+			if (includeTrashedEntries || !fileShortcut.isInTrashExplicitly()) {
+				dlFileShortcutLocalService.deleteFileShortcut(fileShortcut);
 			}
 		}
 	}
@@ -286,17 +298,20 @@ public class DLFileShortcutLocalServiceImpl
 	}
 
 	@Override
-	public void rebuildTree(long companyId)
-		throws PortalException, SystemException {
+	public void rebuildTree(long companyId) throws SystemException {
+		dlFolderLocalService.rebuildTree(companyId);
 
-		List<DLFileShortcut> fileShortcuts =
-			dlFileShortcutPersistence.findByC_NotS(
-				companyId, WorkflowConstants.STATUS_IN_TRASH);
+		Session session = dlFileShortcutPersistence.openSession();
 
-		for (DLFileShortcut fileShortcut : fileShortcuts) {
-			fileShortcut.setTreePath(fileShortcut.buildTreePath());
+		try {
+			TreePathUtil.rebuildTree(
+				session, companyId, DLFileShortcutModelImpl.TABLE_NAME,
+				DLFolderModelImpl.TABLE_NAME, "folderId", true);
+		}
+		finally {
+			dlFileShortcutPersistence.closeSession(session);
 
-			dlFileShortcutPersistence.update(fileShortcut);
+			dlFileShortcutPersistence.clearCache();
 		}
 	}
 
@@ -344,11 +359,8 @@ public class DLFileShortcutLocalServiceImpl
 		// Folder
 
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
-
-			dlFolder.setLastPostDate(fileShortcut.getModifiedDate());
-
-			dlFolderPersistence.update(dlFolder);
+			dlFolderLocalService.updateLastPostDate(
+				folderId, fileShortcut.getModifiedDate());
 		}
 
 		// Asset
@@ -435,7 +447,8 @@ public class DLFileShortcutLocalServiceImpl
 		FileEntry fileEntry = dlAppLocalService.getFileEntry(toFileEntryId);
 
 		if (user.getCompanyId() != fileEntry.getCompanyId()) {
-			throw new NoSuchFileEntryException();
+			throw new NoSuchFileEntryException(
+				"{fileEntryId=" + toFileEntryId + "}");
 		}
 	}
 

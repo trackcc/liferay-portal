@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link WebsiteLocalService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see WebsiteLocalService
  * @generated
  */
+@ProviderType
 public class WebsiteLocalServiceWrapper implements WebsiteLocalService,
 	ServiceWrapper<WebsiteLocalService> {
 	public WebsiteLocalServiceWrapper(WebsiteLocalService websiteLocalService) {
@@ -215,6 +218,19 @@ public class WebsiteLocalServiceWrapper implements WebsiteLocalService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _websiteLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _websiteLocalService.getExportActionableDynamicQuery(portletDataContext);
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -308,6 +324,7 @@ public class WebsiteLocalServiceWrapper implements WebsiteLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #addWebsite(long, String,
 	long, String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Website addWebsite(long userId,
 		java.lang.String className, long classPK, java.lang.String url,
@@ -361,6 +378,7 @@ public class WebsiteLocalServiceWrapper implements WebsiteLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public WebsiteLocalService getWrappedWebsiteLocalService() {
 		return _websiteLocalService;
 	}
@@ -368,6 +386,7 @@ public class WebsiteLocalServiceWrapper implements WebsiteLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedWebsiteLocalService(
 		WebsiteLocalService websiteLocalService) {
 		_websiteLocalService = websiteLocalService;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link AddressLocalService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see AddressLocalService
  * @generated
  */
+@ProviderType
 public class AddressLocalServiceWrapper implements AddressLocalService,
 	ServiceWrapper<AddressLocalService> {
 	public AddressLocalServiceWrapper(AddressLocalService addressLocalService) {
@@ -215,6 +218,19 @@ public class AddressLocalServiceWrapper implements AddressLocalService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _addressLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _addressLocalService.getExportActionableDynamicQuery(portletDataContext);
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -309,6 +325,7 @@ public class AddressLocalServiceWrapper implements AddressLocalService,
 	long, String, String, String, String, String, long, long,
 	int, boolean, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Address addAddress(long userId,
 		java.lang.String className, long classPK, java.lang.String street1,
@@ -371,6 +388,7 @@ public class AddressLocalServiceWrapper implements AddressLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AddressLocalService getWrappedAddressLocalService() {
 		return _addressLocalService;
 	}
@@ -378,6 +396,7 @@ public class AddressLocalServiceWrapper implements AddressLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAddressLocalService(
 		AddressLocalService addressLocalService) {
 		_addressLocalService = addressLocalService;

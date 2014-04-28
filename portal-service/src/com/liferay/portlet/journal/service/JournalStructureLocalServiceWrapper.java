@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -25,6 +27,8 @@ import com.liferay.portal.service.ServiceWrapper;
 Dynamic Data Mapping framework to handle structures
  * @generated
  */
+@Deprecated
+@ProviderType
 public class JournalStructureLocalServiceWrapper
 	implements JournalStructureLocalService,
 		ServiceWrapper<JournalStructureLocalService> {
@@ -281,6 +285,7 @@ public class JournalStructureLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalStructureLocalService getWrappedJournalStructureLocalService() {
 		return _journalStructureLocalService;
 	}
@@ -288,6 +293,7 @@ public class JournalStructureLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalStructureLocalService(
 		JournalStructureLocalService journalStructureLocalService) {
 		_journalStructureLocalService = journalStructureLocalService;

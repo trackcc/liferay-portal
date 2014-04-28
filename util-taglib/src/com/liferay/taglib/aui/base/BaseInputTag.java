@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -109,6 +109,10 @@ public class BaseInputTag extends com.liferay.taglib.util.IncludeTag {
 		return _ignoreRequestValue;
 	}
 
+	public boolean getIncludeHiddenField() {
+		return _includeHiddenField;
+	}
+
 	public boolean getInlineField() {
 		return _inlineField;
 	}
@@ -127,6 +131,10 @@ public class BaseInputTag extends com.liferay.taglib.util.IncludeTag {
 
 	public boolean getLast() {
 		return _last;
+	}
+
+	public boolean getLocalized() {
+		return _localized;
 	}
 
 	public java.lang.Object getMax() {
@@ -315,6 +323,12 @@ public class BaseInputTag extends com.liferay.taglib.util.IncludeTag {
 		setScopedAttribute("ignoreRequestValue", ignoreRequestValue);
 	}
 
+	public void setIncludeHiddenField(boolean includeHiddenField) {
+		_includeHiddenField = includeHiddenField;
+
+		setScopedAttribute("includeHiddenField", includeHiddenField);
+	}
+
 	public void setInlineField(boolean inlineField) {
 		_inlineField = inlineField;
 
@@ -343,6 +357,12 @@ public class BaseInputTag extends com.liferay.taglib.util.IncludeTag {
 		_last = last;
 
 		setScopedAttribute("last", last);
+	}
+
+	public void setLocalized(boolean localized) {
+		_localized = localized;
+
+		setScopedAttribute("localized", localized);
 	}
 
 	public void setMax(java.lang.Object max) {
@@ -474,11 +494,13 @@ public class BaseInputTag extends com.liferay.taglib.util.IncludeTag {
 		_helpTextCssClass = "add-on";
 		_id = null;
 		_ignoreRequestValue = false;
+		_includeHiddenField = true;
 		_inlineField = false;
 		_inlineLabel = null;
 		_label = null;
 		_languageId = null;
 		_last = false;
+		_localized = false;
 		_max = null;
 		_model = null;
 		_min = null;
@@ -525,11 +547,13 @@ public class BaseInputTag extends com.liferay.taglib.util.IncludeTag {
 		setNamespacedAttribute(request, "helpTextCssClass", _helpTextCssClass);
 		setNamespacedAttribute(request, "id", _id);
 		setNamespacedAttribute(request, "ignoreRequestValue", _ignoreRequestValue);
+		setNamespacedAttribute(request, "includeHiddenField", _includeHiddenField);
 		setNamespacedAttribute(request, "inlineField", _inlineField);
 		setNamespacedAttribute(request, "inlineLabel", _inlineLabel);
 		setNamespacedAttribute(request, "label", _label);
 		setNamespacedAttribute(request, "languageId", _languageId);
 		setNamespacedAttribute(request, "last", _last);
+		setNamespacedAttribute(request, "localized", _localized);
 		setNamespacedAttribute(request, "max", _max);
 		setNamespacedAttribute(request, "model", _model);
 		setNamespacedAttribute(request, "min", _min);
@@ -574,11 +598,13 @@ public class BaseInputTag extends com.liferay.taglib.util.IncludeTag {
 	private java.lang.String _helpTextCssClass = "add-on";
 	private java.lang.String _id = null;
 	private boolean _ignoreRequestValue = false;
+	private boolean _includeHiddenField = true;
 	private boolean _inlineField = false;
 	private java.lang.String _inlineLabel = null;
 	private java.lang.String _label = null;
 	private java.lang.String _languageId = null;
 	private boolean _last = false;
+	private boolean _localized = false;
 	private java.lang.Object _max = null;
 	private java.lang.Class<?> _model = null;
 	private java.lang.Object _min = null;

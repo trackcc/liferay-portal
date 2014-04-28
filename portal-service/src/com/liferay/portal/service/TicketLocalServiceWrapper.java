@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link TicketLocalService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see TicketLocalService
  * @generated
  */
+@ProviderType
 public class TicketLocalServiceWrapper implements TicketLocalService,
 	ServiceWrapper<TicketLocalService> {
 	public TicketLocalServiceWrapper(TicketLocalService ticketLocalService) {
@@ -199,6 +202,12 @@ public class TicketLocalServiceWrapper implements TicketLocalService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ticketLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -297,6 +306,7 @@ public class TicketLocalServiceWrapper implements TicketLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public TicketLocalService getWrappedTicketLocalService() {
 		return _ticketLocalService;
 	}
@@ -304,6 +314,7 @@ public class TicketLocalServiceWrapper implements TicketLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedTicketLocalService(
 		TicketLocalService ticketLocalService) {
 		_ticketLocalService = ticketLocalService;

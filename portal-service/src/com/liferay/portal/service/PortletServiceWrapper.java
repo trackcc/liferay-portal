@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PortletService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see PortletService
  * @generated
  */
+@ProviderType
 public class PortletServiceWrapper implements PortletService,
 	ServiceWrapper<PortletService> {
 	public PortletServiceWrapper(PortletService portletService) {
@@ -63,6 +66,7 @@ public class PortletServiceWrapper implements PortletService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PortletService getWrappedPortletService() {
 		return _portletService;
 	}
@@ -70,6 +74,7 @@ public class PortletServiceWrapper implements PortletService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPortletService(PortletService portletService) {
 		_portletService = portletService;
 	}

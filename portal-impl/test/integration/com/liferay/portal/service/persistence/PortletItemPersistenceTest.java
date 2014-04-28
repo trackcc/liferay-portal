@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,10 +28,13 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.PortletItem;
 import com.liferay.portal.model.impl.PortletItemModelImpl;
+import com.liferay.portal.service.PortletItemLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -41,6 +44,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -58,6 +62,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class PortletItemPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<PortletItem> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -79,6 +92,10 @@ public class PortletItemPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<PortletItem> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -114,6 +131,8 @@ public class PortletItemPersistenceTest {
 
 		PortletItem newPortletItem = _persistence.create(pk);
 
+		newPortletItem.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newPortletItem.setGroupId(ServiceTestUtil.nextLong());
 
 		newPortletItem.setCompanyId(ServiceTestUtil.nextLong());
@@ -136,6 +155,8 @@ public class PortletItemPersistenceTest {
 
 		PortletItem existingPortletItem = _persistence.findByPrimaryKey(newPortletItem.getPrimaryKey());
 
+		Assert.assertEquals(existingPortletItem.getMvccVersion(),
+			newPortletItem.getMvccVersion());
 		Assert.assertEquals(existingPortletItem.getPortletItemId(),
 			newPortletItem.getPortletItemId());
 		Assert.assertEquals(existingPortletItem.getGroupId(),
@@ -158,6 +179,49 @@ public class PortletItemPersistenceTest {
 			newPortletItem.getPortletId());
 		Assert.assertEquals(existingPortletItem.getClassNameId(),
 			newPortletItem.getClassNameId());
+	}
+
+	@Test
+	public void testCountByG_C() {
+		try {
+			_persistence.countByG_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByG_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P_C() {
+		try {
+			_persistence.countByG_P_C(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, ServiceTestUtil.nextLong());
+
+			_persistence.countByG_P_C(0L, StringPool.NULL, 0L);
+
+			_persistence.countByG_P_C(0L, (String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_N_P_C() {
+		try {
+			_persistence.countByG_N_P_C(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, StringPool.BLANK, ServiceTestUtil.nextLong());
+
+			_persistence.countByG_N_P_C(0L, StringPool.NULL, StringPool.NULL, 0L);
+
+			_persistence.countByG_N_P_C(0L, (String)null, (String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -196,9 +260,9 @@ public class PortletItemPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("PortletItem",
-			"portletItemId", true, "groupId", true, "companyId", true,
-			"userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "name", true, "portletId", true,
+			"mvccVersion", true, "portletItemId", true, "groupId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "name", true, "portletId", true,
 			"classNameId", true);
 	}
 
@@ -224,16 +288,18 @@ public class PortletItemPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new PortletItemActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = PortletItemLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					PortletItem portletItem = (PortletItem)object;
 
 					Assert.assertNotNull(portletItem);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -343,6 +409,8 @@ public class PortletItemPersistenceTest {
 
 		PortletItem portletItem = _persistence.create(pk);
 
+		portletItem.setMvccVersion(ServiceTestUtil.nextLong());
+
 		portletItem.setGroupId(ServiceTestUtil.nextLong());
 
 		portletItem.setCompanyId(ServiceTestUtil.nextLong());
@@ -367,6 +435,7 @@ public class PortletItemPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(PortletItemPersistenceTest.class);
+	private ModelListener<PortletItem>[] _modelListeners;
 	private PortletItemPersistence _persistence = (PortletItemPersistence)PortalBeanLocatorUtil.locate(PortletItemPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutBranchService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see LayoutBranchService
  * @generated
  */
+@ProviderType
 public class LayoutBranchServiceWrapper implements LayoutBranchService,
 	ServiceWrapper<LayoutBranchService> {
 	public LayoutBranchServiceWrapper(LayoutBranchService layoutBranchService) {
@@ -79,6 +82,7 @@ public class LayoutBranchServiceWrapper implements LayoutBranchService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutBranchService getWrappedLayoutBranchService() {
 		return _layoutBranchService;
 	}
@@ -86,6 +90,7 @@ public class LayoutBranchServiceWrapper implements LayoutBranchService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutBranchService(
 		LayoutBranchService layoutBranchService) {
 		_layoutBranchService = layoutBranchService;

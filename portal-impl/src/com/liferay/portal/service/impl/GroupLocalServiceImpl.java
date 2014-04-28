@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -55,14 +55,16 @@ import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.TreeModelFinder;
+import com.liferay.portal.kernel.util.TreePathUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowHandler;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
-import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.model.Account;
 import com.liferay.portal.model.BackgroundTask;
 import com.liferay.portal.model.Company;
@@ -102,6 +104,7 @@ import com.liferay.portal.util.PortletCategoryKeys;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.comparator.GroupIdComparator;
 import com.liferay.portal.util.comparator.GroupNameComparator;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.journal.model.JournalArticle;
@@ -111,14 +114,12 @@ import java.io.File;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -153,8 +154,7 @@ import java.util.Set;
  * <p>
  * The <code>type</code> field helps distinguish between a group used strictly
  * for scoping and a group that also has pages (in which case the type is
- * <code>SITE</code>). For a list of types, see {@link
- * com.liferay.portal.model.GroupConstants}.
+ * <code>SITE</code>). For a list of types, see {@link GroupConstants}.
  * </p>
  *
  * <p>
@@ -202,6 +202,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 	public static final String ORGANIZATION_NAME_SUFFIX = " LFR_ORGANIZATION";
 
+	public static final String ORGANIZATION_STAGING_SUFFIX = " (Staging)";
+
 	/**
 	 * Constructs a group local service.
 	 */
@@ -221,7 +223,11 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 * @param  description the group's description (optionally
 	 *         <code>null</code>)
 	 * @param  type the group's type. For more information see {@link
-	 *         com.liferay.portal.model.GroupConstants}
+	 *         GroupConstants}.
+	 * @param  manualMembership whether manual membership is allowed for the
+	 *         group
+	 * @param  membershipRestriction the group's membership restriction. For
+	 *         more information see {@link GroupConstants}.
 	 * @param  friendlyURL the group's friendlyURL (optionally
 	 *         <code>null</code>)
 	 * @param  site whether the group is to be associated with a main site
@@ -248,7 +254,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 		User user = userPersistence.findByPrimaryKey(userId);
 		className = GetterUtil.getString(className);
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 		String friendlyName = name;
 
 		long groupId = 0;
@@ -266,9 +272,10 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 		boolean staging = isStaging(serviceContext);
 
-		long groupClassNameId = PortalUtil.getClassNameId(Group.class);
+		long groupClassNameId = classNameLocalService.getClassNameId(
+			Group.class);
 
-		if (((classNameId <= 0) || className.equals(Group.class.getName())) ||
+		if ((classNameId <= 0) || className.equals(Group.class.getName()) ||
 			(className.equals(Company.class.getName()) && staging)) {
 
 			className = Group.class.getName();
@@ -297,7 +304,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			friendlyURL);
 
 		if (staging) {
-			name = name.concat(" (Staging)");
+			name = name.concat(ORGANIZATION_STAGING_SUFFIX);
 			friendlyURL = getFriendlyURL(friendlyURL.concat("-staging"));
 		}
 
@@ -406,6 +413,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 				group.getGroupId(), false, false, false);
 		}
 
+		addPortletDefaultData(group);
+
 		return group;
 	}
 
@@ -420,7 +429,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 * @param      description the group's description (optionally
 	 *             <code>null</code>)
 	 * @param      type the group's type. For more information see {@link
-	 *             com.liferay.portal.model.GroupConstants}
+	 *             GroupConstants}.
 	 * @param      friendlyURL the group's friendlyURL
 	 * @param      site whether the group is to be associated with a main site
 	 * @param      active whether the group is active
@@ -437,6 +446,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *             long, long, String, String, int, boolean, int, String,
 	 *             boolean, boolean, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Group addGroup(
 			long userId, long parentGroupId, String className, long classPK,
@@ -462,7 +472,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 * @param      description the group's description (optionally
 	 *             <code>null</code>)
 	 * @param      type the group's type. For more information see {@link
-	 *             com.liferay.portal.model.GroupConstants}
+	 *             GroupConstants}.
 	 * @param      friendlyURL the group's friendlyURL (optionally
 	 *             <code>null</code>)
 	 * @param      site whether the group is to be associated with a main site
@@ -480,6 +490,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *             long, long, String, String, int, boolean, int, String,
 	 *             boolean, boolean, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Group addGroup(
 			long userId, String className, long classPK, long liveGroupId,
@@ -504,7 +515,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 * @param      description the group's description (optionally
 	 *             <code>null</code>)
 	 * @param      type the group's type. For more information see {@link
-	 *             com.liferay.portal.model.GroupConstants}
+	 *             GroupConstants}.
 	 * @param      friendlyURL the group's friendlyURL
 	 * @param      site whether the group is to be associated with a main site
 	 * @param      active whether the group is active
@@ -521,6 +532,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *             long, long, String, String, int, boolean, int, String,
 	 *             boolean, boolean, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Group addGroup(
 			long userId, String className, long classPK, String name,
@@ -583,7 +595,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	public void checkCompanyGroup(long companyId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(Company.class);
+		long classNameId = classNameLocalService.getClassNameId(Company.class);
 
 		int count = groupPersistence.countByC_C_C(
 			companyId, classNameId, companyId);
@@ -816,11 +828,14 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 			// Staging
 
+			exportImportConfigurationLocalService.
+				deleteExportImportConfigurations(group.getGroupId());
+
 			unscheduleStaging(group);
 
 			if (group.hasStagingGroup()) {
 				try {
-					StagingUtil.disableStaging(group, serviceContext);
+					stagingLocalService.disableStaging(group, serviceContext);
 				}
 				catch (Exception e) {
 					_log.error(
@@ -873,6 +888,9 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 			socialActivityLocalService.deleteActivities(group.getGroupId());
 			socialActivitySettingLocalService.deleteActivitySettings(
+				group.getGroupId());
+			socialRequestLocalService.deleteRequests(
+				classNameLocalService.getClassNameId(Group.class),
 				group.getGroupId());
 
 			// Software catalog
@@ -1027,6 +1045,21 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	}
 
 	/**
+	 * Returns the company's group.
+	 *
+	 * @param  companyId the primary key of the company
+	 * @return the company's group, or <code>null</code> if a matching group
+	 *         could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public Group fetchCompanyGroup(long companyId) throws SystemException {
+		long classNameId = classNameLocalService.getClassNameId(Company.class);
+
+		return groupPersistence.fetchByC_C_C(companyId, classNameId, companyId);
+	}
+
+	/**
 	 * Returns the group with the matching friendly URL.
 	 *
 	 * @param  companyId the primary key of the company
@@ -1074,6 +1107,28 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	}
 
 	/**
+	 * Returns the default user's personal site group.
+	 *
+	 * @param  companyId the primary key of the company
+	 * @return the default user's personal site group, or <code>null</code> if a
+	 *         matching group could not be found
+	 * @throws PortalException if a default user for the company could not be
+	 *         found
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public Group fetchUserPersonalSiteGroup(long companyId)
+		throws PortalException, SystemException {
+
+		long classNameId = classNameLocalService.getClassNameId(
+			UserPersonalSite.class);
+		long defaultUserId = userLocalService.getDefaultUserId(companyId);
+
+		return groupPersistence.fetchByC_C_C(
+			companyId, classNameId, defaultUserId);
+	}
+
+	/**
 	 * Returns the company group.
 	 *
 	 * @param  companyId the primary key of the company
@@ -1085,7 +1140,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	public Group getCompanyGroup(long companyId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(Company.class);
+		long classNameId = classNameLocalService.getClassNameId(Company.class);
 
 		return groupPersistence.findByC_C_C(companyId, classNameId, companyId);
 	}
@@ -1144,7 +1199,15 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		throws PortalException, SystemException {
 
 		if (Validator.isNull(friendlyURL)) {
-			throw new NoSuchGroupException();
+			StringBundler sb = new StringBundler(5);
+
+			sb.append("{companyId=");
+			sb.append(companyId);
+			sb.append(", friendlyURL=");
+			sb.append(friendlyURL);
+			sb.append("}");
+
+			throw new NoSuchGroupException(sb.toString());
 		}
 
 		friendlyURL = getFriendlyURL(friendlyURL);
@@ -1319,7 +1382,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			long companyId, String className, long parentGroupId)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return groupPersistence.findByC_C_P(
 			companyId, classNameId, parentGroupId);
@@ -1343,7 +1406,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			int end)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return groupPersistence.findByC_C_P(
 			companyId, classNameId, parentGroupId, start, end);
@@ -1408,7 +1471,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			long companyId, String className, long parentGroupId)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return groupPersistence.countByC_C_P(
 			companyId, classNameId, parentGroupId);
@@ -1427,7 +1490,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	public Group getLayoutGroup(long companyId, long plid)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(Layout.class);
+		long classNameId = classNameLocalService.getClassNameId(Layout.class);
 
 		return groupPersistence.findByC_C_C(companyId, classNameId, plid);
 	}
@@ -1445,7 +1508,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	public Group getLayoutPrototypeGroup(long companyId, long layoutPrototypeId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(LayoutPrototype.class);
+		long classNameId = classNameLocalService.getClassNameId(
+			LayoutPrototype.class);
 
 		return groupPersistence.findByC_C_C(
 			companyId, classNameId, layoutPrototypeId);
@@ -1465,7 +1529,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			long companyId, long layoutSetPrototypeId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(LayoutSetPrototype.class);
+		long classNameId = classNameLocalService.getClassNameId(
+			LayoutSetPrototype.class);
 
 		return groupPersistence.findByC_C_C(
 			companyId, classNameId, layoutSetPrototypeId);
@@ -1561,7 +1626,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			String className, boolean privateLayout, int start, int end)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return groupFinder.findByNoLayouts(
 			classNameId, privateLayout, start, end);
@@ -1593,7 +1658,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	public Group getOrganizationGroup(long companyId, long organizationId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(Organization.class);
+		long classNameId = classNameLocalService.getClassNameId(
+			Organization.class);
 
 		return groupPersistence.findByC_C_C(
 			companyId, classNameId, organizationId);
@@ -1700,7 +1766,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	public Group getUserGroup(long companyId, long userId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(User.class);
+		long classNameId = classNameLocalService.getClassNameId(User.class);
 
 		return groupPersistence.findByC_C_C(companyId, classNameId, userId);
 	}
@@ -1719,7 +1785,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	public Group getUserGroupGroup(long companyId, long userGroupId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(UserGroup.class);
+		long classNameId = classNameLocalService.getClassNameId(
+			UserGroup.class);
 
 		return groupPersistence.findByC_C_C(
 			companyId, classNameId, userGroupId);
@@ -1895,11 +1962,21 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		return userOrgsGroups;
 	}
 
+	/**
+	 * Returns the default user's personal site group.
+	 *
+	 * @param  companyId the primary key of the company
+	 * @return the default user's personal site group
+	 * @throws PortalException if a matching group or default user for the
+	 *         company could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
 	@Override
 	public Group getUserPersonalSiteGroup(long companyId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(UserPersonalSite.class);
+		long classNameId = classNameLocalService.getClassNameId(
+			UserPersonalSite.class);
 		long defaultUserId = userLocalService.getDefaultUserId(companyId);
 
 		return groupPersistence.findByC_C_C(
@@ -2069,49 +2146,23 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	public void rebuildTree(long companyId)
 		throws PortalException, SystemException {
 
-		Deque<Object[]> traces = new LinkedList<Object[]>();
+		TreePathUtil.rebuildTree(
+			companyId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
+			new TreeModelFinder<Group>() {
 
-		traces.push(
-			new Object[] {
-				GroupConstants.DEFAULT_PARENT_GROUP_ID, StringPool.SLASH, 0L
-			});
+				@Override
+				public List<Group> findTreeModels(
+						long previousId, long companyId, long parentPrimaryKey,
+						int size)
+					throws SystemException {
 
-		Object[] trace = null;
+					return groupPersistence.findByG_C_P(
+						previousId, companyId, parentPrimaryKey,
+						QueryUtil.ALL_POS, size, new GroupIdComparator(true));
+				}
 
-		while ((trace = traces.poll()) != null) {
-			Long parentGroupId = (Long)trace[0];
-			String parentPath = (String)trace[1];
-			Long previousGroupId = (Long)trace[2];
-
-			List<Long> childGroupIds = groupFinder.findByC_P(
-				companyId, parentGroupId, previousGroupId,
-				PropsValues.MODEL_TREE_REBUILD_QUERY_RESULTS_BATCH_SIZE);
-
-			if (childGroupIds.isEmpty()) {
-				continue;
 			}
-
-			if (childGroupIds.size() ==
-					PropsValues.MODEL_TREE_REBUILD_QUERY_RESULTS_BATCH_SIZE) {
-
-				trace[2] = childGroupIds.get(childGroupIds.size() - 1);
-
-				traces.push(trace);
-			}
-
-			for (long childGroupId : childGroupIds) {
-				String path = parentPath.concat(
-					String.valueOf(childGroupId)).concat(StringPool.SLASH);
-
-				Group group = groupPersistence.findByPrimaryKey(childGroupId);
-
-				group.setTreePath(path);
-
-				groupPersistence.update(group);
-
-				traces.push(new Object[] {childGroupId, path, 0L});
-			}
-		}
+		);
 	}
 
 	/**
@@ -2136,7 +2187,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         &quot;usersGroups&quot; mapped to the user's ID and an entry with
 	 *         key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	 *         For more information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  start the lower bound of the range of groups to return
 	 * @param  end the upper bound of the range of groups to return (not
 	 *         inclusive)
@@ -2178,7 +2229,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  start the lower bound of the range of groups to return
 	 * @param  end the upper bound of the range of groups to return (not
 	 *         inclusive)
@@ -2221,7 +2272,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  start the lower bound of the range of groups to return
 	 * @param  end the upper bound of the range of groups to return (not
 	 *         inclusive)
@@ -2268,7 +2319,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @param  start the lower bound of the range of groups to return
@@ -2315,7 +2366,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @param  start the lower bound of the range of groups to return
@@ -2366,7 +2417,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         &quot;usersGroups&quot; mapped to the user's ID and an entry with
 	 *         key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	 *         For more information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  start the lower bound of the range of groups to return
 	 * @param  end the upper bound of the range of groups to return (not
 	 *         inclusive)
@@ -2413,7 +2464,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         &quot;usersGroups&quot; mapped to the user's ID and an entry with
 	 *         key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	 *         For more information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  start the lower bound of the range of groups to return
 	 * @param  end the upper bound of the range of groups to return (not
 	 *         inclusive)
@@ -2443,7 +2494,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 				keywordsArray, params, andOperator, start, end, obc);
 		}
 
-		List<Group> groups = doSearch(
+		Collection<Group> groups = doSearch(
 			companyId, classNameIds, parentGroupId, keywordsArray,
 			keywordsArray, params, andOperator);
 
@@ -2479,7 +2530,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         &quot;usersGroups&quot; mapped to the user's ID and an entry with
 	 *         key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	 *         For more information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @param  start the lower bound of the range of groups to return
@@ -2530,7 +2581,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         &quot;usersGroups&quot; mapped to the user's ID and an entry with
 	 *         key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	 *         For more information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @param  start the lower bound of the range of groups to return
@@ -2558,7 +2609,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 				params, andOperator, start, end, obc);
 		}
 
-		List<Group> groups = doSearch(
+		Collection<Group> groups = doSearch(
 			companyId, classNameIds, parentGroupId, names, descriptions, params,
 			andOperator);
 
@@ -2591,7 +2642,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         &quot;usersGroups&quot; mapped to the user's ID and an entry with
 	 *         key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	 *         For more information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  start the lower bound of the range of groups to return
 	 * @param  end the upper bound of the range of groups to return (not
 	 *         inclusive)
@@ -2635,7 +2686,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         &quot;usersGroups&quot; mapped to the user's ID and an entry with
 	 *         key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	 *         For more information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  start the lower bound of the range of groups to return
 	 * @param  end the upper bound of the range of groups to return (not
 	 *         inclusive)
@@ -2684,7 +2735,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         &quot;usersGroups&quot; mapped to the user's ID and an entry with
 	 *         key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	 *         For more information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @param  start the lower bound of the range of groups to return
@@ -2733,7 +2784,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         &quot;usersGroups&quot; mapped to the user's ID and an entry with
 	 *         key &quot;inherit&quot; mapped to a non-<code>null</code> object.
 	 *         For more information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @param  start the lower bound of the range of groups to return
@@ -2779,7 +2830,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  start the lower bound of the range of groups to return
 	 * @param  end the upper bound of the range of groups to return (not
 	 *         inclusive)
@@ -2821,7 +2872,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  start the lower bound of the range of groups to return
 	 * @param  end the upper bound of the range of groups to return (not
 	 *         inclusive)
@@ -2867,7 +2918,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @param  start the lower bound of the range of groups to return
@@ -2913,7 +2964,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @param  start the lower bound of the range of groups to return
@@ -2950,7 +3001,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         in the search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @return the number of matching groups
 	 * @throws SystemException if a system exception occurred
 	 */
@@ -2981,7 +3032,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         in the search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @return the number of matching groups
@@ -3016,7 +3067,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         in the search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @return the number of matching groups
 	 * @throws SystemException if a system exception occurred
 	 */
@@ -3041,7 +3092,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 				keywordsArray, params, andOperator);
 		}
 
-		List<Group> groups = doSearch(
+		Collection<Group> groups = doSearch(
 			companyId, classNameIds, parentGroupId, keywordsArray,
 			keywordsArray, params, andOperator);
 
@@ -3066,7 +3117,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         in the search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @return the number of matching groups
@@ -3089,7 +3140,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 				params, andOperator);
 		}
 
-		List<Group> groups = doSearch(
+		Collection<Group> groups = doSearch(
 			companyId, classNameIds, parentGroupId, names, descriptions, params,
 			andOperator);
 
@@ -3111,7 +3162,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         in the search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @return the number of matching groups
 	 * @throws SystemException if a system exception occurred
 	 */
@@ -3143,7 +3194,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         in the search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @return the number of matching groups
@@ -3175,7 +3226,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         in the search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @return the number of matching groups
 	 * @throws SystemException if a system exception occurred
 	 */
@@ -3206,7 +3257,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 *         in the search, add entries having &quot;usersGroups&quot; and
 	 *         &quot;inherit&quot; as keys mapped to the the user's ID. For more
 	 *         information see {@link
-	 *         com.liferay.portal.service.persistence.GroupFinder}
+	 *         com.liferay.portal.service.persistence.GroupFinder}.
 	 * @param  andOperator whether every field must match its keywords, or just
 	 *         one field.
 	 * @return the number of matching groups
@@ -3359,7 +3410,11 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	 * @param  description the group's new description (optionally
 	 *         <code>null</code>)
 	 * @param  type the group's new type. For more information see {@link
-	 *         com.liferay.portal.model.GroupConstants}
+	 *         GroupConstants}.
+	 * @param  manualMembership whether manual membership is allowed for the
+	 *         group
+	 * @param  membershipRestriction the group's membership restriction. For
+	 *         more information see {@link GroupConstants}.
 	 * @param  friendlyURL the group's new friendlyURL (optionally
 	 *         <code>null</code>)
 	 * @param  active whether the group is active
@@ -3485,7 +3540,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		String newLanguageIds = typeSettingsProperties.getProperty(
 			PropsKeys.LOCALES);
 
-		if (newLanguageIds != null) {
+		if (Validator.isNotNull(newLanguageIds)) {
 			String oldLanguageIds = oldTypeSettingsProperties.getProperty(
 				PropsKeys.LOCALES, StringPool.BLANK);
 
@@ -3667,9 +3722,6 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		Map<String, String[]> parameterMap = new HashMap<String, String[]>();
 
 		parameterMap.put(
-			PortletDataHandlerKeys.CATEGORIES,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
 			PortletDataHandlerKeys.PERMISSIONS,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
@@ -3679,6 +3731,10 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			PortletDataHandlerKeys.PORTLET_DATA,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
+			PortletDataHandlerKeys.PORTLET_DATA + StringPool.UNDERLINE +
+				PortletKeys.ASSET_CATEGORIES_ADMIN,
+			new String[] {Boolean.TRUE.toString()});
+		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_DATA_CONTROL_DEFAULT,
 			new String[] {Boolean.TRUE.toString()});
 
@@ -3686,52 +3742,65 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			defaultUserId, group.getGroupId(), false, parameterMap, larFile);
 	}
 
-	protected void deletePortletData(Group group)
+	protected void addPortletDefaultData(Group group)
 		throws PortalException, SystemException {
 
-		List<Portlet> portlets = portletLocalService.getPortlets(
-			group.getCompanyId());
+		PortletDataContext portletDataContext =
+			PortletDataContextFactoryUtil.createPreparePortletDataContext(
+				group.getCompanyId(), group.getGroupId(), null, null);
 
-		for (Portlet portlet : portlets) {
-			if (!portlet.isActive()) {
-				continue;
+		List<PortletDataHandler> portletDataHandlers = getPortletDataHandlers(
+			group);
+
+		for (PortletDataHandler portletDataHandler : portletDataHandlers) {
+			try {
+				portletDataHandler.addDefaultData(
+					portletDataContext, portletDataHandler.getPortletId(),
+					null);
 			}
-
-			PortletDataHandler portletDataHandler =
-				portlet.getPortletDataHandlerInstance();
-
-			if ((portletDataHandler == null) ||
-				portletDataHandler.isDataPortalLevel()) {
-
-				continue;
-			}
-
-			PortletDataContext portletDataContext =
-				PortletDataContextFactoryUtil.createExportPortletDataContext(
-					group.getCompanyId(), group.getGroupId(),
-					(Map<String, String[]>)null, (Date)null, (Date)null,
-					(ZipWriter)null);
-
-			// For now, we are going to throw an exception if one portlet data
-			// handler has an exception to ensure that the transaction is rolled
-			// back for data integrity. We may decide that this is not the best
-			// behavior in the future because a bad plugin could disallow
-			// deletion of groups.
-
-			//try {
-				portletDataHandler.deleteData(
-					portletDataContext, portlet.getPortletId(), null);
-			/*}
 			catch (Exception e) {
 				_log.error(
-					"Unable to delete data for portlet " +
-						portlet.getPortletId() + " in group " +
+					"Unable to add default data for portlet " +
+						portletDataHandler.getPortletId() + " in group " +
 							group.getGroupId());
-			}*/
+
+				if (portletDataHandler.isRollbackOnException()) {
+					throw new SystemException(e);
+				}
+			}
 		}
 	}
 
-	protected List<Group> doSearch(
+	protected void deletePortletData(Group group)
+		throws PortalException, SystemException {
+
+		PortletDataContext portletDataContext =
+			PortletDataContextFactoryUtil.createPreparePortletDataContext(
+				group.getCompanyId(), group.getGroupId(), null, null);
+
+		List<PortletDataHandler> portletDataHandlers = getPortletDataHandlers(
+			group);
+
+		for (PortletDataHandler portletDataHandler : portletDataHandlers) {
+			try {
+				portletDataHandler.deleteData(
+					portletDataContext, portletDataHandler.getPortletId(),
+					null);
+			}
+			catch (Exception e) {
+				_log.error(
+					"Unable to delete data for portlet " +
+						portletDataHandler.getPortletId() + " in group " +
+							group.getGroupId());
+
+				if (portletDataHandler.isRollbackOnException()) {
+					throw new SystemException(e);
+				}
+			}
+		}
+	}
+
+	protected Collection<Group> doSearch(
 			long companyId, long[] classNameIds, long parentGroupId,
 			String[] names, String[] descriptions,
 			LinkedHashMap<String, Object> params, boolean andOperator)
@@ -3755,7 +3824,16 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		Boolean site = (Boolean)params.remove("site");
 		List<Integer> types = (List<Integer>)params.remove("types");
 
-		List<Group> groups = new ArrayList<Group>();
+		Collection<Group> groups = null;
+
+		Long userId = (Long)params.remove("usersGroups");
+
+		if (userId == null) {
+			groups = new ArrayList<Group>();
+		}
+		else {
+			groups = new HashSet<Group>();
+		}
 
 		for (long classNameId : classNameIds) {
 			groups.addAll(groupPersistence.findByC_C(companyId, classNameId));
@@ -3805,7 +3883,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 				group.getDescription(), descriptions);
 
 			if ((andOperator && (!containsName || !containsDescription)) ||
-				(!andOperator && (!containsName && !containsDescription))) {
+				(!andOperator && !containsName && !containsDescription)) {
 
 				iterator.remove();
 
@@ -3964,25 +4042,14 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			}
 		}
 
-		// Join by Groups_Roles
-
-		Long userId = (Long)params.remove("usersGroups");
-
 		if (userId == null) {
 			return groups;
 		}
 
-		Set<Group> resultGroups = new HashSet<Group>(groups);
-
-		Long roleId = (Long)params.remove("groupsRoles");
-
-		if (roleId != null) {
-			resultGroups.retainAll(rolePersistence.getGroups(roleId));
-		}
-
 		// Join by Users_Groups
 
-		resultGroups.retainAll(userPersistence.getGroups(userId));
+		Set<Group> joinedGroups = new HashSet<Group>(
+			userPersistence.getGroups(userId));
 
 		boolean inherit = GetterUtil.getBoolean(params.remove("inherit"), true);
 
@@ -3998,7 +4065,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 				for (Group group : groups) {
 					if (organizationId == group.getClassPK()) {
-						resultGroups.add(group);
+						joinedGroups.add(group);
 					}
 				}
 			}
@@ -4006,15 +4073,9 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			// Join by Groups_Orgs and Users_Orgs
 
 			for (Organization organization : organizations) {
-				List<Group> tempGroups = new ArrayList<Group>(groups);
-
-				tempGroups.retainAll(
+				joinedGroups.addAll(
 					organizationPersistence.getGroups(
 						organization.getOrganizationId()));
-
-				if (!tempGroups.isEmpty()) {
-					resultGroups.addAll(tempGroups);
-				}
 			}
 
 			// Join by Groups_UserGroups and Users_UserGroups
@@ -4022,14 +4083,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			List<UserGroup> userGroups = userPersistence.getUserGroups(userId);
 
 			for (UserGroup userGroup : userGroups) {
-				List<Group> tempGroups = new ArrayList<Group>(groups);
-
-				tempGroups.retainAll(
+				joinedGroups.addAll(
 					userGroupPersistence.getGroups(userGroup.getUserGroupId()));
-
-				if (!tempGroups.isEmpty()) {
-					resultGroups.addAll(tempGroups);
-				}
 			}
 		}
 
@@ -4037,7 +4092,24 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			_log.debug("Unprocessed parameters " + MapUtil.toString(params));
 		}
 
-		return new ArrayList<Group>(resultGroups);
+		// Join by Groups_Roles
+
+		Long roleId = (Long)params.remove("groupsRoles");
+
+		if (roleId != null) {
+			joinedGroups.retainAll(rolePersistence.getGroups(roleId));
+		}
+
+		if (joinedGroups.size() > groups.size()) {
+			groups.retainAll(joinedGroups);
+
+			return groups;
+		}
+		else {
+			joinedGroups.retainAll(groups);
+
+			return joinedGroups;
+		}
 	}
 
 	protected long[] getClassNameIds() {
@@ -4096,6 +4168,33 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 	protected String getOrgGroupName(String name) {
 		return name + ORGANIZATION_NAME_SUFFIX;
+	}
+
+	protected List<PortletDataHandler> getPortletDataHandlers(Group group)
+		throws SystemException {
+
+		List<Portlet> portlets = portletLocalService.getPortlets(
+			group.getCompanyId());
+
+		List<PortletDataHandler> portletDataHandlers =
+			new ArrayList<PortletDataHandler>(portlets.size());
+
+		for (Portlet portlet : portlets) {
+			if (!portlet.isActive()) {
+				continue;
+			}
+
+			PortletDataHandler portletDataHandler =
+				portlet.getPortletDataHandlerInstance();
+
+			if ((portletDataHandler != null) &&
+				!portletDataHandler.isDataPortalLevel()) {
+
+				portletDataHandlers.add(portletDataHandler);
+			}
+		}
+
+		return portletDataHandlers;
 	}
 
 	protected String[] getSearchNames(long companyId, String name)
@@ -4221,6 +4320,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		setRolePermissions(group, role, "com.liferay.portlet.bookmarks");
 		setRolePermissions(group, role, "com.liferay.portlet.documentlibrary");
 		setRolePermissions(group, role, "com.liferay.portlet.imagegallery");
+		setRolePermissions(group, role, "com.liferay.portlet.journal");
 		setRolePermissions(group, role, "com.liferay.portlet.messageboards");
 		setRolePermissions(group, role, "com.liferay.portlet.polls");
 		setRolePermissions(group, role, "com.liferay.portlet.wiki");
@@ -4272,8 +4372,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			for (int i = 0; i < complexSQLClassNames.length; i++) {
 				String complexSQLClassName = complexSQLClassNames[i];
 
-				complexSQLClassNameIds[i] = PortalUtil.getClassNameId(
-					complexSQLClassName);
+				complexSQLClassNameIds[i] =
+					classNameLocalService.getClassNameId(complexSQLClassName);
 			}
 
 			_complexSQLClassNameIds = complexSQLClassNameIds;
@@ -4352,16 +4452,25 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	}
 
 	protected List<Group> sort(
-		List<Group> groups, int start, int end, OrderByComparator obc) {
+		Collection<Group> groups, int start, int end, OrderByComparator obc) {
 
 		if (obc == null) {
 			obc = new GroupNameComparator(true);
 		}
 
-		Collections.sort(groups, obc);
+		List<Group> groupList = null;
+
+		if (groups instanceof List) {
+			groupList = (List<Group>)groups;
+		}
+		else {
+			groupList = new ArrayList<Group>(groups);
+		}
+
+		Collections.sort(groupList, obc);
 
 		return Collections.unmodifiableList(
-			ListUtil.subList(groups, start, end));
+			ListUtil.subList(groupList, start, end));
 	}
 
 	protected void unscheduleStaging(Group group) {
@@ -4437,14 +4546,20 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		Group group = groupPersistence.fetchByC_F(companyId, friendlyURL);
 
 		if ((group != null) && (group.getGroupId() != groupId)) {
-			throw new GroupFriendlyURLException(
+			GroupFriendlyURLException gfurle = new GroupFriendlyURLException(
 				GroupFriendlyURLException.DUPLICATE);
+
+			gfurle.setDuplicateClassPK(group.getGroupId());
+			gfurle.setDuplicateClassName(Group.class.getName());
+
+			throw gfurle;
 		}
 
 		String groupIdFriendlyURL = friendlyURL.substring(1);
 
 		if (Validator.isNumber(groupIdFriendlyURL)) {
-			long groupClassNameId = PortalUtil.getClassNameId(Group.class);
+			long groupClassNameId = classNameLocalService.getClassNameId(
+				Group.class);
 
 			if (((classNameId != groupClassNameId) &&
 				 !groupIdFriendlyURL.equals(String.valueOf(classPK)) &&
@@ -4467,14 +4582,21 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		User user = userPersistence.fetchByC_SN(companyId, screenName);
 
 		if (user != null) {
-			long userClassNameId = PortalUtil.getClassNameId(User.class);
+			long userClassNameId = classNameLocalService.getClassNameId(
+				User.class);
 
 			if ((classNameId == userClassNameId) &&
 				(classPK == user.getUserId())) {
 			}
 			else {
-				throw new GroupFriendlyURLException(
-					GroupFriendlyURLException.DUPLICATE);
+				GroupFriendlyURLException gfurle =
+					new GroupFriendlyURLException(
+						GroupFriendlyURLException.DUPLICATE);
+
+				gfurle.setDuplicateClassPK(user.getUserId());
+				gfurle.setDuplicateClassName(User.class.getName());
+
+				throw gfurle;
 			}
 		}
 
@@ -4535,7 +4657,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			Group group = groupFinder.findByC_N(companyId, name);
 
 			if ((groupId <= 0) || (group.getGroupId() != groupId)) {
-				throw new DuplicateGroupException();
+				throw new DuplicateGroupException("{groupId=" + groupId + "}");
 			}
 		}
 		catch (NoSuchGroupException nsge) {

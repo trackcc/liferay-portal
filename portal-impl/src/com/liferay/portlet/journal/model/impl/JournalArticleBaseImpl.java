@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -46,5 +46,14 @@ public abstract class JournalArticleBaseImpl extends JournalArticleModelImpl
 		else {
 			JournalArticleLocalServiceUtil.updateJournalArticle(this);
 		}
+	}
+
+	@Override
+	public void updateTreePath(String treePath) throws SystemException {
+		JournalArticle journalArticle = this;
+
+		journalArticle.setTreePath(treePath);
+
+		JournalArticleLocalServiceUtil.updateJournalArticle(journalArticle);
 	}
 }

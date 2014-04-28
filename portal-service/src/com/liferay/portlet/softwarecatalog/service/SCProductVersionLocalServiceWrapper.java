@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.softwarecatalog.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see SCProductVersionLocalService
  * @generated
  */
+@ProviderType
 public class SCProductVersionLocalServiceWrapper
 	implements SCProductVersionLocalService,
 		ServiceWrapper<SCProductVersionLocalService> {
@@ -206,6 +209,12 @@ public class SCProductVersionLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _scProductVersionLocalService.getSCProductVersion(productVersionId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _scProductVersionLocalService.getActionableDynamicQuery();
 	}
 
 	@Override
@@ -538,6 +547,7 @@ public class SCProductVersionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SCProductVersionLocalService getWrappedSCProductVersionLocalService() {
 		return _scProductVersionLocalService;
 	}
@@ -545,6 +555,7 @@ public class SCProductVersionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSCProductVersionLocalService(
 		SCProductVersionLocalService scProductVersionLocalService) {
 		_scProductVersionLocalService = scProductVersionLocalService;

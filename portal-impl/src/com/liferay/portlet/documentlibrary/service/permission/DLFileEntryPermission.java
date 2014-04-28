@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.kernel.workflow.permission.WorkflowPermissionUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.BaseModelPermissionChecker;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
@@ -36,7 +37,7 @@ import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
  * @author Brian Wing Shun Chan
  * @author Charles May
  */
-public class DLFileEntryPermission {
+public class DLFileEntryPermission implements BaseModelPermissionChecker {
 
 	public static void check(
 			PermissionChecker permissionChecker, DLFileEntry dlFileEntry,
@@ -101,7 +102,15 @@ public class DLFileEntryPermission {
 
 			long dlFolderId = dlFileEntry.getFolderId();
 
-			if (dlFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			if (dlFolderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+				if (!DLPermission.contains(
+						permissionChecker, dlFileEntry.getGroupId(),
+						actionId)) {
+
+					return false;
+				}
+			}
+			else {
 				try {
 					DLFolder dlFolder = DLFolderLocalServiceUtil.getFolder(
 						dlFolderId);
@@ -151,6 +160,15 @@ public class DLFileEntryPermission {
 		FileEntry fileEntry = DLAppLocalServiceUtil.getFileEntry(fileEntryId);
 
 		return fileEntry.containsPermission(permissionChecker, actionId);
+	}
+
+	@Override
+	public void checkBaseModel(
+			PermissionChecker permissionChecker, long groupId, long primaryKey,
+			String actionId)
+		throws PortalException, SystemException {
+
+		check(permissionChecker, primaryKey, actionId);
 	}
 
 }

@@ -20,7 +20,7 @@
 </tr>
 <tr>
 	<td>SUCCESS_MESSAGE</td>
-	<td>//div[@class='alert alert-success']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-success')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -30,7 +30,7 @@
 </tr>
 <tr>
 	<td>INFO_MESSAGE</td>
-	<td>//div[@class='alert alert-info']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-info')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -103,6 +103,16 @@
 <tr>
 	<td>WIKI_PAGE_TABLE_ACTIONS</td>
 	<td>//tr[contains(.,'${key_wikiPageTitle}')]/td[6]/div/a[@title='Actions']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WIKI_PAGE_TABLE_ACTIONS_GENERIC</td>
+	<td>//tr[1]/td[6]/div/a[@title='Actions']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WIKI_PAGE_TABLE_ACTIONS_GENERIC_2</td>
+	<td>//tr[2]/td[6]/div/a[@title='Actions']</td>
 	<td></td>
 </tr>
 <tr>

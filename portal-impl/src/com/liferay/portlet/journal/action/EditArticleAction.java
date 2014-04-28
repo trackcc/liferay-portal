@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,18 +21,17 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.upload.UploadException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
@@ -48,6 +47,7 @@ import com.liferay.portlet.asset.AssetTagException;
 import com.liferay.portlet.assetpublisher.util.AssetPublisherUtil;
 import com.liferay.portlet.dynamicdatamapping.NoSuchStructureException;
 import com.liferay.portlet.dynamicdatamapping.NoSuchTemplateException;
+import com.liferay.portlet.dynamicdatamapping.StorageFieldRequiredException;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.storage.Fields;
@@ -70,11 +70,14 @@ import com.liferay.portlet.journal.service.JournalArticleServiceUtil;
 import com.liferay.portlet.journal.service.JournalContentSearchLocalServiceUtil;
 import com.liferay.portlet.journal.util.JournalConverterUtil;
 import com.liferay.portlet.journal.util.JournalUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -150,20 +153,14 @@ public class EditArticleAction extends PortletAction {
 			else if (cmd.equals(Constants.EXPIRE)) {
 				expireArticles(actionRequest);
 			}
-			else if (cmd.equals(Constants.MOVE)) {
-				moveArticles(actionRequest);
-			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
 				deleteArticles(actionRequest, true);
 			}
-			else if (cmd.equals(Constants.RESTORE)) {
-				restoreArticles(actionRequest);
-			}
 			else if (cmd.equals(Constants.SUBSCRIBE)) {
-				subscribeArticles(actionRequest);
+				subscribeStructure(actionRequest);
 			}
 			else if (cmd.equals(Constants.UNSUBSCRIBE)) {
-				unsubscribeArticles(actionRequest);
+				unsubscribeStructure(actionRequest);
 			}
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
@@ -195,9 +192,6 @@ public class EditArticleAction extends PortletAction {
 				}
 			}
 
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
-
 			if (cmd.equals(Constants.DELETE) &&
 				!ActionUtil.hasArticle(actionRequest)) {
 
@@ -212,6 +206,10 @@ public class EditArticleAction extends PortletAction {
 					return;
 				}
 				else {
+					ThemeDisplay themeDisplay =
+						(ThemeDisplay)actionRequest.getAttribute(
+							WebKeys.THEME_DISPLAY);
+
 					PortletURL portletURL = PortletURLFactoryUtil.create(
 						actionRequest, portletConfig.getPortletName(),
 						themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
@@ -233,16 +231,18 @@ public class EditArticleAction extends PortletAction {
 				redirect = getSaveAndContinueRedirect(
 					portletConfig, actionRequest, article, redirect);
 
+				if (cmd.equals(Constants.PREVIEW)) {
+					SessionMessages.add(actionRequest, "previewRequested");
+
+					hideDefaultSuccessMessage(actionRequest);
+				}
+
 				sendRedirect(actionRequest, actionResponse, redirect);
 			}
 			else {
 				WindowState windowState = actionRequest.getWindowState();
 
-				Layout layout = themeDisplay.getLayout();
-
-				if (!windowState.equals(LiferayWindowState.POP_UP) &&
-					layout.isTypeControlPanel()) {
-
+				if (!windowState.equals(LiferayWindowState.POP_UP)) {
 					sendRedirect(actionRequest, actionResponse, redirect);
 				}
 				else {
@@ -284,7 +284,8 @@ public class EditArticleAction extends PortletAction {
 					 e instanceof ArticleTitleException ||
 					 e instanceof ArticleTypeException ||
 					 e instanceof ArticleVersionException ||
-					 e instanceof DuplicateArticleIdException) {
+					 e instanceof DuplicateArticleIdException ||
+					 e instanceof StorageFieldRequiredException) {
 
 				SessionErrors.add(actionRequest, e.getClass());
 			}
@@ -340,8 +341,6 @@ public class EditArticleAction extends PortletAction {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		String deleteEntryTitle = null;
-
 		String[] deleteArticleIds = null;
 
 		String articleId = ParamUtil.getString(actionRequest, "articleId");
@@ -354,47 +353,23 @@ public class EditArticleAction extends PortletAction {
 				ParamUtil.getString(actionRequest, "articleIds"));
 		}
 
-		long[] restoreArticleIds = new long[deleteArticleIds.length];
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
 
-		for (int i = 0; i < deleteArticleIds.length; i++) {
-			String deleteArticleId = deleteArticleIds[i];
-
+		for (String deleteArticleId : deleteArticleIds) {
 			if (moveToTrash) {
 				JournalArticle article =
 					JournalArticleServiceUtil.moveArticleToTrash(
 						themeDisplay.getScopeGroupId(), deleteArticleId);
 
-				if (i == 0) {
-					deleteEntryTitle = article.getTitle(
-						themeDisplay.getLocale());
-				}
-
-				restoreArticleIds[i] = article.getResourcePrimKey();
+				trashedModels.add(article);
 			}
 			else {
 				ActionUtil.deleteArticle(actionRequest, deleteArticleId);
 			}
 		}
 
-		if (moveToTrash && (deleteArticleIds.length > 0)) {
-			Map<String, String[]> data = new HashMap<String, String[]>();
-
-			data.put(
-				"deleteEntryClassName",
-				new String[] {JournalArticle.class.getName()});
-
-			if (Validator.isNotNull(deleteEntryTitle)) {
-				data.put("deleteEntryTitle", new String[] {deleteEntryTitle});
-			}
-
-			data.put(
-				"restoreArticleIds",
-				ArrayUtil.toStringArray(restoreArticleIds));
-
-			SessionMessages.add(
-				actionRequest,
-				PortalUtil.getPortletId(actionRequest) +
-					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
+		if (moveToTrash && !trashedModels.isEmpty()) {
+			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
 
 			hideDefaultSuccessMessage(actionRequest);
 		}
@@ -426,8 +401,6 @@ public class EditArticleAction extends PortletAction {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
-
 		String referringPortletResource = ParamUtil.getString(
 			actionRequest, "referringPortletResource");
 
@@ -438,7 +411,6 @@ public class EditArticleAction extends PortletAction {
 			themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("struts_action", "/journal/edit_article");
-		portletURL.setParameter(Constants.CMD, cmd, false);
 		portletURL.setParameter("redirect", redirect, false);
 		portletURL.setParameter(
 			"referringPortletResource", referringPortletResource, false);
@@ -447,6 +419,8 @@ public class EditArticleAction extends PortletAction {
 			false);
 		portletURL.setParameter(
 			"groupId", String.valueOf(article.getGroupId()), false);
+		portletURL.setParameter(
+			"folderId", String.valueOf(article.getFolderId()), false);
 		portletURL.setParameter("articleId", article.getArticleId(), false);
 		portletURL.setParameter(
 			"version", String.valueOf(article.getVersion()), false);
@@ -454,28 +428,6 @@ public class EditArticleAction extends PortletAction {
 		portletURL.setWindowState(actionRequest.getWindowState());
 
 		return portletURL.toString();
-	}
-
-	protected void moveArticles(ActionRequest actionRequest) throws Exception {
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		String articleId = ParamUtil.getString(actionRequest, "articleId");
-		long newFolderId = ParamUtil.getLong(actionRequest, "newFolderId");
-
-		if (Validator.isNotNull(articleId)) {
-			JournalArticleServiceUtil.moveArticle(
-				themeDisplay.getScopeGroupId(), articleId, newFolderId);
-		}
-		else {
-			String[] articleIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "articleIds"));
-
-			for (int i = 0; i < articleIds.length; i++) {
-				JournalArticleServiceUtil.moveArticle(
-					themeDisplay.getScopeGroupId(), articleIds[i], newFolderId);
-			}
-		}
 	}
 
 	protected void removeArticlesLocale(ActionRequest actionRequest)
@@ -501,37 +453,32 @@ public class EditArticleAction extends PortletAction {
 		}
 	}
 
-	protected void restoreArticles(ActionRequest actionRequest)
+	protected void subscribeStructure(ActionRequest actionRequest)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		String[] restoreEntryIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "restoreEntryIds"));
+		long ddmStructureId = ParamUtil.getLong(
+			actionRequest, "ddmStructureId");
 
-		for (String restoreEntryId : restoreEntryIds) {
-			JournalArticleServiceUtil.restoreArticleFromTrash(
-				themeDisplay.getScopeGroupId(), restoreEntryId);
-		}
+		JournalArticleServiceUtil.subscribeStructure(
+			themeDisplay.getScopeGroupId(), themeDisplay.getUserId(),
+			ddmStructureId);
 	}
 
-	protected void subscribeArticles(ActionRequest actionRequest)
+	protected void unsubscribeStructure(ActionRequest actionRequest)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		JournalArticleServiceUtil.subscribe(themeDisplay.getScopeGroupId());
-	}
+		long ddmStructureId = ParamUtil.getLong(
+			actionRequest, "ddmStructureId");
 
-	protected void unsubscribeArticles(ActionRequest actionRequest)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		JournalArticleServiceUtil.unsubscribe(themeDisplay.getScopeGroupId());
+		JournalArticleServiceUtil.unsubscribeStructure(
+			themeDisplay.getScopeGroupId(), themeDisplay.getUserId(),
+			ddmStructureId);
 	}
 
 	protected Object[] updateArticle(ActionRequest actionRequest)
@@ -554,8 +501,6 @@ public class EditArticleAction extends PortletAction {
 		boolean autoArticleId = ParamUtil.getBoolean(
 			uploadPortletRequest, "autoArticleId");
 		double version = ParamUtil.getDouble(uploadPortletRequest, "version");
-		boolean localized = ParamUtil.getBoolean(
-			uploadPortletRequest, "localized");
 
 		String defaultLanguageId = ParamUtil.getString(
 			uploadPortletRequest, "defaultLanguageId");
@@ -596,28 +541,22 @@ public class EditArticleAction extends PortletAction {
 		String structureId = ParamUtil.getString(
 			uploadPortletRequest, "structureId");
 
-		DDMStructure ddmStructure = null;
+		DDMStructure ddmStructure = DDMStructureLocalServiceUtil.getStructure(
+			PortalUtil.getSiteGroupId(groupId),
+			PortalUtil.getClassNameId(JournalArticle.class), structureId, true);
 
-		if (Validator.isNotNull(structureId)) {
-			ddmStructure = DDMStructureLocalServiceUtil.getStructure(
-				PortalUtil.getSiteGroupId(groupId),
-				PortalUtil.getClassNameId(JournalArticle.class), structureId,
-				true);
+		String languageId = toLanguageId;
 
-			String languageId = toLanguageId;
-
-			if (Validator.isNull(languageId)) {
-				languageId = defaultLanguageId;
-			}
-
-			Locale locale = LocaleUtil.fromLanguageId(languageId);
-
-			Object[] contentAndImages = ActionUtil.getContentAndImages(
-				ddmStructure, locale, serviceContext);
-
-			content = (String)contentAndImages[0];
-			images = (HashMap<String, byte[]>)contentAndImages[1];
+		if (Validator.isNull(languageId)) {
+			languageId = defaultLanguageId;
 		}
+
+		Object[] contentAndImages = ActionUtil.getContentAndImages(
+			ddmStructure, LocaleUtil.fromLanguageId(languageId),
+			serviceContext);
+
+		content = (String)contentAndImages[0];
+		images = (HashMap<String, byte[]>)contentAndImages[1];
 
 		Boolean fileItemThresholdSizeExceeded =
 			(Boolean)uploadPortletRequest.getAttribute(
@@ -731,12 +670,6 @@ public class EditArticleAction extends PortletAction {
 
 			descriptionMap.put(defaultLocale, description);
 
-			if (Validator.isNull(structureId)) {
-				content = LocalizationUtil.updateLocalization(
-					StringPool.BLANK, "static-content", content,
-					defaultLanguageId, defaultLanguageId, true, localized);
-			}
-
 			// Add article
 
 			article = JournalArticleServiceUtil.addArticle(
@@ -762,40 +695,17 @@ public class EditArticleAction extends PortletAction {
 			JournalArticle curArticle = JournalArticleServiceUtil.getArticle(
 				groupId, articleId, version);
 
-			if (Validator.isNull(structureId)) {
-				if (!curArticle.isTemplateDriven()) {
-					String curContent = StringPool.BLANK;
+			Fields newFields = DDMUtil.getFields(
+				ddmStructure.getStructureId(), serviceContext);
 
-					curContent = curArticle.getContent();
+			Fields existingFields = JournalConverterUtil.getDDMFields(
+				ddmStructure, curArticle.getDocument());
 
-					if (cmd.equals(Constants.TRANSLATE)) {
-						content = LocalizationUtil.updateLocalization(
-							curContent, "static-content", content, toLanguageId,
-							defaultLanguageId, true, true);
-					}
-					else {
-						content = LocalizationUtil.updateLocalization(
-							curContent, "static-content", content,
-							defaultLanguageId, defaultLanguageId, true,
-							localized);
-					}
-				}
-			}
-			else {
-				if (curArticle.isTemplateDriven()) {
-					Fields newFields = DDMUtil.getFields(
-						ddmStructure.getStructureId(), serviceContext);
+			Fields mergedFields = DDMUtil.mergeFields(
+				newFields, existingFields);
 
-					Fields existingFields = JournalConverterUtil.getDDMFields(
-						ddmStructure, curArticle.getContent());
-
-					Fields mergedFields = DDMUtil.mergeFields(
-						newFields, existingFields);
-
-					content = JournalConverterUtil.getContent(
-						ddmStructure, mergedFields);
-				}
-			}
+			content = JournalConverterUtil.getContent(
+				ddmStructure, mergedFields);
 
 			// Update article
 

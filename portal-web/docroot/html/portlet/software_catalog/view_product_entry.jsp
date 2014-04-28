@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -220,8 +220,6 @@ List productScreenshots = SCProductScreenshotLocalServiceUtil.getProductScreensh
 		%>
 
 	</div>
-
-	<br />
 </c:if>
 
 <liferay-ui:ratings
@@ -230,13 +228,21 @@ List productScreenshots = SCProductScreenshotLocalServiceUtil.getProductScreensh
 />
 
 <c:if test="<%= SCProductEntryPermission.contains(permissionChecker, productEntryId, ActionKeys.UPDATE) %>">
-	<br />
 
-	<input onClick="location.href = '<%= editProductEntryURL.toString() %>';" type="button" value="<liferay-ui:message key="edit-product" />" />
+	<div class="btn-toolbar">
 
-	<input onClick="location.href = '<%= addProductVersionURL.toString() %>';" type="button" value="<liferay-ui:message key="add-product-version" />" />
+		<%
+		String taglibEditProductEntry = "location.href = '" + editProductEntryURL.toString() + "';";
+		%>
 
-	<br /><br />
+		<aui:button onClick="<%= taglibEditProductEntry %>" value="edit-product" />
+
+		<%
+		String taglibAddProductVersion = "location.href = '" + addProductVersionURL.toString() + "';";
+		%>
+
+		<aui:button onClick="<%= taglibAddProductVersion %>" value="add-product-version" />
+	</div>
 </c:if>
 
 <liferay-ui:tabs

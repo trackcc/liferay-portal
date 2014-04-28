@@ -36,12 +36,12 @@
 </tr>
 <tr>
 	<td>SUCCESS_MESSAGE_RECYCLE_BIN</td>
-	<td>//div[@class='alert alert-success taglib-trash-undo']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-success') and contains(@class,'taglib-trash-undo')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>INFO_MESSAGE</td>
-	<td>//div[@class='alert alert-info']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-info')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -51,7 +51,7 @@
 </tr>
 <tr>
 	<td>SEARCH_FIELD</td>
-	<td>//input[@id='_28_keywords1']</td>
+	<td>//input[@id='_198_keywords1']</td>
 	<td></td>
 </tr>
 <tr>
@@ -99,22 +99,22 @@
 <!--FOLDERS_TABLE-->
 <tr>
 	<td>FOLDERS_TABLE_FOLDER_NAME</td>
-	<td>//div[@id='_28_bookmarksFoldersSearchContainer']//tr[contains(.,'${key_folderName}')]/td[1]/a/strong</td>
+	<td>//div[@id='_198_bookmarksFoldersSearchContainer']//tr[contains(.,'${key_folderName}')]/td[1]/a/strong</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FOLDERS_TABLE_FOLDER_DESCRIPTION</td>
-	<td>//div[@id='_28_bookmarksFoldersSearchContainer']//tr[contains(.,'${key_folderName}')]/td[1]/a</td>
+	<td>//div[@id='_198_bookmarksFoldersSearchContainer']//tr[contains(.,'${key_folderName}')]/td[1]/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FOLDERS_TABLE_FOLDER_ACTIONS_BUTTON</td>
-	<td>//div[@id='_28_bookmarksFoldersSearchContainer']//tr[contains(.,'${key_folderName}')]/td[4]/div/a[@title='Actions']</td>
+	<td>//div[@id='_198_bookmarksFoldersSearchContainer']//tr[contains(.,'${key_folderName}')]/td[4]/div/a[@title='Actions']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FOLDERS_TABLE_FOLDER_ACTIONS_BUTTON_GENERIC</td>
-	<td>//div[@id='_28_bookmarksFoldersSearchContainer']//tr/td[4]/div/a[@title='Actions']</td>
+	<td>//div[@id='_198_bookmarksFoldersSearchContainer']//tr/td[4]/div/a[@title='Actions']</td>
 	<td></td>
 </tr>
 <tr>
@@ -213,22 +213,22 @@
 <!--FOLDER_MENU-->
 <tr>
 	<td>FOLDER_MENU_PERMISSIONS</td>
-	<td>//ul[@id='_28_kldx_menu']/li/a[contains(.,'Permissions')]</td>
+	<td>//ul[contains(@id,'_menu')]/li/a[contains(.,'Permissions')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FOLDER_MENU_SUBSCRIBE</td>
-	<td>//ul[@id='_28_kldx_menu']/li/a[contains(.,'Subscribe')]</td>
+	<td>//ul[contains(@id,'_menu')]/li/a[contains(.,'Subscribe')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FOLDER_MENU_ADD_FOLDER</td>
-	<td>//ul[@id='_28_kldx_menu']/li/a[contains(.,'Add Folder')]</td>
+	<td>//ul[contains(@id,'_menu')]/li/a[contains(.,'Add Folder')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FOLDER_MENU_ADD_BOOKMARK</td>
-	<td>//ul[@id='_28_kldx_menu']/li/a[contains(.,'Add Bookmark')]</td>
+	<td>//ul[contains(@id,'_menu')]/li/a[contains(.,'Add Bookmark')]</td>
 	<td></td>
 </tr>
 </tbody>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.search;
 
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.StringPool;
 
 import java.io.Serializable;
 
@@ -29,11 +30,18 @@ import java.util.Map;
  */
 public class Field implements Serializable {
 
+	public static final String ANY = StringPool.STAR;
+
+	public static final String ARTICLE_ID = "articleId";
+
+	public static final String ASSET_CATEGORY_ID = "assetCategoryId";
+
 	public static final String ASSET_CATEGORY_IDS = "assetCategoryIds";
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #ASSET_CATEGORY_TITLES}
 	 */
+	@Deprecated
 	public static final String ASSET_CATEGORY_NAMES = "assetCategoryNames";
 
 	public static final String ASSET_CATEGORY_TITLES = "assetCategoryTitles";
@@ -41,6 +49,10 @@ public class Field implements Serializable {
 	public static final String ASSET_TAG_IDS = "assetTagIds";
 
 	public static final String ASSET_TAG_NAMES = "assetTagNames";
+
+	public static final String ASSET_VOCABULARY_ID = "assetVocabularyId";
+
+	public static final String ASSET_VOCABULARY_IDS = "assetVocabularyIds";
 
 	public static final String CATEGORY_ID = "categoryId";
 
@@ -57,6 +69,8 @@ public class Field implements Serializable {
 	public static final String CONTENT = "content";
 
 	public static final String CREATE_DATE = "createDate";
+
+	public static final String DEFAULT_LANGUAGE_ID = "defaultLanguageId";
 
 	public static final String DESCRIPTION = "description";
 
@@ -89,6 +103,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #MODIFIED_DATE}
 	 */
+	@Deprecated
 	public static final String MODIFIED = "modified";
 
 	public static final String MODIFIED_DATE = "modified";
@@ -170,6 +185,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String value, boolean tokenized) {
 		this(name, value);
 
@@ -184,6 +200,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String[] values, boolean tokenized) {
 		this(name, values);
 
@@ -193,6 +210,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String[] values, boolean tokenized, float boost) {
 		this(name, values);
 

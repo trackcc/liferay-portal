@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,6 @@
 
 package com.liferay.portal.lar;
 
-import com.liferay.portal.RequiredGroupException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
@@ -38,12 +37,10 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 
-import org.powermock.api.mockito.PowerMockito;
-
 /**
  * @author Eduardo Garcia
  */
-public class BaseExportImportTestCase extends PowerMockito {
+public class BaseExportImportTestCase {
 
 	@Before
 	public void setUp() throws Exception {
@@ -64,18 +61,9 @@ public class BaseExportImportTestCase extends PowerMockito {
 
 	@After
 	public void tearDown() throws Exception {
-		try {
-			GroupLocalServiceUtil.deleteGroup(group);
+		GroupLocalServiceUtil.deleteGroup(group);
 
-			if (importedGroup != null) {
-				GroupLocalServiceUtil.deleteGroup(importedGroup);
-			}
-		}
-		catch (RequiredGroupException rge) {
-		}
-
-		LayoutLocalServiceUtil.deleteLayout(layout);
-		LayoutLocalServiceUtil.deleteLayout(importedLayout);
+		GroupLocalServiceUtil.deleteGroup(importedGroup);
 
 		if ((larFile != null) && larFile.exists()) {
 			FileUtil.delete(larFile);

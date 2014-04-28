@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
@@ -55,6 +56,7 @@ import java.util.Map;
  * @deprecated As of 6.2.0, since Web Content Administration now uses the
  *             Dynamic Data Mapping framework to handle templates
  */
+@Deprecated
 public class JournalTemplateLocalServiceImpl
 	extends JournalTemplateLocalServiceBaseImpl {
 
@@ -88,8 +90,9 @@ public class JournalTemplateLocalServiceImpl
 		}
 
 		DDMTemplate ddmTemplate = ddmTemplateLocalService.addTemplate(
-			userId, groupId, PortalUtil.getClassNameId(DDMStructure.class),
-			classPK, templateId, nameMap, descriptionMap,
+			userId, groupId,
+			classNameLocalService.getClassNameId(DDMStructure.class), classPK,
+			templateId, nameMap, descriptionMap,
 			DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY,
 			DDMTemplateConstants.TEMPLATE_MODE_CREATE, langType, xsl, cacheable,
 			smallImage, smallImageURL, smallImageFile, serviceContext);
@@ -186,7 +189,15 @@ public class JournalTemplateLocalServiceImpl
 			JournalTemplate newTemplate = fetchTemplate(groupId, newTemplateId);
 
 			if (newTemplate != null) {
-				throw new DuplicateTemplateIdException();
+				StringBundler sb = new StringBundler(5);
+
+				sb.append("{groupId=");
+				sb.append(groupId);
+				sb.append(", templateId=");
+				sb.append(newTemplateId);
+				sb.append("}");
+
+				throw new DuplicateTemplateIdException(sb.toString());
 			}
 		}
 
@@ -276,13 +287,13 @@ public class JournalTemplateLocalServiceImpl
 
 	@Override
 	public List<JournalTemplate> getStructureTemplates(
-			long groupId, String structureId, boolean includeGlobalTemplates)
+			long groupId, String structureId, boolean includeAncestorTemplates)
 		throws PortalException, SystemException {
 
 		long[] groupIds = new long[] {groupId};
 
-		if (includeGlobalTemplates) {
-			groupIds = PortalUtil.getSiteAndCompanyGroupIds(groupId);
+		if (includeAncestorTemplates) {
+			groupIds = PortalUtil.getCurrentAndAncestorSiteGroupIds(groupId);
 		}
 
 		JournalStructure structure = journalStructureLocalService.getStructure(
@@ -367,7 +378,7 @@ public class JournalTemplateLocalServiceImpl
 	@Override
 	public List<JournalTemplate> getTemplates() throws SystemException {
 		List<DDMTemplate> ddmTemplates = ddmTemplateFinder.findByG_SC(
-			null, PortalUtil.getClassNameId(JournalArticle.class),
+			null, classNameLocalService.getClassNameId(JournalArticle.class),
 			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 
 		return JournalUtil.toJournalTemplates(ddmTemplates);
@@ -413,7 +424,9 @@ public class JournalTemplateLocalServiceImpl
 			int end, OrderByComparator obc)
 		throws SystemException {
 
-		long[] classNameIds = {PortalUtil.getClassNameId(DDMStructure.class)};
+		long[] classNameIds = {
+			classNameLocalService.getClassNameId(DDMStructure.class)
+		};
 		long[] classPKs = JournalUtil.getStructureClassPKs(
 			groupIds, structureId);
 
@@ -432,7 +445,9 @@ public class JournalTemplateLocalServiceImpl
 			OrderByComparator obc)
 		throws SystemException {
 
-		long[] classNameIds = {PortalUtil.getClassNameId(DDMStructure.class)};
+		long[] classNameIds = {
+			classNameLocalService.getClassNameId(DDMStructure.class)
+		};
 		long[] classPKs = JournalUtil.getStructureClassPKs(
 			groupIds, structureId);
 
@@ -450,7 +465,9 @@ public class JournalTemplateLocalServiceImpl
 			String structureId, String structureIdComparator)
 		throws SystemException {
 
-		long[] classNameIds = {PortalUtil.getClassNameId(DDMStructure.class)};
+		long[] classNameIds = {
+			classNameLocalService.getClassNameId(DDMStructure.class)
+		};
 		long[] classPKs = JournalUtil.getStructureClassPKs(
 			groupIds, structureId);
 
@@ -465,7 +482,9 @@ public class JournalTemplateLocalServiceImpl
 			String description, boolean andOperator)
 		throws SystemException {
 
-		long[] classNameIds = {PortalUtil.getClassNameId(DDMStructure.class)};
+		long[] classNameIds = {
+			classNameLocalService.getClassNameId(DDMStructure.class)
+		};
 		long[] classPKs = JournalUtil.getStructureClassPKs(
 			groupIds, structureId);
 
@@ -530,22 +549,24 @@ public class JournalTemplateLocalServiceImpl
 		throws SystemException {
 
 		List<DDMTemplate> ddmTemplates = ddmTemplateFinder.findByG_SC(
-			groupId, PortalUtil.getClassNameId(JournalArticle.class), start,
-			end, null);
+			groupId, classNameLocalService.getClassNameId(JournalArticle.class),
+			start, end, null);
 
 		return JournalUtil.toJournalTemplates(ddmTemplates);
 	}
 
 	protected int doGetTemplatesCount(long groupId) throws SystemException {
 		return ddmTemplateFinder.countByG_SC(
-			groupId, PortalUtil.getClassNameId(JournalArticle.class));
+			groupId,
+			classNameLocalService.getClassNameId(JournalArticle.class));
 	}
 
 	protected DDMTemplate fetchDDMTemplate(long groupId, String templateId)
 		throws SystemException {
 
 		return ddmTemplateLocalService.fetchTemplate(
-			groupId, PortalUtil.getClassNameId(DDMStructure.class), templateId);
+			groupId, classNameLocalService.getClassNameId(DDMStructure.class),
+			templateId);
 	}
 
 	protected JournalTemplate fetchTemplate(long groupId, String templateId)
@@ -571,7 +592,8 @@ public class JournalTemplateLocalServiceImpl
 
 		try {
 			return ddmTemplateLocalService.getTemplate(
-				groupId, PortalUtil.getClassNameId(DDMStructure.class),
+				groupId,
+				classNameLocalService.getClassNameId(DDMStructure.class),
 				templateId);
 		}
 		catch (PortalException pe) {

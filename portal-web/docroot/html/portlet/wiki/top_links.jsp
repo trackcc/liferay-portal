@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,12 +29,8 @@ if (Validator.isNotNull(strutsAction)) {
 	}
 }
 
-String redirect = ParamUtil.getString(request, "redirect");
-
 WikiNode node = (WikiNode)request.getAttribute(WebKeys.WIKI_NODE);
 WikiPage wikiPage = (WikiPage)request.getAttribute(WebKeys.WIKI_PAGE);
-
-String keywords = ParamUtil.getString(request, "keywords");
 
 List<WikiNode> nodes = WikiUtil.getNodes(allNodes, hiddenNodes, permissionChecker);
 
@@ -51,7 +47,7 @@ if (categoryId > 0) {
 }
 %>
 
-<c:if test='<%= !strutsAction.endsWith("view_page_attachments") %>'>
+<c:if test='<%= !strutsAction.endsWith("view_page_activities") && !strutsAction.endsWith("view_page_attachments") %>'>
 	<portlet:actionURL var="undoTrashURL">
 		<portlet:param name="struts_action" value="/wiki/edit_page" />
 		<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RESTORE %>" />
@@ -62,7 +58,7 @@ if (categoryId > 0) {
 
 <c:if test="<%= portletName.equals(PortletKeys.WIKI_ADMIN) %>">
 	<liferay-ui:header
-		backURL="<%= redirect %>"
+		backURL="<%= portletURL.toString() %>"
 		localizeTitle="<%= false %>"
 		title="<%= node.getName() %>"
 	/>

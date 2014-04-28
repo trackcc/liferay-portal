@@ -1,7 +1,10 @@
-<definition>
+<definition component-name="portal-workflow">
+	<property name="web.plugins.includes" value="kaleo-web" />
+	<property name="testray.main.component.name" value="Workflow" />
+
 	<var name="siteName" value="Site Name" />
 	<var name="sitePageName" value="Site Page Name" />
-	<var name="sitePageType" value="Public" />
+	<var name="sitePagePrivacy" value="Public" />
 	<var name="workflowAssetType" value="Page Revision" />
 
 	<set-up>
@@ -23,7 +26,7 @@
 		<execute macro="SitePage#addCP">
 			<var name="siteName" value="${siteName}" />
 			<var name="sitePageName" value="${sitePageName}" />
-			<var name="sitePageType" value="${sitePageType}" />
+			<var name="sitePagePrivacy" value="${sitePagePrivacy}" />
 		</execute>
 
 		<execute macro="Page#gotoConfigurationCP">
@@ -47,20 +50,22 @@
 		</execute>
 	</set-up>
 
-	<command name="ApprovePageRevisionPG">
+	<command name="ApprovePageRevisionPG" priority="5">
 		<var name="pageName" value="Page Revision Page" />
 
 		<execute macro="Page#addWithWorkflowPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 			<var name="workflowStatus" value="Pending (Review)" />
 		</execute>
 
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Page#viewWithWorkflowPG">
@@ -81,7 +86,8 @@
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Page#viewWithWorkflowPG">
@@ -102,7 +108,8 @@
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Page#viewWithWorkflowPG">
@@ -113,36 +120,41 @@
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 
-		<execute macro="Staging#publishToLiveNowPG" />
+		<execute macro="Staging#publishToLiveNow" />
 
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Page#viewPG">
 			<var name="pageName" value="${pageName}" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 	</command>
 
-	<command name="RejectPageRevisionPG">
+	<command name="RejectPageRevisionPG" priority="5">
 		<var name="pageName" value="Page Revision Page" />
 
 		<execute macro="Page#addWithWorkflowPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 			<var name="workflowStatus" value="Pending (Review)" />
 		</execute>
 
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Page#viewWithWorkflowPG">
@@ -163,7 +175,8 @@
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Page#viewWithWorkflowPG">
@@ -193,7 +206,8 @@
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Page#viewWithWorkflowPG">
@@ -204,15 +218,17 @@
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 
-		<execute macro="Staging#publishToLiveNowPG" />
+		<execute macro="Staging#publishToLiveNow" />
 
 		<execute macro="Page#gotoPG">
 			<var name="pageName" value="${pageName}" />
 			<var name="pageStaging" value="true" />
-			<var name="pageType" value="Site" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="true" />
 		</execute>
 
 		<execute macro="Page#viewWithWorkflowPG">

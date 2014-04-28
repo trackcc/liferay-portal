@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -234,7 +234,9 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 	public boolean isMobile(HttpServletRequest request) {
 		String userAgent = getUserAgent(request);
 
-		if (userAgent.contains("mobile")) {
+		if (userAgent.contains("mobile") ||
+			(isAndroid(request) && userAgent.contains("nexus"))) {
+
 			return true;
 		}
 
@@ -511,7 +513,9 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 	}
 
 	protected boolean isIe(String userAgent) {
-		if (userAgent.contains("msie") && !userAgent.contains("opera")) {
+		if ((userAgent.contains("msie") || userAgent.contains("trident")) &&
+			!userAgent.contains("opera")) {
+
 			return true;
 		}
 

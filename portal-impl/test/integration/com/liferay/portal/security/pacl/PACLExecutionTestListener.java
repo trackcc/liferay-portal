@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.portlet.PortletClassLoaderUtil;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.servlet.filters.invoker.InvokerFilterHelper;
 import com.liferay.portal.kernel.test.TestContext;
+import com.liferay.portal.kernel.util.ClassLoaderPool;
 import com.liferay.portal.kernel.util.PortalLifecycleUtil;
 import com.liferay.portal.spring.context.PortletContextLoaderListener;
 import com.liferay.portal.test.MainServletExecutionTestListener;
@@ -59,17 +60,18 @@ public class PACLExecutionTestListener
 		PortletContextLoaderListener portletContextLoaderListener =
 			new PortletContextLoaderListener();
 
-		try {
-			PortletClassLoaderUtil.setClassLoader(
-				hotDeployEvent.getContextClassLoader());
-			PortletClassLoaderUtil.setServletContextName(
-				hotDeployEvent.getServletContextName());
+		ClassLoaderPool.register(
+			hotDeployEvent.getServletContextName(),
+			hotDeployEvent.getContextClassLoader());
+		PortletClassLoaderUtil.setServletContextName(
+			hotDeployEvent.getServletContextName());
 
+		try {
 			portletContextLoaderListener.contextDestroyed(
 				new ServletContextEvent(hotDeployEvent.getServletContext()));
 		}
 		finally {
-			PortletClassLoaderUtil.setClassLoader(null);
+			ClassLoaderPool.unregister(hotDeployEvent.getServletContextName());
 			PortletClassLoaderUtil.setServletContextName(null);
 		}
 	}
@@ -77,7 +79,7 @@ public class PACLExecutionTestListener
 	@Override
 	public void runBeforeClass(TestContext testContext) {
 		ServletContext servletContext = ServletContextPool.get(
-			PortalUtil.getPathContext());
+			PortalUtil.getServletContextName());
 
 		if (servletContext == null) {
 			servletContext = new AutoDeployMockServletContext(
@@ -114,17 +116,18 @@ public class PACLExecutionTestListener
 		PortletContextLoaderListener portletContextLoaderListener =
 			new PortletContextLoaderListener();
 
-		try {
-			PortletClassLoaderUtil.setClassLoader(
-				hotDeployEvent.getContextClassLoader());
-			PortletClassLoaderUtil.setServletContextName(
-				hotDeployEvent.getServletContextName());
+		ClassLoaderPool.register(
+			hotDeployEvent.getServletContextName(),
+			hotDeployEvent.getContextClassLoader());
+		PortletClassLoaderUtil.setServletContextName(
+			hotDeployEvent.getServletContextName());
 
+		try {
 			portletContextLoaderListener.contextInitialized(
 				new ServletContextEvent(mockServletContext));
 		}
 		finally {
-			PortletClassLoaderUtil.setClassLoader(null);
+			ClassLoaderPool.unregister(hotDeployEvent.getServletContextName());
 			PortletClassLoaderUtil.setServletContextName(null);
 		}
 

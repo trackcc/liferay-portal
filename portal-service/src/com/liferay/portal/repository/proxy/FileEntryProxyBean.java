@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.repository.proxy;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -37,6 +39,7 @@ import java.util.Map;
 /**
  * @author Mika Koivisto
  */
+@ProviderType
 public class FileEntryProxyBean
 	extends RepositoryModelProxyBean implements FileEntry {
 
@@ -189,6 +192,15 @@ public class FileEntryProxyBean
 	}
 
 	@Override
+	public FileVersion getLatestFileVersion(boolean trusted)
+		throws PortalException, SystemException {
+
+		FileVersion fileVersion = _fileEntry.getLatestFileVersion(trusted);
+
+		return newFileVersionProxyBean(fileVersion);
+	}
+
+	@Override
 	public Lock getLock() {
 		Lock lock = _fileEntry.getLock();
 
@@ -289,6 +301,7 @@ public class FileEntryProxyBean
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             FileVersionProxyBean#getUserId()}
 	 */
+	@Deprecated
 	@Override
 	public long getVersionUserId() {
 		long versionUserId = 0;
@@ -309,6 +322,7 @@ public class FileEntryProxyBean
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             FileVersionProxyBean#getUserName()}
 	 */
+	@Deprecated
 	@Override
 	public String getVersionUserName() {
 		String versionUserName = StringPool.BLANK;
@@ -329,6 +343,7 @@ public class FileEntryProxyBean
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             FileVersionProxyBean#getUserUuid()}
 	 */
+	@Deprecated
 	@Override
 	public String getVersionUserUuid() {
 		String versionUserUuid = StringPool.BLANK;

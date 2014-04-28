@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see JournalFeedService
  * @generated
  */
+@ProviderType
 public class JournalFeedServiceWrapper implements JournalFeedService,
 	ServiceWrapper<JournalFeedService> {
 	public JournalFeedServiceWrapper(JournalFeedService journalFeedService) {
@@ -69,6 +72,17 @@ public class JournalFeedServiceWrapper implements JournalFeedService,
 	}
 
 	@Override
+	public void deleteFeed(long feedId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_journalFeedService.deleteFeed(feedId);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #deleteFeed(long, String)}
+	*/
+	@Deprecated
+	@Override
 	public void deleteFeed(long groupId, long feedId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -82,6 +96,17 @@ public class JournalFeedServiceWrapper implements JournalFeedService,
 		_journalFeedService.deleteFeed(groupId, feedId);
 	}
 
+	@Override
+	public com.liferay.portlet.journal.model.JournalFeed getFeed(long feedId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalFeedService.getFeed(feedId);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getFeed(long, String)}
+	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.journal.model.JournalFeed getFeed(long groupId,
 		long feedId)
@@ -120,6 +145,7 @@ public class JournalFeedServiceWrapper implements JournalFeedService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalFeedService getWrappedJournalFeedService() {
 		return _journalFeedService;
 	}
@@ -127,6 +153,7 @@ public class JournalFeedServiceWrapper implements JournalFeedService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalFeedService(
 		JournalFeedService journalFeedService) {
 		_journalFeedService = journalFeedService;

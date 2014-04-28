@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -96,20 +96,24 @@ public class OrganizationStagedModelDataHandler
 		while (!organizations.isEmpty()) {
 			Organization exportedOrganization = organizations.remove();
 
+			if (organization.getParentOrganizationId() !=
+					OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID) {
+
+				StagedModelDataHandlerUtil.exportReferenceStagedModel(
+					portletDataContext, organization,
+					organization.getParentOrganization(),
+					PortletDataContext.REFERENCE_TYPE_PARENT);
+			}
+
+			exportAddresses(portletDataContext, exportedOrganization);
+			exportEmailAddresses(portletDataContext, exportedOrganization);
+			exportOrgLabors(portletDataContext, exportedOrganization);
+			exportPasswordPolicyRel(portletDataContext, exportedOrganization);
+			exportPhones(portletDataContext, exportedOrganization);
+			exportWebsites(portletDataContext, exportedOrganization);
+
 			Element organizationElement =
 				portletDataContext.getExportDataElement(exportedOrganization);
-
-			exportAddresses(
-				portletDataContext, exportedOrganization, organizationElement);
-			exportEmailAddresses(
-				portletDataContext, exportedOrganization, organizationElement);
-			exportOrgLabors(portletDataContext, exportedOrganization);
-			exportPasswordPolicyRel(
-				portletDataContext, exportedOrganization, organizationElement);
-			exportPhones(
-				portletDataContext, exportedOrganization, organizationElement);
-			exportWebsites(
-				portletDataContext, exportedOrganization, organizationElement);
 
 			portletDataContext.addClassedModel(
 				organizationElement,
@@ -127,6 +131,14 @@ public class OrganizationStagedModelDataHandler
 
 		long userId = portletDataContext.getUserId(organization.getUserUuid());
 
+		if (organization.getParentOrganizationId() !=
+				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID) {
+
+			StagedModelDataHandlerUtil.importReferenceStagedModel(
+				portletDataContext, organization, Organization.class,
+				organization.getParentOrganizationId());
+		}
+
 		Map<Long, Long> organizationIds =
 			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
 				Organization.class);
@@ -134,26 +146,6 @@ public class OrganizationStagedModelDataHandler
 		long parentOrganizationId = MapUtil.getLong(
 			organizationIds, organization.getParentOrganizationId(),
 			organization.getParentOrganizationId());
-
-		if ((parentOrganizationId !=
-				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID) &&
-			(parentOrganizationId == organization.getParentOrganizationId())) {
-
-			String parentOrganizationPath = ExportImportPathUtil.getModelPath(
-				portletDataContext, Organization.class.getName(),
-				parentOrganizationId);
-
-			Organization parentOrganization =
-				(Organization)portletDataContext.getZipEntryAsObject(
-					parentOrganizationPath);
-
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, parentOrganization);
-
-			parentOrganizationId = MapUtil.getLong(
-				organizationIds, organization.getParentOrganizationId(),
-				organization.getParentOrganizationId());
-		}
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
 			organization);
@@ -190,7 +182,8 @@ public class OrganizationStagedModelDataHandler
 					parentOrganizationId, organization.getName(),
 					organization.getType(), organization.getRegionId(),
 					organization.getCountryId(), organization.getStatusId(),
-					organization.getComments(), false, serviceContext);
+					organization.getComments(), true, null, false,
+					serviceContext);
 		}
 
 		importAddresses(portletDataContext, organization, importedOrganization);
@@ -207,8 +200,7 @@ public class OrganizationStagedModelDataHandler
 	}
 
 	protected void exportAddresses(
-			PortletDataContext portletDataContext, Organization organization,
-			Element organizationElement)
+			PortletDataContext portletDataContext, Organization organization)
 		throws PortalException, SystemException {
 
 		List<Address> addresses = AddressLocalServiceUtil.getAddresses(
@@ -223,8 +215,7 @@ public class OrganizationStagedModelDataHandler
 	}
 
 	protected void exportEmailAddresses(
-			PortletDataContext portletDataContext, Organization organization,
-			Element organizationElement)
+			PortletDataContext portletDataContext, Organization organization)
 		throws PortalException, SystemException {
 
 		List<EmailAddress> emailAddresses =
@@ -253,8 +244,7 @@ public class OrganizationStagedModelDataHandler
 	}
 
 	protected void exportPasswordPolicyRel(
-			PortletDataContext portletDataContext, Organization organization,
-			Element organizationElement)
+			PortletDataContext portletDataContext, Organization organization)
 		throws PortalException, SystemException {
 
 		PasswordPolicyRel passwordPolicyRel =
@@ -275,8 +265,7 @@ public class OrganizationStagedModelDataHandler
 	}
 
 	protected void exportPhones(
-			PortletDataContext portletDataContext, Organization organization,
-			Element organizationElement)
+			PortletDataContext portletDataContext, Organization organization)
 		throws PortalException, SystemException {
 
 		List<Phone> phones = PhoneLocalServiceUtil.getPhones(
@@ -291,8 +280,7 @@ public class OrganizationStagedModelDataHandler
 	}
 
 	protected void exportWebsites(
-			PortletDataContext portletDataContext, Organization organization,
-			Element organizationElement)
+			PortletDataContext portletDataContext, Organization organization)
 		throws PortalException, SystemException {
 
 		List<Website> websites = WebsiteLocalServiceUtil.getWebsites(

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,8 +28,11 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.BackgroundTask;
+import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.service.BackgroundTaskLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -38,6 +41,7 @@ import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -55,6 +59,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class BackgroundTaskPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<BackgroundTask> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -76,6 +89,10 @@ public class BackgroundTaskPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<BackgroundTask> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -111,6 +128,8 @@ public class BackgroundTaskPersistenceTest {
 
 		BackgroundTask newBackgroundTask = _persistence.create(pk);
 
+		newBackgroundTask.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newBackgroundTask.setGroupId(ServiceTestUtil.nextLong());
 
 		newBackgroundTask.setCompanyId(ServiceTestUtil.nextLong());
@@ -143,6 +162,8 @@ public class BackgroundTaskPersistenceTest {
 
 		BackgroundTask existingBackgroundTask = _persistence.findByPrimaryKey(newBackgroundTask.getPrimaryKey());
 
+		Assert.assertEquals(existingBackgroundTask.getMvccVersion(),
+			newBackgroundTask.getMvccVersion());
 		Assert.assertEquals(existingBackgroundTask.getBackgroundTaskId(),
 			newBackgroundTask.getBackgroundTaskId());
 		Assert.assertEquals(existingBackgroundTask.getGroupId(),
@@ -176,6 +197,203 @@ public class BackgroundTaskPersistenceTest {
 			newBackgroundTask.getStatus());
 		Assert.assertEquals(existingBackgroundTask.getStatusMessage(),
 			newBackgroundTask.getStatusMessage());
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByStatus() {
+		try {
+			_persistence.countByStatus(ServiceTestUtil.nextInt());
+
+			_persistence.countByStatus(0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_T() {
+		try {
+			_persistence.countByG_T(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_T(0L, StringPool.NULL);
+
+			_persistence.countByG_T(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_TArrayable() {
+		try {
+			_persistence.countByG_T(ServiceTestUtil.nextLong(),
+				new String[] {
+					ServiceTestUtil.randomString(), StringPool.BLANK,
+					StringPool.NULL, null, null
+				});
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_S() {
+		try {
+			_persistence.countByG_S(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByG_S(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByT_S() {
+		try {
+			_persistence.countByT_S(StringPool.BLANK, ServiceTestUtil.nextInt());
+
+			_persistence.countByT_S(StringPool.NULL, 0);
+
+			_persistence.countByT_S((String)null, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByT_SArrayable() {
+		try {
+			_persistence.countByT_S(new String[] {
+					ServiceTestUtil.randomString(), StringPool.BLANK,
+					StringPool.NULL, null, null
+				}, ServiceTestUtil.nextInt());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_N_T() {
+		try {
+			_persistence.countByG_N_T(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, StringPool.BLANK);
+
+			_persistence.countByG_N_T(0L, StringPool.NULL, StringPool.NULL);
+
+			_persistence.countByG_N_T(0L, (String)null, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_T_C() {
+		try {
+			_persistence.countByG_T_C(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, ServiceTestUtil.randomBoolean());
+
+			_persistence.countByG_T_C(0L, StringPool.NULL,
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByG_T_C(0L, (String)null,
+				ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_T_CArrayable() {
+		try {
+			_persistence.countByG_T_C(ServiceTestUtil.nextLong(),
+				new String[] {
+					ServiceTestUtil.randomString(), StringPool.BLANK,
+					StringPool.NULL, null, null
+				}, ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_T_S() {
+		try {
+			_persistence.countByG_T_S(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, ServiceTestUtil.nextInt());
+
+			_persistence.countByG_T_S(0L, StringPool.NULL, 0);
+
+			_persistence.countByG_T_S(0L, (String)null, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_T_SArrayable() {
+		try {
+			_persistence.countByG_T_S(ServiceTestUtil.nextLong(),
+				new String[] {
+					ServiceTestUtil.randomString(), StringPool.BLANK,
+					StringPool.NULL, null, null
+				}, ServiceTestUtil.nextInt());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_N_T_C() {
+		try {
+			_persistence.countByG_N_T_C(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, StringPool.BLANK,
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByG_N_T_C(0L, StringPool.NULL, StringPool.NULL,
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByG_N_T_C(0L, (String)null, (String)null,
+				ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -214,11 +432,12 @@ public class BackgroundTaskPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("BackgroundTask",
-			"backgroundTaskId", true, "groupId", true, "companyId", true,
-			"userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "name", true, "servletContextNames", true,
-			"taskExecutorClassName", true, "taskContext", true, "completed",
-			true, "completionDate", true, "status", true, "statusMessage", true);
+			"mvccVersion", true, "backgroundTaskId", true, "groupId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "name", true, "servletContextNames",
+			true, "taskExecutorClassName", true, "taskContext", true,
+			"completed", true, "completionDate", true, "status", true,
+			"statusMessage", true);
 	}
 
 	@Test
@@ -243,16 +462,18 @@ public class BackgroundTaskPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new BackgroundTaskActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = BackgroundTaskLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					BackgroundTask backgroundTask = (BackgroundTask)object;
 
 					Assert.assertNotNull(backgroundTask);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -338,6 +559,8 @@ public class BackgroundTaskPersistenceTest {
 
 		BackgroundTask backgroundTask = _persistence.create(pk);
 
+		backgroundTask.setMvccVersion(ServiceTestUtil.nextLong());
+
 		backgroundTask.setGroupId(ServiceTestUtil.nextLong());
 
 		backgroundTask.setCompanyId(ServiceTestUtil.nextLong());
@@ -372,6 +595,7 @@ public class BackgroundTaskPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(BackgroundTaskPersistenceTest.class);
+	private ModelListener<BackgroundTask>[] _modelListeners;
 	private BackgroundTaskPersistence _persistence = (BackgroundTaskPersistence)PortalBeanLocatorUtil.locate(BackgroundTaskPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.shopping.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
@@ -30,6 +32,7 @@ import java.util.Map;
  * @see ShoppingOrder
  * @generated
  */
+@ProviderType
 public class ShoppingOrderWrapper implements ShoppingOrder,
 	ModelWrapper<ShoppingOrder> {
 	public ShoppingOrderWrapper(ShoppingOrder shoppingOrder) {
@@ -1655,6 +1658,7 @@ public class ShoppingOrderWrapper implements ShoppingOrder,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ShoppingOrder getWrappedShoppingOrder() {
 		return _shoppingOrder;
 	}
@@ -1662,6 +1666,16 @@ public class ShoppingOrderWrapper implements ShoppingOrder,
 	@Override
 	public ShoppingOrder getWrappedModel() {
 		return _shoppingOrder;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _shoppingOrder.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _shoppingOrder.isFinderCacheEnabled();
 	}
 
 	@Override

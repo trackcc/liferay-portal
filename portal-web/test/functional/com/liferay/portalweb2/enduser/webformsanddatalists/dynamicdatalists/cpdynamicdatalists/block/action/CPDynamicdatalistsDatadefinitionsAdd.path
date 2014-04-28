@@ -19,6 +19,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EXTEND_ACTION_PATH</td>
+	<td>Dynamicdatamapping</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
 	<td>DATA_DEFINITIONS_IFRAME</td>
 	<td>//iframe[contains(@src,'dynamic_data_lists')]</td>
 	<td></td>
@@ -68,7 +78,7 @@
 <!--FIELDS-->
 <tr>
 	<td>FIELDS_LINK</td>
-	<td>//ul[@class='nav nav-tabs']/li/a[contains(.,'Fields')]</td>
+	<td>//ul[contains(@class,'nav') and contains(@class,'nav-tabs')]/li/a[contains(.,'Fields')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -149,7 +159,7 @@
 <!--SETTINGS-->
 <tr>
 	<td>SETTINGS_LINK</td>
-	<td>//ul[@class='nav nav-tabs']/li/a[contains(.,'Settings')]</td>
+	<td>//ul[contains(@class,'nav') and contains(@class,'nav-tabs')]/li/a[contains(.,'Settings')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -245,7 +255,7 @@
 </tr>
 <tr>
 	<td>FORM_TEXT_FIELD_1</td>
-	<td>xpath=(//div[@class='form-builder-field-content form-builder-text-field-content clearfix'])[1]</td>
+	<td>xpath=(//div[contains(@class,'form-builder-field-content') and contains(@class,'form-builder-text-field-content') and contains(@class,'clearfix')])[1]</td>
 	<td></td>
 </tr>
 <tr>

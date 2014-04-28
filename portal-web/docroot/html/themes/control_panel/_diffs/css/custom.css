@@ -25,12 +25,6 @@ $dockbarOpenGradientStart: #0EA6F9;
 		font-weight: normal;
 	}
 
-	legend {
-		color: #8D8D8D;
-		font-size: 18px;
-		font-weight: 200;
-	}
-
 	#banner {
 		display: none;
 	}
@@ -48,6 +42,13 @@ $dockbarOpenGradientStart: #0EA6F9;
 
 		.panel-page-application {
 			margin: 0;
+		}
+	}
+
+	.panel-manage-frontpage {
+		.control-panel-bar-secondary {
+			margin-bottom: 1px;
+			margin-left: 20px;
 		}
 	}
 
@@ -190,7 +191,7 @@ $dockbarOpenGradientStart: #0EA6F9;
 
 		.nav > li > a {
 			margin: 3px 0;
-			padding: 2px 15px;
+			padding: 3px 15px;
 		}
 
 		.navbar-inner {
@@ -206,15 +207,58 @@ $dockbarOpenGradientStart: #0EA6F9;
 					color: #FFF;
 					font-weight: 100;
 					text-shadow: none;
+
+					@include respond-to(phone, tablet) {
+						letter-spacing: 0;
+					}
+				}
+
+				@include respond-to(phone, tablet) {
+					h1 {
+						position: relative;
+					}
 				}
 
 				.control-panel-site-selector {
 					font-size: inherit;
+					margin-bottom: 0;
 					margin-top: 0;
+					position: static;
 					vertical-align: baseline;
+
+					@include respond-to(phone, tablet) {
+						font-weight: 200;
+						position: static;
+					}
 
 					a {
 						text-decoration: none;
+
+						@include respond-to(phone) {
+							.lfr-icon-menu-arrow {
+								display: none;
+							}
+						}
+
+						.lfr-icon-menu-icon {
+							display: none;
+
+							@include respond-to(phone) {
+								display: inline-block;
+								position: absolute;
+							}
+						}
+
+						.lfr-icon-menu-text {
+							@include respond-to(phone, tablet) {
+								font-weight: 200;
+								line-height: 22px;
+							}
+
+							&:hover, &:focus {
+								text-decoration: underline;
+							}
+						}
 					}
 
 					.caret {
@@ -226,92 +270,161 @@ $dockbarOpenGradientStart: #0EA6F9;
 				.control-panel-back-link {
 					margin: 0 15px;
 
+					@include respond-to(phone, tablet) {
+						margin: 0 8px;
+					}
+
 					&:hover, &:focus {
 						text-decoration: none;
 					}
 				}
 			}
 
-			.nav-account-controls {
-				float: right;
+			.container {
+				.nav-account-controls {
+					float: right;
 
-				li.open > .dropdown-toggle {
-					margin: 0;
-					padding: 5px 15px;
-					background-color: $dockbarOpenGradientEnd;
-				}
-			}
+					> li.open > .dropdown-toggle {
+						background-color: $dockbarOpenGradientEnd;
+						margin: 0;
+						padding: 6px 15px;
 
-			.nav-navigation {
-				letter-spacing: 1px;
-
-				> li {
-					&.active a {
-						border-radius: 4px;
-
-						&:hover {
-							background: #0066B3;
-							color: #FFF;
+						@include respond-to(phone, tablet) {
+							margin: 5px 0 3px 5px;
+							padding: 12px 10px;
 						}
 					}
+				}
 
-					a:hover {
-						background: #0993DD;
+				.nav-collapse {
+					@include respond-to(phone, tablet) {
+						float: right;
+					}
+
+					> .nav {
+						li.dropdown ul.dropdown-menu {
+							margin-top: 0;
+						}
+
+						&.nav-navigation ul.dropdown-menu > li > a {
+							line-height: 31px;
+							padding: 6px 15px;
+
+							&:focus, &:hover {
+								color: #FFF;
+							}
+						}
 					}
 				}
 
-				li {
-					margin-right: 5px;
+				.nav-navigation {
+					letter-spacing: 1px;
 
-
-					/* ---------- Menu icons ---------- */
-
-					&.control-panel-apps, &.control-panel-configuration, &.control-panel-sites, &.control-panel-users {
-						[class^="icon-"], [class*=" icon-"] {
-							&:before {
-								content: '';
+					> li {
+						@include respond-to(phone, tablet) {
+							&.open ul.dropdown-menu {
+								display: block;
 							}
 						}
 					}
 
-					.icon-cog, .icon-globe, .icon-list, .icon-th, .icon-user, .icon-arrow-left {
-						background: none no-repeat 50%;
-						height: 21px;
-						width: 24px;
-						vertical-align: top;
-					}
+					ul.dropdown-menu {
+						@include respond-to(phone, tablet) {
+							background: #009AE5;
+							display: none;
+							position: absolute;
+						}
 
-					.icon-cog, .icon-globe, .icon-th, .icon-user {
-						height: 26px;
-						width: 29px;
-					}
+						> li {
+							@include respond-to(phone, tablet) {
+								display: block;
+							}
 
-					.icon-arrow-left {
-						background-image: url(../images/custom/dockbar_back.png);
-						margin-top: 4px;
-					}
+							&.active > a {
+								background: #0066B3;
+								color: #FFF;
 
-					.icon-cog {
-						background-image: url(../images/custom/dockbar_configuration.png);
-					}
+								@include border-radius(4px);
 
-					.icon-globe {
-						background-image: url(../images/custom/dockbar_sites.png);
-					}
+								@include respond-to(phone, tablet) {
+									@include border-radius(0);
+								}
+							}
 
-					.icon-list {
-						background-image: url(../images/custom/dockbar_home.png);
-						height: 24px;
-						margin-top: 3px;
-					}
+							> a {
+								margin: 3px 0;
+								padding: 2px 15px;
 
-					.icon-th {
-						background-image: url(../images/custom/dockbar_apps.png);
-					}
+								@include respond-to(phone, tablet) {
+									font-size: 16px;
+									line-height: 32px;
+									margin: 0;
+									padding: 9px 15px;
+								}
+							}
 
-					.icon-user {
-						background-image: url(../images/custom/dockbar_users.png);
-						width: 40px;
+							a:hover {
+								background: #0993DD;
+							}
+						}
+
+						li {
+							margin-right: 5px;
+
+							@include respond-to(phone, tablet) {
+								margin-right: 0;
+							}
+
+							/* ---------- Menu icons ---------- */
+
+							&.control-panel-apps, &.control-panel-configuration, &.control-panel-sites, &.control-panel-users {
+								[class^="icon-"], [class*=" icon-"] {
+									&:before {
+										content: '';
+									}
+								}
+							}
+
+							.icon-cog, .icon-globe, .icon-list, .icon-th, .icon-user, .icon-arrow-left {
+								background: none no-repeat 50%;
+								height: 21px;
+								vertical-align: top;
+								width: 24px;
+							}
+
+							.icon-cog, .icon-globe, .icon-th, .icon-user {
+								height: 26px;
+								width: 29px;
+							}
+
+							.icon-arrow-left {
+								background-image: url(../images/custom/dockbar_back.png);
+								margin-top: 4px;
+							}
+
+							.icon-cog {
+								background-image: url(../images/custom/dockbar_configuration.png);
+							}
+
+							.icon-globe {
+								background-image: url(../images/custom/dockbar_sites.png);
+							}
+
+							.icon-list {
+								background-image: url(../images/custom/dockbar_home.png);
+								height: 24px;
+								margin-top: 3px;
+							}
+
+							.icon-th {
+								background-image: url(../images/custom/dockbar_apps.png);
+							}
+
+							.icon-user {
+								background-image: url(../images/custom/dockbar_users.png);
+								width: 40px;
+							}
+						}
 					}
 				}
 			}
@@ -358,7 +471,7 @@ $dockbarOpenGradientStart: #0EA6F9;
 	.portlet-topper-toolbar {
 		position: absolute;
 		right: 21px;
-		top: 23px;
+		top: 20px;
 	}
 
 	.nav-list {
@@ -399,14 +512,10 @@ $dockbarOpenGradientStart: #0EA6F9;
 	.panel-page-menu {
 		position: relative;
 
-		.accordion-toggle [class^="icon-"] {
-			display: none;
-		}
-
 		.minimize-panels a {
 			background: url(../images/custom/panel_close.png) no-repeat;
-			display: none;
 			color: #FFF;
+			display: none;
 			font-size: 20px;
 			height: 17px;
 			position: absolute;
@@ -466,11 +575,17 @@ $dockbarOpenGradientStart: #0EA6F9;
 		}
 
 		.search-panels {
-			padding: 0 10px 14px;
+			padding: 0 10px 13px;
 			position: relative;
 
+			.icon-search {
+				left: 18px;
+				position: absolute;
+				top: 8px;
+			}
+
 			.cancel-search {
-				color: #f88;
+				color: #F88;
 				display: none;
 				margin-top: -1em;
 				position: absolute;
@@ -483,27 +598,7 @@ $dockbarOpenGradientStart: #0EA6F9;
 				}
 			}
 
-			.icon-search {
-				display: none;
-			}
-
 			.search-panels-bar {
-				position: relative;
-
-				&:after {
-					background: url(../images/custom/search_panel_icon.png) no-repeat 0 50%;
-					color: #D4D4D4;
-					content: '';
-					display: block;
-					font-size: 0;
-					height: 18px;
-					margin-left: 8px;
-					margin-top: 6px;
-					position: absolute;
-					top: 0;
-					width: 27px;
-				}
-
 				.control-group {
 					margin: 0;
 
@@ -517,8 +612,19 @@ $dockbarOpenGradientStart: #0EA6F9;
 					}
 				}
 
+				.search-panel-icon {
+					background: url(../images/custom/search_panel_icon.png) no-repeat 0 50%;
+					color: #D4D4D4;
+					font-size: 0;
+					height: 18px;
+					margin-left: 8px;
+					margin-top: 6px;
+					position: absolute;
+					width: 27px;
+				}
+
 				input {
-					padding-left: 40px;
+					padding-left: 28px;
 				}
 			}
 		}
@@ -536,15 +642,8 @@ $dockbarOpenGradientStart: #0EA6F9;
 				&.open {
 					.toggler-content {
 						border: 1px solid #DDD;
-						left: 49px;
-
-						&:before {
-							content: '';
-							height: 44px;
-							margin-left: 0px;
-							position: absolute;
-							width: 50px;
-						}
+						left: 48px;
+						margin-top: 0 !important;
 
 						.accordion-inner {
 							border-top-width: 0;
@@ -561,18 +660,18 @@ $dockbarOpenGradientStart: #0EA6F9;
 				position: relative;
 				text-align: center;
 
-				[class^="icon-"] {
-					display: inline;
-				}
-
 				.title-text {
 					display: none;
 				}
 			}
 
+			.toggler-content-wrapper {
+				position: static;
+			}
+
 			.control-panel-tools {
 				cursor: pointer;
-				padding-top: 16px;
+				padding: 12px 0;
 
 				&:hover {
 					background-color: #DDD;
@@ -587,6 +686,8 @@ $dockbarOpenGradientStart: #0EA6F9;
 				padding: 0;
 
 				.accordion {
+					border-bottom-width: 0;
+
 					.toggler-header .accordion-toggle {
 						background: none no-repeat right;
 					}
@@ -619,16 +720,17 @@ $dockbarOpenGradientStart: #0EA6F9;
 					}
 
 					.toggler-header {
-						padding: 14px 10px 10px;
+						padding: 12px 10px;
 					}
 				}
 			}
 
 			.search-panels {
+				padding: 0;
 				text-align: center;
 
 				.icon-search {
-					display: block;
+					position: static;
 				}
 			}
 
@@ -681,38 +783,46 @@ $dockbarOpenGradientStart: #0EA6F9;
 				}
 			}
 
+			.control-panel-site-selector {
+				font-size: inherit;
+
+				a {
+					&:focus, &:hover {
+						.icon-caret-down {
+							color: #8CD3FC;
+						}
+					}
+				}
+
+				[class^="icon-"], [class*="icon-"] {
+					font-size: 21px;
+					padding: 0 10px 0 0;
+					vertical-align: top;
+				}
+
+				&.open {
+					.dropdown-toggle {
+						@include box-shadow(none);
+
+						[class^="icon-"], [class*="icon-"] {
+							color: #009AE5;
+						}
+					}
+				}
+
+				.lfr-icon-menu-icon {
+					display: none;
+				}
+			}
+
 			.site-title {
 				display: inline-block;
 				font-size: 25px;
 				font-weight: 300;
 				line-height: 20px;
 				margin: 0;
-				padding: 0 28px 0 5px;
+				padding: 0 28px 0 0;
 				vertical-align: middle;
-
-				.control-panel-site-selector {
-					font-size: inherit;
-
-					.dropdown-toggle {
-						i.caret {
-							background: url(../images/arrows/13_down.png) no-repeat 0 0;
-							border-width: 0;
-							height: 20px;
-							margin: 0;
-							width: 20px;
-						}
-					}
-
-					&.open {
-						.dropdown-toggle {
-							@include box-shadow(none);
-
-							i.caret {
-								background-position: 0 -20px;
-							}
-						}
-					}
-				}
 			}
 
 			.visit-links {
@@ -720,17 +830,12 @@ $dockbarOpenGradientStart: #0EA6F9;
 				font-size: 12px;
 				list-style: none;
 				margin: 0;
-				padding: 0 0 0 25px;
+				padding: 0 0 0 29px;
 
 				li {
 					display: inline-block;
 					margin-left: 0;
 					margin-right: 5px;
-
-					&.divider:before {
-						content: '|';
-						margin: 0 5px;
-					}
 				}
 			}
 		}
@@ -752,6 +857,11 @@ $dockbarOpenGradientStart: #0EA6F9;
 
 	/* ---------- Control panel general ---------- */
 
+	li.publish-link-container a:before {
+		content: '';
+		padding-left: 19px;
+	}
+
 	.control-panel-site-selector .caret {
 		border-width: 6px;
 		margin-top: 5px;
@@ -759,6 +869,10 @@ $dockbarOpenGradientStart: #0EA6F9;
 	}
 
 	.lfr-ctrl-panel {
+		li.publish-link-container a:before {
+			padding-left: 0;
+		}
+
 		.lfr-meta-actions {
 			margin-right: 0;
 		}
@@ -829,15 +943,17 @@ $dockbarOpenGradientStart: #0EA6F9;
 
 	.panel-page-menu .portlet-borderless-container {
 		&:after {
-				@include background-image(linear-gradient(#FFF, #D1D1D1));
+			background-color: #D1D1D1;
 
-				content: '';
-				display: block;
-				height: 15px;
-				position: absolute;
-				right: -1px;
-				top: 0;
-				width: 1px;
+			@include background-image(linear-gradient(#FFF, #D1D1D1));
+
+			content: '';
+			display: block;
+			height: 15px;
+			position: absolute;
+			right: -1px;
+			top: 0;
+			width: 1px;
 		}
 
 		.accordion .accordion-group {
@@ -872,20 +988,40 @@ $dockbarOpenGradientStart: #0EA6F9;
 
 	.dockbar {
 		.navbar-inner {
+			background-color: $dockbarGradientStart;
+
 			@include background-image(linear-gradient(top, $dockbarGradientStart, $dockbarGradientEnd));
 			@include filter-gradient($dockbarGradientStart, $dockbarGradientEnd, vertical);
 
 			ul.nav-account-controls {
 				li.open > .dropdown-toggle {
+					background-color: $dockbarGradientStart;
+
 					@include background-image(linear-gradient(top, $dockbarOpenGradientStart, $dockbarOpenGradientEnd));
 					@include box-shadow(none);
 					@include filter-gradient($dockbarOpenGradientStart, $dockbarOpenGradientEnd, vertical);
 				}
+
+				> li:hover {
+					background-color: #2FA4F5;
+				}
 			}
 
 			ul.nav-navigation {
-				> li a:hover {
-					@include border-radius(4px);
+				ul.dropdown-menu > li.active > a {
+					@include box-shadow(inset 0 3px 8px rgba(0,0,0,.125));
+				}
+
+				> li {
+					@include respond-to(phone, tablet) {
+						&.open > a {
+							@include box-shadow(none);
+						}
+					}
+
+					a:hover {
+						@include border-radius(4px);
+					}
 				}
 			}
 		}
@@ -915,12 +1051,9 @@ $dockbarOpenGradientStart: #0EA6F9;
 	/* ---------- Media queries ---------- */
 
 	@include respond-to(phone, tablet) {
-		ul.form-navigator.well {
-			.button-holder {
-				padding-bottom: 20px;
-				position: absolute;
-				top: 100%;
-			}
+		.portlet-title {
+			display: inline-block;
+			width: 85%;
 		}
 
 		.portlet-journal {
@@ -932,10 +1065,6 @@ $dockbarOpenGradientStart: #0EA6F9;
 		.nav-list .nav-header {
 			margin-left: 0;
 			margin-right: 0;
-		}
-
-		.tabbable-content.taglib-form-navigator {
-			position: relative;
 		}
 
 		.taglib-form-navigator .nav.form-navigator.well {
@@ -954,6 +1083,12 @@ $dockbarOpenGradientStart: #0EA6F9;
 				display: block;
 				opacity: 1;
 			}
+
+			.portlet-borderless-container {
+				&, .accordion .accordion-group {
+					@include box-shadow(inset 1px 0 #DDD);
+				}
+			}
 		}
 
 		.panels-minimized {
@@ -961,8 +1096,8 @@ $dockbarOpenGradientStart: #0EA6F9;
 				width: 100%;
 
 				&:before {
-					content: ".";
 					clear: both;
+					content: '';
 					display: block;
 					height: 0;
 					visibility: hidden;
@@ -985,10 +1120,13 @@ $dockbarOpenGradientStart: #0EA6F9;
 				.portlet-borderless-container {
 					background: transparent;
 					border: 1px solid #D3D3D3;
+
+					@include box-shadow(none);
+
 					float: left;
 					margin-top: 20px;
 					width: 100%;
-					z-index: 400;
+					z-index: 399;
 
 					&:after {
 						background-image: none;
@@ -1033,6 +1171,7 @@ $dockbarOpenGradientStart: #0EA6F9;
 
 						.accordion-heading {
 							border-bottom-width: 0;
+							border-left-width: 1px;
 						}
 					}
 				}
@@ -1051,6 +1190,10 @@ $dockbarOpenGradientStart: #0EA6F9;
 					border-left: 1px solid #D3D3D3;
 				}
 			}
+		}
+
+		.panel-manage-apps, .panel-manage-configuration, .panel-manage-sites, .panel-manage-users {
+			padding: 0;
 		}
 
 		.span6 {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.kernel.workflow.permission.WorkflowPermissionUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.BaseModelPermissionChecker;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
@@ -34,7 +35,7 @@ import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
 /**
  * @author Brian Wing Shun Chan
  */
-public class MBMessagePermission {
+public class MBMessagePermission implements BaseModelPermissionChecker {
 
 	public static void check(
 			PermissionChecker permissionChecker, long messageId,
@@ -71,6 +72,12 @@ public class MBMessagePermission {
 			String actionId)
 		throws PortalException, SystemException {
 
+		if (MBBanLocalServiceUtil.hasBan(
+				message.getGroupId(), permissionChecker.getUserId())) {
+
+			return false;
+		}
+
 		Boolean hasPermission = StagingPermissionUtil.hasPermission(
 			permissionChecker, message.getGroupId(), MBMessage.class.getName(),
 			message.getMessageId(), PortletKeys.MESSAGE_BOARDS, actionId);
@@ -79,7 +86,14 @@ public class MBMessagePermission {
 			return hasPermission.booleanValue();
 		}
 
-		if (message.isPending()) {
+		if (message.isDraft() || message.isScheduled()) {
+			if (actionId.equals(ActionKeys.VIEW) &&
+				!contains(permissionChecker, message, ActionKeys.UPDATE)) {
+
+				return false;
+			}
+		}
+		else if (message.isPending()) {
 			hasPermission = WorkflowPermissionUtil.hasPermission(
 				permissionChecker, message.getGroupId(),
 				message.getWorkflowClassName(), message.getMessageId(),
@@ -90,21 +104,22 @@ public class MBMessagePermission {
 			}
 		}
 
-		if (MBBanLocalServiceUtil.hasBan(
-				message.getGroupId(), permissionChecker.getUserId())) {
-
-			return false;
-		}
-
 		if (actionId.equals(ActionKeys.VIEW) &&
 			PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
 
 			long categoryId = message.getCategoryId();
 
-			if ((categoryId !=
-					MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) &&
-				(categoryId != MBCategoryConstants.DISCUSSION_CATEGORY_ID)) {
+			if ((categoryId ==
+					MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) ||
+				(categoryId == MBCategoryConstants.DISCUSSION_CATEGORY_ID)) {
 
+				if (!MBPermission.contains(
+						permissionChecker, message.getGroupId(), actionId)) {
+
+					return false;
+				}
+			}
+			else {
 				try {
 					MBCategory category =
 						MBCategoryLocalServiceUtil.getCategory(categoryId);
@@ -133,6 +148,15 @@ public class MBMessagePermission {
 		return permissionChecker.hasPermission(
 			message.getGroupId(), MBMessage.class.getName(),
 			message.getMessageId(), actionId);
+	}
+
+	@Override
+	public void checkBaseModel(
+			PermissionChecker permissionChecker, long groupId, long primaryKey,
+			String actionId)
+		throws PortalException, SystemException {
+
+		check(permissionChecker, primaryKey, actionId);
 	}
 
 }

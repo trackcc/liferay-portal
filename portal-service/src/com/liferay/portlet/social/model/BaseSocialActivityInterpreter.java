@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -154,6 +154,7 @@ public abstract class BaseSocialActivityInterpreter
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	protected String cleanContent(String content) {
 		return StringUtil.shorten(HtmlUtil.extractText(content), 200);
 	}
@@ -198,6 +199,7 @@ public abstract class BaseSocialActivityInterpreter
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	protected SocialActivityFeedEntry doInterpret(
 			SocialActivity activity, ThemeDisplay themeDisplay)
 		throws Exception {
@@ -283,6 +285,7 @@ public abstract class BaseSocialActivityInterpreter
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupName(long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	protected String getGroupName(long groupId, ThemeDisplay themeDisplay) {
 		try {
 			if (groupId <= 0) {
@@ -360,10 +363,7 @@ public abstract class BaseSocialActivityInterpreter
 		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
 			className);
 
-		if ((trashHandler != null) &&
-			(trashHandler.isInTrash(classPK) ||
-			 trashHandler.isInTrashContainer(classPK))) {
-
+		if ((trashHandler != null) && trashHandler.isInTrash(classPK)) {
 			PortletURL portletURL = TrashUtil.getViewContentURL(
 				serviceContext.getRequest(), className, classPK);
 
@@ -477,6 +477,7 @@ public abstract class BaseSocialActivityInterpreter
 	 * @deprecated As of 6.2.0, replaced by {@link #getUserName(long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	protected String getUserName(long userId, ThemeDisplay themeDisplay) {
 		try {
 			if (userId <= 0) {
@@ -514,6 +515,7 @@ public abstract class BaseSocialActivityInterpreter
 	 * @deprecated As of 6.2.0, replaced by {@link #getJSONValue(String, String,
 	 *             String)}
 	 */
+	@Deprecated
 	protected String getValue(String json, String key, String defaultValue) {
 		return getJSONValue(json, key, defaultValue);
 	}

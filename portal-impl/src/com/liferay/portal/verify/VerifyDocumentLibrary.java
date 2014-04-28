@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,6 +31,8 @@ import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
+import com.liferay.portal.kernel.util.StreamUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -49,8 +51,6 @@ import com.liferay.portlet.documentlibrary.service.DLFileEntryTypeLocalServiceUt
 import com.liferay.portlet.documentlibrary.service.DLFileShortcutLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileVersionLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.service.persistence.DLFileEntryActionableDynamicQuery;
-import com.liferay.portlet.documentlibrary.service.persistence.DLFileVersionActionableDynamicQuery;
 import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
 import com.liferay.portlet.documentlibrary.util.DLUtil;
 import com.liferay.portlet.documentlibrary.util.comparator.FileVersionVersionComparator;
@@ -141,55 +141,59 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 		throws Exception {
 
 		ActionableDynamicQuery actionableDynamicQuery =
-			new DLFileEntryActionableDynamicQuery() {
+			DLFileEntryLocalServiceUtil.getActionableDynamicQuery();
 
-			@Override
-			protected void performAction(Object object)
-				throws PortalException, SystemException {
+		actionableDynamicQuery.setPerformActionMethod(
+			new ActionableDynamicQuery.PerformActionMethod() {
 
-				DLFileEntry dlFileEntry = (DLFileEntry)object;
+				@Override
+				public void performAction(Object object)
+					throws PortalException, SystemException {
 
-				InputStream inputStream = null;
+					DLFileEntry dlFileEntry = (DLFileEntry)object;
 
-				try {
-					inputStream = DLFileEntryLocalServiceUtil.getFileAsStream(
-						dlFileEntry.getUserId(), dlFileEntry.getFileEntryId(),
-						dlFileEntry.getVersion(), false);
-				}
-				catch (Exception e) {
-					if (_log.isWarnEnabled()) {
-						_log.warn(
-							"Unable to find file entry " +
-								dlFileEntry.getName(),
-							e);
+					InputStream inputStream = null;
+
+					try {
+						inputStream =
+							DLFileEntryLocalServiceUtil.getFileAsStream(
+								dlFileEntry.getUserId(),
+								dlFileEntry.getFileEntryId(),
+								dlFileEntry.getVersion(), false);
+					}
+					catch (Exception e) {
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"Unable to find file entry " +
+									dlFileEntry.getName(),
+								e);
+						}
+
+						return;
 					}
 
-					return;
+					String title = DLUtil.getTitleWithExtension(
+						dlFileEntry.getTitle(), dlFileEntry.getExtension());
+
+					String mimeType = getMimeType(inputStream, title);
+
+					if (mimeType.equals(originalMimeType)) {
+						return;
+					}
+
+					dlFileEntry.setMimeType(mimeType);
+
+					DLFileEntryLocalServiceUtil.updateDLFileEntry(dlFileEntry);
+
+					DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
+
+					dlFileVersion.setMimeType(mimeType);
+
+					DLFileVersionLocalServiceUtil.updateDLFileVersion(
+						dlFileVersion);
 				}
 
-				String title = DLUtil.getTitleWithExtension(
-					dlFileEntry.getTitle(), dlFileEntry.getExtension());
-
-				String mimeType = MimeTypesUtil.getContentType(
-					inputStream, title);
-
-				if (mimeType.equals(originalMimeType)) {
-					return;
-				}
-
-				dlFileEntry.setMimeType(mimeType);
-
-				DLFileEntryLocalServiceUtil.updateDLFileEntry(dlFileEntry);
-
-				DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
-
-				dlFileVersion.setMimeType(mimeType);
-
-				DLFileVersionLocalServiceUtil.updateDLFileVersion(
-					dlFileVersion);
-			}
-
-		};
+			});
 
 		actionableDynamicQuery.performActions();
 	}
@@ -198,53 +202,70 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 		throws Exception {
 
 		ActionableDynamicQuery actionableDynamicQuery =
-			new DLFileVersionActionableDynamicQuery() {
+			DLFileVersionLocalServiceUtil.getActionableDynamicQuery();
 
-			@Override
-			protected void performAction(Object object)
-				throws PortalException, SystemException {
+		actionableDynamicQuery.setPerformActionMethod(
+			new ActionableDynamicQuery.PerformActionMethod() {
 
-				DLFileVersion dlFileVersion = (DLFileVersion)object;
+				@Override
+				public void performAction(Object object)
+					throws SystemException {
 
-				InputStream inputStream = null;
+					DLFileVersion dlFileVersion = (DLFileVersion)object;
 
-				try {
-					inputStream = DLFileEntryLocalServiceUtil.getFileAsStream(
-						dlFileVersion.getUserId(),
-						dlFileVersion.getFileEntryId(),
-						dlFileVersion.getVersion(), false);
-				}
-				catch (Exception e) {
-					DLFileEntry fileEntry = dlFileVersion.getFileEntry();
+					InputStream inputStream = null;
 
-					if (_log.isWarnEnabled()) {
-						_log.warn(
-							"Unable to find file version " +
-								dlFileVersion.getVersion() + " for file " +
-									"entry " + fileEntry.getName(),
-							e);
+					try {
+						inputStream =
+							DLFileEntryLocalServiceUtil.getFileAsStream(
+								dlFileVersion.getUserId(),
+								dlFileVersion.getFileEntryId(),
+								dlFileVersion.getVersion(), false);
+					}
+					catch (Exception e) {
+						if (_log.isWarnEnabled()) {
+							DLFileEntry dlFileEntry =
+								DLFileEntryLocalServiceUtil.fetchDLFileEntry(
+									dlFileVersion.getFileEntryId());
+
+							if (dlFileEntry == null) {
+								_log.warn(
+									"Unable to find file entry associated " +
+										"with file version " +
+											dlFileVersion.getFileVersionId(),
+									e);
+							}
+							else {
+								StringBundler sb = new StringBundler(4);
+
+								sb.append("Unable to find file version ");
+								sb.append(dlFileVersion.getVersion());
+								sb.append(" for file entry ");
+								sb.append(dlFileEntry.getName());
+
+								_log.warn(sb.toString(), e);
+							}
+						}
+
+						return;
 					}
 
-					return;
+					String title = DLUtil.getTitleWithExtension(
+						dlFileVersion.getTitle(), dlFileVersion.getExtension());
+
+					String mimeType = getMimeType(inputStream, title);
+
+					if (mimeType.equals(originalMimeType)) {
+						return;
+					}
+
+					dlFileVersion.setMimeType(mimeType);
+
+					DLFileVersionLocalServiceUtil.updateDLFileVersion(
+						dlFileVersion);
 				}
 
-				String title = DLUtil.getTitleWithExtension(
-					dlFileVersion.getTitle(), dlFileVersion.getExtension());
-
-				String mimeType = MimeTypesUtil.getContentType(
-					inputStream, title);
-
-				if (mimeType.equals(originalMimeType)) {
-					return;
-				}
-
-				dlFileVersion.setMimeType(mimeType);
-
-				DLFileVersionLocalServiceUtil.updateDLFileVersion(
-					dlFileVersion);
-			}
-
-		};
+			});
 
 		actionableDynamicQuery.performActions();
 	}
@@ -371,20 +392,7 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 			version);
 	}
 
-	@Override
-	protected void doVerify() throws Exception {
-		checkMisversionedDLFileEntries();
-
-		checkDLFileEntryType();
-		checkMimeTypes();
-		checkTitles();
-		removeOrphanedDLFileEntries();
-		updateFileEntryAssets();
-		updateFolderAssets();
-		verifyTree();
-	}
-
-	protected void removeOrphanedDLFileEntries() throws Exception {
+	protected void deleteOrphanedDLFileEntries() throws Exception {
 		List<DLFileEntry> dlFileEntries =
 			DLFileEntryLocalServiceUtil.getOrphanedFileEntries();
 
@@ -412,6 +420,32 @@ public class VerifyDocumentLibrary extends VerifyProcess {
 		if (_log.isDebugEnabled()) {
 			_log.debug("Removed orphaned file entries");
 		}
+	}
+
+	@Override
+	protected void doVerify() throws Exception {
+		checkMisversionedDLFileEntries();
+
+		checkDLFileEntryType();
+		checkMimeTypes();
+		checkTitles();
+		deleteOrphanedDLFileEntries();
+		updateFileEntryAssets();
+		updateFolderAssets();
+		verifyTree();
+	}
+
+	protected String getMimeType(InputStream inputStream, String title) {
+		String mimeType = null;
+
+		try {
+			mimeType = MimeTypesUtil.getContentType(inputStream, title);
+		}
+		finally {
+			StreamUtil.cleanUp(inputStream);
+		}
+
+		return mimeType;
 	}
 
 	protected void updateFileEntryAssets() throws Exception {

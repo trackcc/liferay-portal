@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -328,7 +328,7 @@ public class S3Store extends BaseStore {
 
 				x = oldKey.indexOf(CharPool.SLASH, x + 1);
 
-				String newKey = newPrefix + oldKey.substring(x + 1);
+				String newKey = newPrefix + oldKey.substring(x);
 
 				S3Object newS3Object = new S3Object(_s3Bucket, newKey);
 
@@ -383,7 +383,7 @@ public class S3Store extends BaseStore {
 				x = oldKey.indexOf(CharPool.SLASH, x + 1);
 				x = oldKey.indexOf(CharPool.SLASH, x + 1);
 
-				String newKey = newPrefix + oldKey.substring(x + 1);
+				String newKey = newPrefix + oldKey.substring(x);
 
 				S3Object newS3Object = new S3Object(_s3Bucket, newKey);
 
@@ -558,13 +558,7 @@ public class S3Store extends BaseStore {
 	}
 
 	protected String getKey(long companyId, long repositoryId) {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(companyId);
-		sb.append(StringPool.SLASH);
-		sb.append(repositoryId);
-
-		return sb.toString();
+		return companyId + StringPool.SLASH + repositoryId;
 	}
 
 	protected String getKey(

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.social.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
@@ -29,6 +31,7 @@ import java.util.Map;
  * @see SocialActivityCounter
  * @generated
  */
+@ProviderType
 public class SocialActivityCounterWrapper implements SocialActivityCounter,
 	ModelWrapper<SocialActivityCounter> {
 	public SocialActivityCounterWrapper(
@@ -586,6 +589,7 @@ public class SocialActivityCounterWrapper implements SocialActivityCounter,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SocialActivityCounter getWrappedSocialActivityCounter() {
 		return _socialActivityCounter;
 	}
@@ -593,6 +597,16 @@ public class SocialActivityCounterWrapper implements SocialActivityCounter,
 	@Override
 	public SocialActivityCounter getWrappedModel() {
 		return _socialActivityCounter;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _socialActivityCounter.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _socialActivityCounter.isFinderCacheEnabled();
 	}
 
 	@Override

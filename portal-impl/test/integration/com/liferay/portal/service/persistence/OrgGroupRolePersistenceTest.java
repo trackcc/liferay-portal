@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.OrgGroupRole;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
@@ -32,6 +33,7 @@ import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -49,6 +51,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class OrgGroupRolePersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<OrgGroupRole> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -70,6 +81,10 @@ public class OrgGroupRolePersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<OrgGroupRole> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -107,16 +122,44 @@ public class OrgGroupRolePersistenceTest {
 
 		OrgGroupRole newOrgGroupRole = _persistence.create(pk);
 
+		newOrgGroupRole.setMvccVersion(ServiceTestUtil.nextLong());
+
 		_persistence.update(newOrgGroupRole);
 
 		OrgGroupRole existingOrgGroupRole = _persistence.findByPrimaryKey(newOrgGroupRole.getPrimaryKey());
 
+		Assert.assertEquals(existingOrgGroupRole.getMvccVersion(),
+			newOrgGroupRole.getMvccVersion());
 		Assert.assertEquals(existingOrgGroupRole.getOrganizationId(),
 			newOrgGroupRole.getOrganizationId());
 		Assert.assertEquals(existingOrgGroupRole.getGroupId(),
 			newOrgGroupRole.getGroupId());
 		Assert.assertEquals(existingOrgGroupRole.getRoleId(),
 			newOrgGroupRole.getRoleId());
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByRoleId() {
+		try {
+			_persistence.countByRoleId(ServiceTestUtil.nextLong());
+
+			_persistence.countByRoleId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -250,12 +293,15 @@ public class OrgGroupRolePersistenceTest {
 
 		OrgGroupRole orgGroupRole = _persistence.create(pk);
 
+		orgGroupRole.setMvccVersion(ServiceTestUtil.nextLong());
+
 		_persistence.update(orgGroupRole);
 
 		return orgGroupRole;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(OrgGroupRolePersistenceTest.class);
+	private ModelListener<OrgGroupRole>[] _modelListeners;
 	private OrgGroupRolePersistence _persistence = (OrgGroupRolePersistence)PortalBeanLocatorUtil.locate(OrgGroupRolePersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

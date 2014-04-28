@@ -33,10 +33,10 @@
 						ResourceBlockPermission resourceBlockPermission
 					WHERE
 						(resourceBlockPermission.roleId IN ([$ROLE_ID$]))
-				)
-				AND (resourceBlock.companyId = [$COMPANY_ID$])
-				AND (resourceBlock.groupId = [$GROUP_ID$])
-				AND (resourceBlock.name = '[$RESOURCE_BLOCK_NAME$]')
+				) AND
+				(resourceBlock.companyId = [$COMPANY_ID$]) AND
+				(resourceBlock.groupId = [$GROUP_ID$]) AND
+				(resourceBlock.name = '[$RESOURCE_BLOCK_NAME$]')
 		]]>
 	</sql>
 	<sql id="com.liferay.portal.security.permission.InlineSQLHelper.joinResourcePermission">
@@ -50,7 +50,9 @@
 					WHERE
 						(ResourcePermission.companyId = [$COMPANY_ID$]) AND
 						(ResourcePermission.name = '[$CLASS_NAME$]') AND
-						(MOD(ResourcePermission.actionIds, 2) = 1)
+						(ResourcePermission.scope = [$RESOURCE_SCOPE_INDIVIDUAL$]) AND
+						(MOD(ResourcePermission.actionIds, 2) = 1) AND
+						[$ROLE_IDS_OR_OWNER_ID$]
 				)
 			InlineSQLResourcePermission ON
 				[$PRIM_KEYS$]
@@ -133,19 +135,24 @@
 	<sql id="com.liferay.portal.service.persistence.GroupFinder.countByLayouts">
 		<![CDATA[
 			SELECT
-				COUNT(DISTINCT Group_.groupId) AS COUNT_VALUE
+				COUNT(Group_.groupId) AS COUNT_VALUE
 			FROM
 				Group_
 			INNER JOIN
-				LayoutSet ON
-					LayoutSet.groupId = Group_.groupId
+				(
+					SELECT
+						DISTINCT groupId
+					FROM
+						LayoutSet
+					WHERE
+						LayoutSet.pageCount > 0
+				)
+				TEMP_TABLE ON
+					TEMP_TABLE.groupId = Group_.groupId
 			WHERE
 				(Group_.companyId = ?) AND
 				(Group_.parentGroupId = ?) AND
-				(Group_.site = ?) AND
-				(LayoutSet.pageCount > 0)
-			GROUP BY
-				Group_.groupId
+				(Group_.site = ?)
 		]]>
 	</sql>
 	<sql id="com.liferay.portal.service.persistence.GroupFinder.countByGroupId">
@@ -184,19 +191,24 @@
 	<sql id="com.liferay.portal.service.persistence.GroupFinder.findByLayouts">
 		<![CDATA[
 			SELECT
-				DISTINCT {Group_.*}
+				{Group_.*}
 			FROM
 				Group_
 			INNER JOIN
-				LayoutSet ON
-					LayoutSet.groupId = Group_.groupId
+				(
+					SELECT
+						DISTINCT groupId
+					FROM
+						LayoutSet
+					WHERE
+						LayoutSet.pageCount > 0
+				)
+				TEMP_TABLE ON
+					TEMP_TABLE.groupId = Group_.groupId
 			WHERE
 				(Group_.companyId = ?) AND
 				(Group_.parentGroupId = ?) AND
-				(Group_.site = ?) AND
-				(LayoutSet.pageCount > 0)
-			GROUP BY
-				Group_.groupId
+				(Group_.site = ?)
 		]]>
 	</sql>
 	<sql id="com.liferay.portal.service.persistence.GroupFinder.findByLiveGroups">
@@ -1220,7 +1232,7 @@
 				ResourceBlockPermission
 			INNER JOIN
 				ResourceBlock ON
-					(ResourceBlock.resourceBlockId = ResourceBlockPermission.ResourceBlockId)
+					(ResourceBlock.resourceBlockId = ResourceBlockPermission.resourceBlockId)
 			INNER JOIN
 				Role_ ON
 					(Role_.roleId = ResourceBlockPermission.roleId)
@@ -1686,6 +1698,21 @@
 					(Users_UserGroups.userGroupId = UserGroup.userGroupId)
 			WHERE
 				(Users_UserGroups.userId = ?)
+		]]>
+	</sql>
+	<sql id="com.liferay.portal.service.persistence.UserGroupGroupRoleFinder.findByUserGroupsUsers">
+		<![CDATA[
+			(
+				SELECT
+					{UserGroupGroupRole.*}
+				FROM
+					UserGroupGroupRole
+				INNER JOIN
+					Users_UserGroups ON
+						(Users_UserGroups.userGroupId = UserGroupGroupRole.userGroupId)
+				WHERE
+					(Users_UserGroups.userId = ?)
+			)
 		]]>
 	</sql>
 	<sql id="com.liferay.portal.service.persistence.UserGroupRoleFinder.findByUserUserGroupGroupRole">

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,23 +14,27 @@
 
 package com.liferay.portal.portletfilerepository;
 
+import com.liferay.portal.NoSuchRepositoryEntryException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntryThreadLocal;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.kernel.util.UnmodifiableList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
@@ -60,6 +64,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -222,20 +227,15 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		}
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #deletePortletFolder}
+	 */
+	@Deprecated
 	@Override
 	public void deleteFolder(long folderId)
 		throws PortalException, SystemException {
 
-		boolean dlAppHelperEnabled = DLAppHelperThreadLocal.isEnabled();
-
-		try {
-			DLAppHelperThreadLocal.setEnabled(false);
-
-			DLAppLocalServiceUtil.deleteFolder(folderId);
-		}
-		finally {
-			DLAppHelperThreadLocal.setEnabled(dlAppHelperEnabled);
-		}
+		deletePortletFolder(folderId);
 	}
 
 	@Override
@@ -274,10 +274,19 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		try {
 			DLAppHelperThreadLocal.setEnabled(false);
 
+			SystemEventHierarchyEntryThreadLocal.push(FileEntry.class);
+
 			DLAppLocalServiceUtil.deleteFileEntry(fileEntryId);
+		}
+		catch (NoSuchRepositoryEntryException nsree) {
+			if (_log.isErrorEnabled()) {
+				_log.error(nsree, nsree);
+			}
 		}
 		finally {
 			DLAppHelperThreadLocal.setEnabled(dlAppHelperEnabled);
+
+			SystemEventHierarchyEntryThreadLocal.pop(FileEntry.class);
 		}
 	}
 
@@ -290,6 +299,31 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 			groupId, folderId, fileName);
 
 		deletePortletFileEntry(fileEntry.getFileEntryId());
+	}
+
+	@Override
+	public void deletePortletFolder(long folderId)
+		throws PortalException, SystemException {
+
+		boolean dlAppHelperEnabled = DLAppHelperThreadLocal.isEnabled();
+
+		try {
+			DLAppHelperThreadLocal.setEnabled(false);
+
+			SystemEventHierarchyEntryThreadLocal.push(Folder.class);
+
+			DLAppLocalServiceUtil.deleteFolder(folderId);
+		}
+		catch (NoSuchRepositoryEntryException nsree) {
+			if (_log.isErrorEnabled()) {
+				_log.error(nsree, nsree);
+			}
+		}
+		finally {
+			DLAppHelperThreadLocal.setEnabled(dlAppHelperEnabled);
+
+			SystemEventHierarchyEntryThreadLocal.pop(Folder.class);
+		}
 	}
 
 	@Override
@@ -418,7 +452,7 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 		sb.append(HttpUtil.encodeURL(HtmlUtil.unescape(title)));
 
 		sb.append(StringPool.SLASH);
-		sb.append(fileEntry.getUuid());
+		sb.append(HttpUtil.encodeURL(fileEntry.getUuid()));
 
 		if (themeDisplay != null) {
 			PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
@@ -546,12 +580,15 @@ public class PortletFileRepositoryImpl implements PortletFileRepository {
 			fileEntries.add(fileEntry);
 		}
 
-		if (dlFileEntries instanceof UnmodifiableList) {
-			return new UnmodifiableList<FileEntry>(fileEntries);
+		if (ListUtil.isUnmodifiableList(dlFileEntries)) {
+			return Collections.unmodifiableList(fileEntries);
 		}
 		else {
 			return fileEntries;
 		}
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(
+		PortletFileRepositoryImpl.class);
 
 }

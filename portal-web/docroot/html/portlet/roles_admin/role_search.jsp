@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,12 +16,6 @@
 
 <%@ include file="/html/portlet/roles_admin/init.jsp" %>
 
-<%
-RoleSearch searchContainer = (RoleSearch)request.getAttribute("liferay-ui:search:searchContainer");
-
-RoleDisplayTerms displayTerms = (RoleDisplayTerms)searchContainer.getDisplayTerms();
-%>
-
 <div class="form-search">
-	<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" id="<%= displayTerms.KEYWORDS %>" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
+	<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
 </div>

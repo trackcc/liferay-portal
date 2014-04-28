@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.mobiledevicerules.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see MDRRuleGroupInstance
  * @generated
  */
+@ProviderType
 public class MDRRuleGroupInstanceWrapper implements MDRRuleGroupInstance,
 	ModelWrapper<MDRRuleGroupInstance> {
 	public MDRRuleGroupInstanceWrapper(
@@ -586,6 +589,7 @@ public class MDRRuleGroupInstanceWrapper implements MDRRuleGroupInstance,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MDRRuleGroupInstance getWrappedMDRRuleGroupInstance() {
 		return _mdrRuleGroupInstance;
 	}
@@ -593,6 +597,16 @@ public class MDRRuleGroupInstanceWrapper implements MDRRuleGroupInstance,
 	@Override
 	public MDRRuleGroupInstance getWrappedModel() {
 		return _mdrRuleGroupInstance;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mdrRuleGroupInstance.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mdrRuleGroupInstance.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link MembershipRequestLocalService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see MembershipRequestLocalService
  * @generated
  */
+@ProviderType
 public class MembershipRequestLocalServiceWrapper
 	implements MembershipRequestLocalService,
 		ServiceWrapper<MembershipRequestLocalService> {
@@ -207,6 +210,12 @@ public class MembershipRequestLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _membershipRequestLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -350,6 +359,7 @@ public class MembershipRequestLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MembershipRequestLocalService getWrappedMembershipRequestLocalService() {
 		return _membershipRequestLocalService;
 	}
@@ -357,6 +367,7 @@ public class MembershipRequestLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMembershipRequestLocalService(
 		MembershipRequestLocalService membershipRequestLocalService) {
 		_membershipRequestLocalService = membershipRequestLocalService;

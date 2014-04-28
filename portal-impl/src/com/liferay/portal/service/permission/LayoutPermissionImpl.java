@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,6 +27,7 @@ import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.VirtualLayout;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.BaseModelPermissionChecker;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
@@ -45,7 +46,8 @@ import java.util.List;
  * @author Brian Wing Shun Chan
  * @author Raymond Augé
  */
-public class LayoutPermissionImpl implements LayoutPermission {
+public class LayoutPermissionImpl
+	implements BaseModelPermissionChecker, LayoutPermission {
 
 	@Override
 	public void check(
@@ -82,6 +84,15 @@ public class LayoutPermissionImpl implements LayoutPermission {
 	}
 
 	@Override
+	public void checkBaseModel(
+			PermissionChecker permissionChecker, long groupId, long primaryKey,
+			String actionId)
+		throws PortalException, SystemException {
+
+		check(permissionChecker, primaryKey, actionId);
+	}
+
+	@Override
 	public boolean contains(
 			PermissionChecker permissionChecker, Layout layout,
 			boolean checkViewableGroup, String actionId)
@@ -115,6 +126,7 @@ public class LayoutPermissionImpl implements LayoutPermission {
 	 * @deprecated As of 6.2.0, replaced by {@link #contains(PermissionChecker,
 	 *             Layout, boolean, String)}
 	 */
+	@Deprecated
 	@Override
 	public boolean contains(
 			PermissionChecker permissionChecker, Layout layout,
@@ -130,6 +142,7 @@ public class LayoutPermissionImpl implements LayoutPermission {
 	 * @deprecated As of 6.2.0, replaced by {@link #contains(PermissionChecker,
 	 *             Layout, String)}
 	 */
+	@Deprecated
 	@Override
 	public boolean contains(
 			PermissionChecker permissionChecker, Layout layout,
@@ -155,6 +168,7 @@ public class LayoutPermissionImpl implements LayoutPermission {
 	 * @deprecated As of 6.2.0, replaced by {@link #contains(PermissionChecker,
 	 *             long, boolean, long, String)}
 	 */
+	@Deprecated
 	@Override
 	public boolean contains(
 			PermissionChecker permissionChecker, long groupId,
@@ -252,16 +266,14 @@ public class LayoutPermissionImpl implements LayoutPermission {
 			}
 
 			if (GroupPermissionUtil.contains(
-					permissionChecker, layout.getGroupId(),
-					ActionKeys.ADD_LAYOUT)) {
+					permissionChecker, group, ActionKeys.ADD_LAYOUT)) {
 
 				return true;
 			}
 		}
 
 		if (GroupPermissionUtil.contains(
-				permissionChecker, layout.getGroupId(),
-				ActionKeys.MANAGE_LAYOUTS)) {
+				permissionChecker, group, ActionKeys.MANAGE_LAYOUTS)) {
 
 			return true;
 		}
@@ -326,6 +338,7 @@ public class LayoutPermissionImpl implements LayoutPermission {
 	 *             #containsWithoutViewableGroup(PermissionChecker, Layout,
 	 *             boolean, String)}
 	 */
+	@Deprecated
 	@Override
 	public boolean containsWithoutViewableGroup(
 			PermissionChecker permissionChecker, Layout layout,
@@ -342,6 +355,7 @@ public class LayoutPermissionImpl implements LayoutPermission {
 	 *             #containsWithoutViewableGroup(PermissionChecker, Layout,
 	 *             String)}
 	 */
+	@Deprecated
 	@Override
 	public boolean containsWithoutViewableGroup(
 			PermissionChecker permissionChecker, Layout layout,
@@ -369,9 +383,9 @@ public class LayoutPermissionImpl implements LayoutPermission {
 	protected boolean isAttemptToModifyLockedLayout(
 		Layout layout, String actionId) {
 
-		if (!SitesUtil.isLayoutUpdateable(layout) &&
-			(ActionKeys.CUSTOMIZE.equals(actionId) ||
-			 ActionKeys.UPDATE.equals(actionId))) {
+		if ((ActionKeys.CUSTOMIZE.equals(actionId) ||
+			 ActionKeys.UPDATE.equals(actionId)) &&
+			!SitesUtil.isLayoutUpdateable(layout)) {
 
 			return true;
 		}
@@ -417,8 +431,7 @@ public class LayoutPermissionImpl implements LayoutPermission {
 
 			if (layout.isPrivateLayout()) {
 				if (GroupPermissionUtil.contains(
-						permissionChecker, groupUser.getGroupId(),
-						ActionKeys.MANAGE_LAYOUTS) ||
+						permissionChecker, group, ActionKeys.MANAGE_LAYOUTS) ||
 					UserPermissionUtil.contains(
 						permissionChecker, groupUserId,
 						groupUser.getOrganizationIds(), ActionKeys.UPDATE)) {
@@ -435,8 +448,7 @@ public class LayoutPermissionImpl implements LayoutPermission {
 
 		if (group.isStagingGroup()) {
 			if (GroupPermissionUtil.contains(
-					permissionChecker, group.getGroupId(),
-					ActionKeys.VIEW_STAGING)) {
+					permissionChecker, group, ActionKeys.VIEW_STAGING)) {
 
 				return true;
 			}
@@ -449,10 +461,9 @@ public class LayoutPermissionImpl implements LayoutPermission {
 
 		if (group.isSite()) {
 			if (GroupPermissionUtil.contains(
-					permissionChecker, group.getGroupId(),
-					ActionKeys.MANAGE_LAYOUTS) ||
+					permissionChecker, group, ActionKeys.MANAGE_LAYOUTS) ||
 				GroupPermissionUtil.contains(
-					permissionChecker, group.getGroupId(), ActionKeys.UPDATE)) {
+					permissionChecker, group, ActionKeys.UPDATE)) {
 
 				return true;
 			}
@@ -546,7 +557,8 @@ public class LayoutPermissionImpl implements LayoutPermission {
 
 		for (Layout curLayout : layouts) {
 			if (containsWithoutViewableGroup(
-					permissionChecker, curLayout, ActionKeys.VIEW)) {
+					permissionChecker, curLayout, ActionKeys.VIEW) &&
+				!curLayout.isHidden()) {
 
 				return true;
 			}

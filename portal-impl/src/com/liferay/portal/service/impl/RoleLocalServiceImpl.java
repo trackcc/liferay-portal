@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.spring.aop.Skip;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -106,6 +107,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #addRole(long, String, long,
 	 *             String, Map, Map, int, String, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Role addRole(
 			long userId, long companyId, String name,
@@ -141,6 +143,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #addRole(long, String, long,
 	 *             String, Map, Map, int, String, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Role addRole(
 			long userId, long companyId, String name,
@@ -189,12 +192,12 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 		User user = userPersistence.findByPrimaryKey(userId);
 		className = GetterUtil.getString(className);
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		long roleId = counterLocalService.increment();
 
 		if ((classNameId <= 0) || className.equals(Role.class.getName())) {
-			classNameId = PortalUtil.getClassNameId(Role.class);
+			classNameId = classNameLocalService.getClassNameId(Role.class);
 			classPK = roleId;
 		}
 
@@ -404,6 +407,23 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 
 			checkSystemRole(companyId, name, descriptionMap, type);
 		}
+
+		// All users should be able to view all system roles
+
+		Role userRole = getRole(companyId, RoleConstants.USER);
+
+		String[] userViewableRoles = ArrayUtil.append(
+			systemRoles, systemOrganizationRoles, systemSiteRoles);
+
+		for (String roleName : userViewableRoles) {
+			Role role = getRole(companyId, roleName);
+
+			resourcePermissionLocalService.setResourcePermissions(
+				companyId, Role.class.getName(),
+				ResourceConstants.SCOPE_INDIVIDUAL,
+				String.valueOf(role.getRoleId()), userRole.getRoleId(),
+				new String[] {ActionKeys.VIEW});
+		}
 	}
 
 	/**
@@ -604,6 +624,10 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 		List<Role> roles = new ArrayList<Role>();
 
 		Group group = groupLocalService.getGroup(groupId);
+
+		if (group.isStagingGroup()) {
+			group = group.getLiveGroup();
+		}
 
 		int[] types = RoleConstants.TYPES_REGULAR;
 
@@ -811,7 +835,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	public Role getTeamRole(long companyId, long teamId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(Team.class);
+		long classNameId = classNameLocalService.getClassNameId(Team.class);
 
 		return rolePersistence.findByC_C_C(companyId, classNameId, teamId);
 	}
@@ -955,8 +979,8 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @param  groups the groups (optionally <code>null</code>)
 	 * @return the union of all the user's roles within the groups
 	 * @throws SystemException if a system exception occurred
-	 * @see    com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	 *         long, List)
+	 * @see    com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	 *         List)
 	 */
 	@Override
 	public List<Role> getUserRelatedRoles(long userId, List<Group> groups)
@@ -976,8 +1000,8 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @param  groupId the primary key of the group
 	 * @return the user's roles within the group
 	 * @throws SystemException if a system exception occurred
-	 * @see    com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	 *         long, long)
+	 * @see    com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	 *         long)
 	 */
 	@Override
 	public List<Role> getUserRelatedRoles(long userId, long groupId)
@@ -993,8 +1017,8 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 	 * @param  groupIds the primary keys of the groups
 	 * @return the union of all the user's roles within the groups
 	 * @throws SystemException if a system exception occurred
-	 * @see    com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	 *         long, long[])
+	 * @see    com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	 *         long[])
 	 */
 	@Override
 	public List<Role> getUserRelatedRoles(long userId, long[] groupIds)
@@ -1607,7 +1631,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			long roleId, long companyId, long classNameId, String name)
 		throws PortalException, SystemException {
 
-		if (classNameId == PortalUtil.getClassNameId(Role.class)) {
+		if (classNameId == classNameLocalService.getClassNameId(Role.class)) {
 			if (Validator.isNull(name) ||
 				(name.indexOf(CharPool.COMMA) != -1) ||
 				(name.indexOf(CharPool.STAR) != -1)) {
@@ -1626,7 +1650,7 @@ public class RoleLocalServiceImpl extends RoleLocalServiceBaseImpl {
 			Role role = roleFinder.findByC_N(companyId, name);
 
 			if (role.getRoleId() != roleId) {
-				throw new DuplicateRoleException();
+				throw new DuplicateRoleException("{roleId=" + roleId + "}");
 			}
 		}
 		catch (NoSuchRoleException nsre) {

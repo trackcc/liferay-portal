@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -119,6 +119,7 @@ public class RegistryAwareMBeanServer implements MBeanServer {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	@Override
 	public ObjectInputStream deserialize(ObjectName objectName, byte[] data)
 		throws InstanceNotFoundException, OperationsException {
@@ -131,6 +132,7 @@ public class RegistryAwareMBeanServer implements MBeanServer {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	@Override
 	public ObjectInputStream deserialize(String className, byte[] data)
 		throws OperationsException, ReflectionException {
@@ -141,6 +143,7 @@ public class RegistryAwareMBeanServer implements MBeanServer {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	@Override
 	public ObjectInputStream deserialize(
 			String className, ObjectName loaderObjectName, byte[] data)

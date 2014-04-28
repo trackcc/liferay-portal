@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,9 +28,12 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.impl.PortletModelImpl;
+import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -40,6 +43,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -57,6 +61,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class PortletPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<Portlet> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -78,6 +91,10 @@ public class PortletPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<Portlet> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -113,6 +130,8 @@ public class PortletPersistenceTest {
 
 		Portlet newPortlet = _persistence.create(pk);
 
+		newPortlet.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newPortlet.setCompanyId(ServiceTestUtil.nextLong());
 
 		newPortlet.setPortletId(ServiceTestUtil.randomString());
@@ -125,6 +144,8 @@ public class PortletPersistenceTest {
 
 		Portlet existingPortlet = _persistence.findByPrimaryKey(newPortlet.getPrimaryKey());
 
+		Assert.assertEquals(existingPortlet.getMvccVersion(),
+			newPortlet.getMvccVersion());
 		Assert.assertEquals(existingPortlet.getId(), newPortlet.getId());
 		Assert.assertEquals(existingPortlet.getCompanyId(),
 			newPortlet.getCompanyId());
@@ -132,6 +153,32 @@ public class PortletPersistenceTest {
 			newPortlet.getPortletId());
 		Assert.assertEquals(existingPortlet.getRoles(), newPortlet.getRoles());
 		Assert.assertEquals(existingPortlet.getActive(), newPortlet.getActive());
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_P() {
+		try {
+			_persistence.countByC_P(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_P(0L, StringPool.NULL);
+
+			_persistence.countByC_P(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -168,8 +215,9 @@ public class PortletPersistenceTest {
 	}
 
 	protected OrderByComparator getOrderByComparator() {
-		return OrderByComparatorFactoryUtil.create("Portlet", "id", true,
-			"companyId", true, "portletId", true, "roles", true, "active", true);
+		return OrderByComparatorFactoryUtil.create("Portlet", "mvccVersion",
+			true, "id", true, "companyId", true, "portletId", true, "roles",
+			true, "active", true);
 	}
 
 	@Test
@@ -194,16 +242,18 @@ public class PortletPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new PortletActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = PortletLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					Portlet portlet = (Portlet)object;
 
 					Assert.assertNotNull(portlet);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -304,6 +354,8 @@ public class PortletPersistenceTest {
 
 		Portlet portlet = _persistence.create(pk);
 
+		portlet.setMvccVersion(ServiceTestUtil.nextLong());
+
 		portlet.setCompanyId(ServiceTestUtil.nextLong());
 
 		portlet.setPortletId(ServiceTestUtil.randomString());
@@ -318,6 +370,7 @@ public class PortletPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(PortletPersistenceTest.class);
+	private ModelListener<Portlet>[] _modelListeners;
 	private PortletPersistence _persistence = (PortletPersistence)PortalBeanLocatorUtil.locate(PortletPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

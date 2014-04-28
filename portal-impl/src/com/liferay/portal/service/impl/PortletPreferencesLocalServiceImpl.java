@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -115,6 +115,41 @@ public class PortletPreferencesLocalServiceImpl
 		throws SystemException {
 
 		portletPreferencesPersistence.removeByPlid(plid);
+	}
+
+	@Override
+	public javax.portlet.PortletPreferences fetchPreferences(
+			long companyId, long ownerId, int ownerType, long plid,
+			String portletId)
+		throws SystemException {
+
+		PortletPreferences portletPreferences =
+			portletPreferencesPersistence.fetchByO_O_P_P(
+				ownerId, ownerType, plid, portletId);
+
+		if (portletPreferences == null) {
+			return null;
+		}
+
+		PortletPreferencesImpl portletPreferencesImpl =
+			(PortletPreferencesImpl)PortletPreferencesFactoryUtil.fromXML(
+				companyId, ownerId, ownerType, plid, portletId,
+				portletPreferences.getPreferences());
+
+		return portletPreferencesImpl;
+	}
+
+	@Override
+	public javax.portlet.PortletPreferences fetchPreferences(
+			PortletPreferencesIds portletPreferencesIds)
+		throws SystemException {
+
+		return fetchPreferences(
+			portletPreferencesIds.getCompanyId(),
+			portletPreferencesIds.getOwnerId(),
+			portletPreferencesIds.getOwnerType(),
+			portletPreferencesIds.getPlid(),
+			portletPreferencesIds.getPortletId());
 	}
 
 	@Override

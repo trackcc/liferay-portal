@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.kernel.dao.orm;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.cache.key.CacheKeyGenerator;
 import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
@@ -28,6 +30,7 @@ import java.io.Serializable;
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
  */
+@ProviderType
 public class FinderPath {
 
 	public FinderPath(
@@ -71,12 +74,11 @@ public class FinderPath {
 		_initLocalCacheKeyPrefix();
 	}
 
-	public Serializable encodeCacheKey(
-		boolean shardEnabled, Object[] arguments) {
+	public Serializable encodeCacheKey(Object[] arguments) {
 
 		StringBundler sb = null;
 
-		if (shardEnabled) {
+		if (ShardUtil.isEnabled()) {
 			sb = new StringBundler(arguments.length * 2 + 3);
 
 			sb.append(ShardUtil.getCurrentShardName());
@@ -96,12 +98,11 @@ public class FinderPath {
 		return _getCacheKey(sb);
 	}
 
-	public Serializable encodeLocalCacheKey(
-		boolean shardEnabled, Object[] arguments) {
+	public Serializable encodeLocalCacheKey(Object[] arguments) {
 
 		StringBundler sb = null;
 
-		if (shardEnabled) {
+		if (ShardUtil.isEnabled()) {
 			sb = new StringBundler(arguments.length * 2 + 3);
 
 			sb.append(ShardUtil.getCurrentShardName());
@@ -139,27 +140,6 @@ public class FinderPath {
 
 	public boolean isFinderCacheEnabled() {
 		return _finderCacheEnabled;
-	}
-
-	public void setCacheKeyGeneratorCacheName(
-		String cacheKeyGeneratorCacheName) {
-
-		if (cacheKeyGeneratorCacheName == null) {
-			cacheKeyGeneratorCacheName = FinderCache.class.getName();
-		}
-
-		_cacheKeyGeneratorCacheName = cacheKeyGeneratorCacheName;
-
-		CacheKeyGenerator cacheKeyGenerator =
-			CacheKeyGeneratorUtil.getCacheKeyGenerator(
-				cacheKeyGeneratorCacheName);
-
-		if (cacheKeyGenerator.isCallingGetCacheKeyThreadSafe()) {
-			_cacheKeyGenerator = cacheKeyGenerator;
-		}
-		else {
-			_cacheKeyGenerator = null;
-		}
 	}
 
 	private Serializable _getCacheKey(StringBundler sb) {

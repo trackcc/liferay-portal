@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -104,7 +104,7 @@ List<Group> mySiteGroups = user.getMySiteGroups(classNames, includeControlPanel,
 
 							stagingGroupId = stagingGroup.getGroupId();
 
-							if (GroupPermissionUtil.contains(permissionChecker, mySiteGroup.getGroupId(), ActionKeys.VIEW_STAGING)) {
+							if (GroupPermissionUtil.contains(permissionChecker, mySiteGroup, ActionKeys.VIEW_STAGING)) {
 								if ((mySiteGroup.getPublicLayoutsPageCount() == 0) && (stagingGroup.getPublicLayoutsPageCount() > 0)) {
 									showPublicSiteStaging = true;
 								}
@@ -240,7 +240,7 @@ List<Group> mySiteGroups = user.getMySiteGroups(classNames, includeControlPanel,
 						String publicAddPageHREF = null;
 						String privateAddPageHREF = null;
 
-						if (mySiteGroup.isSite() && GroupPermissionUtil.contains(permissionChecker, mySiteGroup.getGroupId(), ActionKeys.ADD_LAYOUT)) {
+						if (mySiteGroup.isSite() && GroupPermissionUtil.contains(permissionChecker, mySiteGroup, ActionKeys.ADD_LAYOUT)) {
 							PortletURL addPageURL = new PortletURLImpl(request, PortletKeys.SITE_REDIRECTOR, plid, PortletRequest.ACTION_PHASE);
 
 							addPageURL.setParameter("struts_action", "/my_sites/edit_layouts");

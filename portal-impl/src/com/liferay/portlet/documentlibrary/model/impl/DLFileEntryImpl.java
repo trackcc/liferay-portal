@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -31,6 +30,7 @@ import com.liferay.portal.model.Repository;
 import com.liferay.portal.service.LockLocalServiceUtil;
 import com.liferay.portal.service.RepositoryLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryMetadata;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.documentlibrary.model.DLFileVersion;
@@ -66,11 +66,9 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 
 	@Override
 	public String buildTreePath() throws PortalException, SystemException {
-		StringBundler sb = new StringBundler();
+		DLFolder dlFolder = getFolder();
 
-		buildTreePath(sb, getFolder());
-
-		return sb.toString();
+		return dlFolder.buildTreePath();
 	}
 
 	@Override
@@ -260,7 +258,7 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 
 	@Override
 	public StagedModelType getStagedModelType() {
-		return new StagedModelType(FileEntry.class);
+		return new StagedModelType(DLFileEntryConstants.getClassName());
 	}
 
 	@Override
@@ -278,6 +276,7 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserId()}
 	 */
+	@Deprecated
 	@Override
 	public long getVersionUserId() {
 		long versionUserId = 0;
@@ -297,6 +296,7 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserName()}
 	 */
+	@Deprecated
 	@Override
 	public String getVersionUserName() {
 		String versionUserName = StringPool.BLANK;
@@ -316,6 +316,7 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserUuid()}
 	 */
+	@Deprecated
 	@Override
 	public String getVersionUserUuid() {
 		String versionUserUuid = StringPool.BLANK;
@@ -399,20 +400,6 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 		_extraSettingsProperties = extraSettingsProperties;
 
 		super.setExtraSettings(_extraSettingsProperties.toString());
-	}
-
-	protected void buildTreePath(StringBundler sb, DLFolder dlFolder)
-		throws PortalException, SystemException {
-
-		if (dlFolder == null) {
-			sb.append(StringPool.SLASH);
-		}
-		else {
-			buildTreePath(sb, dlFolder.getParentFolder());
-
-			sb.append(dlFolder.getFolderId());
-			sb.append(StringPool.SLASH);
-		}
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(DLFileEntryImpl.class);

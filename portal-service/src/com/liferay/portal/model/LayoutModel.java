@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
@@ -40,7 +42,9 @@ import java.util.Map;
  * @see com.liferay.portal.model.impl.LayoutModelImpl
  * @generated
  */
-public interface LayoutModel extends BaseModel<Layout>, StagedGroupedModel {
+@ProviderType
+public interface LayoutModel extends BaseModel<Layout>, MVCCModel,
+	StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -60,6 +64,22 @@ public interface LayoutModel extends BaseModel<Layout>, StagedGroupedModel {
 	 * @param primaryKey the primary key of this layout
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this layout.
+	 *
+	 * @return the mvcc version of this layout
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this layout.
+	 *
+	 * @param mvccVersion the mvcc version of this layout
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this layout.
@@ -818,27 +838,6 @@ public interface LayoutModel extends BaseModel<Layout>, StagedGroupedModel {
 	 * @param friendlyURL the friendly u r l of this layout
 	 */
 	public void setFriendlyURL(String friendlyURL);
-
-	/**
-	 * Returns the icon image of this layout.
-	 *
-	 * @return the icon image of this layout
-	 */
-	public boolean getIconImage();
-
-	/**
-	 * Returns <code>true</code> if this layout is icon image.
-	 *
-	 * @return <code>true</code> if this layout is icon image; <code>false</code> otherwise
-	 */
-	public boolean isIconImage();
-
-	/**
-	 * Sets whether this layout is icon image.
-	 *
-	 * @param iconImage the icon image of this layout
-	 */
-	public void setIconImage(boolean iconImage);
 
 	/**
 	 * Returns the icon image ID of this layout.

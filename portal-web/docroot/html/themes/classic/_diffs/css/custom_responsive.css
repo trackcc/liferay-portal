@@ -11,7 +11,8 @@
 
 		#heading {
 			bottom: 100%;
-			position: absolute;
+			margin-top: -2em;
+			position: relative;
 
 			.site-title {
 				font-size: 26px;
@@ -22,169 +23,161 @@
 			}
 		}
 
-		#navigation {
-			display: none;
+		#navigation.open .navbar-inner {
+			background: #009AE5;
+		}
 
-			&.open {
-				display: block;
+		.dockbar .navbar-inner .container .nav-collapse .nav-add-controls ul.dropdown-menu {
+			background: transparent;
+			padding: 0;
 
-				.navbar-inner {
-					@include border-radius(3px);
+			> li > a {
+				background: transparent;
+				padding: 9px 15px;
 
-					padding: 10px;
-
-					.nav-collapse {
-						height: auto;
-						overflow: visible;
-					}
+				&.toggle-controls-link {
+					background: transparent;
 				}
-			}
-
-			.nav {
-				margin: 0;
 			}
 		}
 
 		.dockbar-split .dockbar, .dockbar {
-			float: right;
-			height: auto;
-			position: relative;
-			z-index: 400;
+			.info-items {
+				height: auto;
+				position: static;
+				width: 300px;
+			}
+
+			.nav .staging-toggle {
+				padding: 2px 0;
+			}
 
 			.navbar-inner {
 				width: auto;
 
-				.btn-navbar {
-					background: transparent;
-					border: none;
-					float: left;
-					font-size: 24px;
-					padding: 12px 15px;
-
-					&:hover {
-						background-color: #5BBAE8;
-					}
-
-					&.open {
+				.container {
+					.site-navigation-btn.open {
 						background-color: #F5AF45;
 					}
-				}
 
-				.nav-account-controls {
-					padding: 0 5px;
-
-					.user-avatar-image {
-						display: none;
-					}
-				}
-
-				.nav-add-controls {
-					background: transparent;
-					border-top-width: 0;
-					position: static;
-					z-index: 350;
-					padding: 0 5px;
-
-					> li {
-						float: none;
-						margin: 0;
-						position: relative;
-
-						&.toggle-controls a {
-							clip: rect(auto auto auto auto);
-							position: static;
-							visibility: visible;
-						}
-
-						.page-preview-controls {
-							display: none;
-						}
-
-						> a {
-							background: transparent;
-							text-align: left;
-							white-space: nowrap;
-
-							&:hover {
-								background: #F3f3f3;
-							}
-
-							[class^="icon-"], [class^="icon-"], [class*=" icon-"] {
-								font-size: 22px;
-								margin-top: 0;
-							}
-
-							&.toggle-controls-link {
-								background: transparent;
-
-								[class^="icon-"], [class^="icon-"], [class*=" icon-"] {
-									color: #FFF;
-								}
-							}
-
-							.nav-item-label {
-								background: transparent;
-								display: inline;
-								left: 0;
-								margin-left: 0;
-								margin-top: 0;
-								padding: 0;
-								position: relative;
-							}
-
-							&:hover .nav-item-label {
-								display: inline;
-							}
-
-							.icon-caret-down {
-								display: none;
-							}
-						}
-					}
-				}
-
-				.nav-collapse {
-					z-index: 400;
-
-					&.open {
-						overflow: visible;
-					}
-
-					> .nav {
-						background: #009AE5;
+					.btn-navbar {
+						background: transparent;
 						border-width: 0;
-						left: auto;
-						margin: 0;
-						min-width: 160px;
-						position: absolute;
-						right: 0;
-						z-index: 400;
+						font-size: 24px;
 
-						> li {
-							&.dropdown {
-								.dropdown-menu li a {
-									font-size: 16px;
-									line-height: 32px;
-								}
+						&:hover, &.nav-account-controls-btn.open, &.nav-add-controls-btn.open {
+							background-color: #5BBAE8;
+						}
+					}
 
-								&.open {
-									> .dropdown-toggle {
-										color: #FFFFFF;
+					.nav-collapse {
+						> .nav {
+							background: transparent;
+							border-width: 0;
+
+							.nav-item-icon {
+								font-size: 26px;
+							}
+
+							&.nav-add-controls ul.dropdown-menu {
+								background: transparent;
+								border-top-width: 0;
+								padding: 0;
+
+								> li > a {
+									background: transparent;
+									color: #FFF;
+									text-align: left;
+
+									&:focus, &:hover {
+										background-color: #5BBAE8;
+									}
+
+									&.toggle-controls-link {
+										background: transparent;
+
+										.nav-item-icon {
+											color: #FFF;
+										}
+									}
+
+									.nav-item-label {
+										background: transparent;
 									}
 								}
 							}
 
-							> a {
-								color: #FFF;
-								font-size: 16px;
-								margin: 5px 0;
-								padding: 6px 15px;
+							> li {
+								&.dropdown {
+									&.active > .dropdown-toggle {
+										color: #FFF;
+									}
 
-								&:hover {
-									background-color: #5BBAE8;
+									&.open > .dropdown-toggle {
+										background: #2FA4F5;
+										color: #FFF;
+									}
+
+									.dropdown-menu {
+										li a {
+											font-size: 16px;
+											line-height: 27px;
+											margin: 0;
+
+											.nav-item-icon {
+												font-size: 22px;
+												margin-top: 0;
+												vertical-align: middle;
+											}
+
+											.nav-item-label {
+												vertical-align: middle;
+											}
+										}
+									}
+								}
+
+								&.info-items {
+									background-color: transparent;
+								}
+
+								&.staging-toggle {
+									> a {
+										background-color: #2496E5;
+										padding-bottom: 0;
+										padding-top: 0;
+
+										&:hover {
+											background-color: #2FA4F5;
+										}
+									}
+
+									span.nav-item-label {
+										padding: 5px 10px;
+									}
+								}
+
+								> a {
+									color: #FFF;
+									font-size: 16px;
+									line-height: 20px;
+									margin-bottom: 5px;
+									padding: 12px 10px;
+
+									&:focus, &:hover {
+										background-color: #5BBAE8;
+									}
+								}
+
+								&.sign-in > a {
+									padding: 15px;
 								}
 							}
 						}
+					}
+
+					.dockbar-user-notifications .user-notifications-count {
+						margin: 0;
 					}
 				}
 			}
@@ -195,8 +188,26 @@
 			width: 100%;
 		}
 
+		.portlet-staging-bar .staging-toggle .variations-options {
+			.page-variations {
+				right: 0;
+
+				a {
+					padding: 3px 6px;
+				}
+			}
+
+			.staging-variation-selector {
+				margin-right: 0;
+			}
+		}
+
 		.signed-out #_145_navAddControlsNavbarBtn {
 			display: none;
+		}
+
+		.staging-toggle .variations-options a {
+			padding: 0;
 		}
 	}
 }

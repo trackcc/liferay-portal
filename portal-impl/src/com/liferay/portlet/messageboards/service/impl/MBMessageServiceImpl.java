@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -97,6 +97,7 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 	 *             String, String, java.util.List, boolean, double, boolean,
 	 *             com.liferay.portal.service.ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public MBMessage addMessage(
 			long groupId, long categoryId, long threadId, long parentMessageId,
@@ -442,7 +443,7 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 			}
 		}
 
-		if (messages.size() > 0) {
+		if (!messages.isEmpty()) {
 			MBMessage message = messages.get(messages.size() - 1);
 
 			name = message.getSubject();
@@ -493,7 +494,7 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 			}
 		}
 
-		if (messages.size() > 0) {
+		if (!messages.isEmpty()) {
 			MBMessage message = messages.get(messages.size() - 1);
 
 			name = message.getSubject();
@@ -606,7 +607,7 @@ public class MBMessageServiceImpl extends MBMessageServiceBaseImpl {
 				}
 			}
 
-			if (messages.size() > 0) {
+			if (!messages.isEmpty()) {
 				MBMessage message = messages.get(messages.size() - 1);
 
 				name = message.getSubject();

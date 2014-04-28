@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,11 +28,14 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.Ticket;
 import com.liferay.portal.model.impl.TicketModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.TicketLocalServiceUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
@@ -41,6 +44,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -58,6 +62,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class TicketPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<Ticket> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -79,6 +92,10 @@ public class TicketPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<Ticket> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -114,6 +131,8 @@ public class TicketPersistenceTest {
 
 		Ticket newTicket = _persistence.create(pk);
 
+		newTicket.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newTicket.setCompanyId(ServiceTestUtil.nextLong());
 
 		newTicket.setCreateDate(ServiceTestUtil.nextDate());
@@ -134,6 +153,8 @@ public class TicketPersistenceTest {
 
 		Ticket existingTicket = _persistence.findByPrimaryKey(newTicket.getPrimaryKey());
 
+		Assert.assertEquals(existingTicket.getMvccVersion(),
+			newTicket.getMvccVersion());
 		Assert.assertEquals(existingTicket.getTicketId(),
 			newTicket.getTicketId());
 		Assert.assertEquals(existingTicket.getCompanyId(),
@@ -151,6 +172,20 @@ public class TicketPersistenceTest {
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingTicket.getExpirationDate()),
 			Time.getShortTimestamp(newTicket.getExpirationDate()));
+	}
+
+	@Test
+	public void testCountByKey() {
+		try {
+			_persistence.countByKey(StringPool.BLANK);
+
+			_persistence.countByKey(StringPool.NULL);
+
+			_persistence.countByKey((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -187,10 +222,10 @@ public class TicketPersistenceTest {
 	}
 
 	protected OrderByComparator getOrderByComparator() {
-		return OrderByComparatorFactoryUtil.create("Ticket", "ticketId", true,
-			"companyId", true, "createDate", true, "classNameId", true,
-			"classPK", true, "key", true, "type", true, "extraInfo", true,
-			"expirationDate", true);
+		return OrderByComparatorFactoryUtil.create("Ticket", "mvccVersion",
+			true, "ticketId", true, "companyId", true, "createDate", true,
+			"classNameId", true, "classPK", true, "key", true, "type", true,
+			"extraInfo", true, "expirationDate", true);
 	}
 
 	@Test
@@ -215,16 +250,18 @@ public class TicketPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new TicketActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = TicketLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					Ticket ticket = (Ticket)object;
 
 					Assert.assertNotNull(ticket);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -324,6 +361,8 @@ public class TicketPersistenceTest {
 
 		Ticket ticket = _persistence.create(pk);
 
+		ticket.setMvccVersion(ServiceTestUtil.nextLong());
+
 		ticket.setCompanyId(ServiceTestUtil.nextLong());
 
 		ticket.setCreateDate(ServiceTestUtil.nextDate());
@@ -346,6 +385,7 @@ public class TicketPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(TicketPersistenceTest.class);
+	private ModelListener<Ticket>[] _modelListeners;
 	private TicketPersistence _persistence = (TicketPersistence)PortalBeanLocatorUtil.locate(TicketPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

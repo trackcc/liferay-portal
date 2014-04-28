@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,10 +32,11 @@ import java.util.List;
 public class AddressServiceImpl extends AddressServiceBaseImpl {
 
 	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #addAddress( String, long,
+	 * @deprecated As of 6.2.0, replaced by {@link #addAddress(String, long,
 	 *             String, String, String, String, String, long, long, int,
 	 *             boolean, boolean, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Address addAddress(
 			String className, long classPK, String street1, String street2,
@@ -77,7 +78,7 @@ public class AddressServiceImpl extends AddressServiceBaseImpl {
 			getPermissionChecker(), address.getClassNameId(),
 			address.getClassPK(), ActionKeys.UPDATE);
 
-		addressLocalService.deleteAddress(addressId);
+		addressLocalService.deleteAddress(address);
 	}
 
 	@Override

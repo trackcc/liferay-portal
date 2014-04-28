@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,7 +33,6 @@ import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ImageLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.util.ClassLoaderUtil;
@@ -76,8 +75,7 @@ import org.junit.runner.RunWith;
  */
 @ExecutionTestListeners(
 	listeners = {
-		MainServletExecutionTestListener.class,
-		EnvironmentExecutionTestListener.class
+		MainServletExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class ConvertDocumentLibraryTest {
@@ -133,14 +131,19 @@ public class ConvertDocumentLibraryTest {
 	public void testMigrateImages() throws Exception {
 		Image image = addImage();
 
-		_convertProcess.convert();
-
 		try {
-			DLContentLocalServiceUtil.getContent(
-				0, 0, image.getImageId() + ".jpg");
+			_convertProcess.convert();
+
+			try {
+				DLContentLocalServiceUtil.getContent(
+					0, 0, image.getImageId() + ".jpg");
+			}
+			catch (NoSuchContentException nsce) {
+				Assert.fail();
+			}
 		}
-		catch (NoSuchContentException nsce) {
-			Assert.fail();
+		finally {
+			ImageLocalServiceUtil.deleteImage(image);
 		}
 	}
 
@@ -207,8 +210,7 @@ public class ConvertDocumentLibraryTest {
 	protected Image addImage() throws Exception {
 		return ImageLocalServiceUtil.updateImage(
 			CounterLocalServiceUtil.increment(),
-			FileUtil.getBytes(
-				getClass().getResourceAsStream("dependencies/liferay.jpg")));
+			FileUtil.getBytes(getClass(), "dependencies/liferay.jpg"));
 	}
 
 	protected MBMessage addMBMessageAttachment() throws Exception {
@@ -229,9 +231,7 @@ public class ConvertDocumentLibraryTest {
 	}
 
 	protected WikiPage addWikiPage() throws Exception {
-		WikiNode wikiNode = WikiTestUtil.addNode(
-			TestPropsValues.getUserId(), _group.getGroupId(),
-			ServiceTestUtil.randomString(), ServiceTestUtil.randomString(50));
+		WikiNode wikiNode = WikiTestUtil.addNode(_group.getGroupId());
 
 		return WikiTestUtil.addPage(
 			wikiNode.getUserId(), _group.getGroupId(), wikiNode.getNodeId(),

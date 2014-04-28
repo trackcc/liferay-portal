@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -100,6 +100,7 @@ public class UserGroupServiceImpl extends UserGroupServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #addUserGroup(String, String,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public UserGroup addUserGroup(String name, String description)
 		throws PortalException, SystemException {
@@ -283,6 +284,7 @@ public class UserGroupServiceImpl extends UserGroupServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #updateUserGroup(long,
 	 *             String, String, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public UserGroup updateUserGroup(
 			long userGroupId, String name, String description)

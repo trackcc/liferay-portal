@@ -1,9 +1,19 @@
+<#assign void = testCaseNameStack.push(testCaseName)>
+
 <#assign testCaseRootElement = seleniumBuilderContext.getTestCaseRootElement(testCaseName)>
 
-<#assign testCaseCommandElements = testCaseRootElement.elements("command")>
+<#if extendedTestCase??>
+	<#assign extendedTestCaseRootElement = seleniumBuilderContext.getTestCaseRootElement(extendedTestCase)>
+</#if>
 
-<#list testCaseCommandElements as testCaseCommandElement>
-	<#assign testCaseCommand = testCaseCommandElement.attributeValue("name")>
+<#if testCaseCommandName??>
+	<#include "test_case_command_element_html.ftl">
+<#else>
+	<#assign testCaseCommandNames = seleniumBuilderContext.getTestCaseCommandNames(testCaseName)>
 
-	<#include "test_case_command_block_element_html.ftl">
-</#list>
+	<#list testCaseCommandNames as testCaseCommandName>
+		<#include "test_case_command_element_html.ftl">
+	</#list>
+</#if>
+
+<#assign void = testCaseNameStack.pop()>

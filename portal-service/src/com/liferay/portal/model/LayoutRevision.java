@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * The extended model interface for the LayoutRevision service. Represents a row in the &quot;LayoutRevision&quot; database table, with each column mapped to a property of this class.
  *
@@ -23,6 +25,7 @@ package com.liferay.portal.model;
  * @see com.liferay.portal.model.impl.LayoutRevisionModelImpl
  * @generated
  */
+@ProviderType
 public interface LayoutRevision extends LayoutRevisionModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -43,6 +46,8 @@ public interface LayoutRevision extends LayoutRevisionModel, PersistedModel {
 	public java.lang.String getHTMLTitle(java.util.Locale locale);
 
 	public java.lang.String getHTMLTitle(java.lang.String localeLanguageId);
+
+	public boolean getIconImage();
 
 	public com.liferay.portal.model.LayoutBranch getLayoutBranch()
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -66,6 +71,11 @@ public interface LayoutRevision extends LayoutRevisionModel, PersistedModel {
 
 	public com.liferay.portal.kernel.util.UnicodeProperties getTypeSettingsProperties();
 
+	public java.lang.String getTypeSettingsProperty(java.lang.String key);
+
+	public java.lang.String getTypeSettingsProperty(java.lang.String key,
+		java.lang.String defaultValue);
+
 	public com.liferay.portal.model.ColorScheme getWapColorScheme()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
@@ -78,6 +88,8 @@ public interface LayoutRevision extends LayoutRevisionModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public boolean isContentDisplayPage();
+
+	public boolean isIconImage();
 
 	public boolean isInheritLookAndFeel();
 

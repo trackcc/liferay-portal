@@ -1,4 +1,6 @@
-<definition>
+<definition component-name="portal-collaboration">
+	<property name="testray.main.component.name" value="Collaboration" />
+
 	<var name="name" value="value" />
 	<var name="name" value="" />
 	<var name="name" value="&quot;value&quot;" />
@@ -17,7 +19,7 @@
 		</execute>
 	</set-up>
 
-	<command name="name">
+	<command name="name" priority="5">
 		<var name="name" value="value" />
 
 		<execute action="BaseLiferay#click" locator1="locator1" value1="value1" />

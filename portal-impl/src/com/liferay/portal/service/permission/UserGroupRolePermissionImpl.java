@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,6 +33,16 @@ public class UserGroupRolePermissionImpl implements UserGroupRolePermission {
 
 	@Override
 	public void check(
+			PermissionChecker permissionChecker, Group group, Role role)
+		throws PortalException, SystemException {
+
+		if (!contains(permissionChecker, group, role)) {
+			throw new PrincipalException();
+		}
+	}
+
+	@Override
+	public void check(
 			PermissionChecker permissionChecker, long groupId, long roleId)
 		throws PortalException, SystemException {
 
@@ -43,12 +53,8 @@ public class UserGroupRolePermissionImpl implements UserGroupRolePermission {
 
 	@Override
 	public boolean contains(
-			PermissionChecker permissionChecker, long groupId, long roleId)
+			PermissionChecker permissionChecker, Group group, Role role)
 		throws PortalException, SystemException {
-
-		Group group = GroupLocalServiceUtil.getGroup(groupId);
-
-		Role role = RoleLocalServiceUtil.getRole(roleId);
 
 		if (role.getType() == RoleConstants.TYPE_REGULAR) {
 			return false;
@@ -59,14 +65,29 @@ public class UserGroupRolePermissionImpl implements UserGroupRolePermission {
 			return false;
 		}
 
-		if (permissionChecker.isGroupOwner(groupId) ||
+		if (!permissionChecker.isCompanyAdmin() &&
+			!permissionChecker.isGroupOwner(group.getGroupId())) {
+
+			String roleName = role.getName();
+
+			if (roleName.equals(
+					RoleConstants.ORGANIZATION_ADMINISTRATOR) ||
+				roleName.equals(RoleConstants.ORGANIZATION_OWNER) ||
+				roleName.equals(RoleConstants.SITE_ADMINISTRATOR) ||
+				roleName.equals(RoleConstants.SITE_OWNER)) {
+
+				return false;
+			}
+		}
+
+		if (permissionChecker.isGroupOwner(group.getGroupId()) ||
 			GroupPermissionUtil.contains(
-				permissionChecker, groupId, ActionKeys.ASSIGN_USER_ROLES) ||
+				permissionChecker, group, ActionKeys.ASSIGN_USER_ROLES) ||
 			OrganizationPermissionUtil.contains(
 				permissionChecker, group.getOrganizationId(),
 				ActionKeys.ASSIGN_USER_ROLES) ||
 			RolePermissionUtil.contains(
-				permissionChecker, groupId, roleId,
+				permissionChecker, group.getGroupId(), role.getRoleId(),
 				ActionKeys.ASSIGN_MEMBERS)) {
 
 			return true;
@@ -74,6 +95,17 @@ public class UserGroupRolePermissionImpl implements UserGroupRolePermission {
 		else {
 			return false;
 		}
+	}
+
+	@Override
+	public boolean contains(
+			PermissionChecker permissionChecker, long groupId, long roleId)
+		throws PortalException, SystemException {
+
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
+		Role role = RoleLocalServiceUtil.getRole(roleId);
+
+		return contains(permissionChecker, group, role);
 	}
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.journal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see JournalFolder
  * @generated
  */
+@ProviderType
 public class JournalFolderWrapper implements JournalFolder,
 	ModelWrapper<JournalFolder> {
 	public JournalFolderWrapper(JournalFolder journalFolder) {
@@ -63,6 +66,7 @@ public class JournalFolderWrapper implements JournalFolder,
 		attributes.put("treePath", getTreePath());
 		attributes.put("name", getName());
 		attributes.put("description", getDescription());
+		attributes.put("overrideDDMStructures", getOverrideDDMStructures());
 		attributes.put("status", getStatus());
 		attributes.put("statusByUserId", getStatusByUserId());
 		attributes.put("statusByUserName", getStatusByUserName());
@@ -143,6 +147,13 @@ public class JournalFolderWrapper implements JournalFolder,
 
 		if (description != null) {
 			setDescription(description);
+		}
+
+		Boolean overrideDDMStructures = (Boolean)attributes.get(
+				"overrideDDMStructures");
+
+		if (overrideDDMStructures != null) {
+			setOverrideDDMStructures(overrideDDMStructures);
 		}
 
 		Integer status = (Integer)attributes.get("status");
@@ -453,6 +464,36 @@ public class JournalFolderWrapper implements JournalFolder,
 	}
 
 	/**
+	* Returns the override d d m structures of this journal folder.
+	*
+	* @return the override d d m structures of this journal folder
+	*/
+	@Override
+	public boolean getOverrideDDMStructures() {
+		return _journalFolder.getOverrideDDMStructures();
+	}
+
+	/**
+	* Returns <code>true</code> if this journal folder is override d d m structures.
+	*
+	* @return <code>true</code> if this journal folder is override d d m structures; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isOverrideDDMStructures() {
+		return _journalFolder.isOverrideDDMStructures();
+	}
+
+	/**
+	* Sets whether this journal folder is override d d m structures.
+	*
+	* @param overrideDDMStructures the override d d m structures of this journal folder
+	*/
+	@Override
+	public void setOverrideDDMStructures(boolean overrideDDMStructures) {
+		_journalFolder.setOverrideDDMStructures(overrideDDMStructures);
+	}
+
+	/**
 	* Returns the status of this journal folder.
 	*
 	* @return the status of this journal folder
@@ -608,9 +649,22 @@ public class JournalFolderWrapper implements JournalFolder,
 		return _journalFolder.isInTrashContainer();
 	}
 
+	@Override
+	public boolean isInTrashExplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolder.isInTrashExplicitly();
+	}
+
+	@Override
+	public boolean isInTrashImplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolder.isInTrashImplicitly();
+	}
+
 	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _journalFolder.getApproved();
@@ -859,6 +913,12 @@ public class JournalFolderWrapper implements JournalFolder,
 	}
 
 	@Override
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_journalFolder.updateTreePath(treePath);
+	}
+
+	@Override
 	public java.util.List<java.lang.Long> getAncestorFolderIds()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -911,6 +971,7 @@ public class JournalFolderWrapper implements JournalFolder,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public JournalFolder getWrappedJournalFolder() {
 		return _journalFolder;
 	}
@@ -918,6 +979,16 @@ public class JournalFolderWrapper implements JournalFolder,
 	@Override
 	public JournalFolder getWrappedModel() {
 		return _journalFolder;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _journalFolder.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _journalFolder.isFinderCacheEnabled();
 	}
 
 	@Override

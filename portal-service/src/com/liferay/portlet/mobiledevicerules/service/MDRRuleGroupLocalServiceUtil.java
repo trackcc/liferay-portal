@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.mobiledevicerules.service;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.mobiledevicerules.service.impl.MDRRuleGroupLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class MDRRuleGroupLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -229,6 +232,17 @@ public class MDRRuleGroupLocalServiceUtil {
 		return getService().getMDRRuleGroup(ruleGroupId);
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getActionableDynamicQuery();
+	}
+
+	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getExportActionableDynamicQuery(portletDataContext);
+	}
+
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -406,6 +420,7 @@ public class MDRRuleGroupLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #search(long, String,
 	LinkedHashMap, boolean, int, int)}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup> search(
 		long groupId, java.lang.String name, boolean andOperator, int start,
 		int end) throws com.liferay.portal.kernel.exception.SystemException {
@@ -425,6 +440,7 @@ public class MDRRuleGroupLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #searchByKeywords(long,
 	String, LinkedHashMap, boolean, int, int)}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup> searchByKeywords(
 		long groupId, java.lang.String keywords, boolean andOperator,
 		int start, int end)
@@ -447,6 +463,7 @@ public class MDRRuleGroupLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #searchByKeywordsCount(long,
 	String, LinkedHashMap, boolean)}
 	*/
+	@Deprecated
 	public static int searchByKeywordsCount(long groupId,
 		java.lang.String keywords, boolean andOperator)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -466,6 +483,7 @@ public class MDRRuleGroupLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #searchCount(long, String,
 	LinkedHashMap, boolean)}
 	*/
+	@Deprecated
 	public static int searchCount(long groupId, java.lang.String name,
 		boolean andOperator)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -505,6 +523,7 @@ public class MDRRuleGroupLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(MDRRuleGroupLocalService service) {
 	}
 

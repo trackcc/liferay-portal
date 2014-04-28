@@ -90,6 +90,13 @@ AUI.add(
 						return fnId;
 					},
 
+					resetInterval: function() {
+						var instance = this;
+
+						instance._stopTimer();
+						instance._startTimer();
+					},
+
 					unregisterInterval: function(fnId) {
 						var instance = this;
 
@@ -469,7 +476,7 @@ AUI.add(
 								{
 									closeText: instance._extendText,
 									content: instance._warningText,
-									noticeClass: 'hide',
+									noticeClass: 'popup-alert-notice',
 									onClose: function() {
 										instance._host.extend();
 									},
@@ -513,6 +520,8 @@ AUI.add(
 						banner.html(instance._expiredText);
 
 						banner.replaceClass('popup-alert-notice', 'popup-alert-warning');
+
+						banner.addClass('alert-error');
 
 						banner.show();
 

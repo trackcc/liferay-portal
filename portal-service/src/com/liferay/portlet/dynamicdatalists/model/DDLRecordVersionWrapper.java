@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.dynamicdatalists.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
@@ -30,6 +32,7 @@ import java.util.Map;
  * @see DDLRecordVersion
  * @generated
  */
+@ProviderType
 public class DDLRecordVersionWrapper implements DDLRecordVersion,
 	ModelWrapper<DDLRecordVersion> {
 	public DDLRecordVersionWrapper(DDLRecordVersion ddlRecordVersion) {
@@ -529,6 +532,7 @@ public class DDLRecordVersionWrapper implements DDLRecordVersion,
 	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _ddlRecordVersion.getApproved();
@@ -750,6 +754,7 @@ public class DDLRecordVersionWrapper implements DDLRecordVersion,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DDLRecordVersion getWrappedDDLRecordVersion() {
 		return _ddlRecordVersion;
 	}
@@ -757,6 +762,16 @@ public class DDLRecordVersionWrapper implements DDLRecordVersion,
 	@Override
 	public DDLRecordVersion getWrappedModel() {
 		return _ddlRecordVersion;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _ddlRecordVersion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _ddlRecordVersion.isFinderCacheEnabled();
 	}
 
 	@Override

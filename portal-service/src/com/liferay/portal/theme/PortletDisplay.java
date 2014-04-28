@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -127,6 +127,7 @@ public class PortletDisplay implements Serializable {
 		slave.setModeView(_modeView);
 		slave.setNamespace(_namespace);
 		slave.setPortletName(_portletName);
+		slave.setPortletResource(_portletResource);
 		slave.setPortletSetup(_portletSetup);
 		slave.setResourcePK(_resourcePK);
 		slave.setRestoreCurrentView(_restoreCurrentView);
@@ -310,8 +311,9 @@ public class PortletDisplay implements Serializable {
 	}
 
 	/**
-	 * @deprecated As of 6.2.0 with no direct replacement
+	 * @deprecated As of 6.2.0, with no direct replacement
 	 */
+	@Deprecated
 	public boolean isAccess() {
 		return true;
 	}
@@ -517,8 +519,9 @@ public class PortletDisplay implements Serializable {
 	}
 
 	/**
-	 * @deprecated As of 6.2.0 with no direct replacement
+	 * @deprecated As of 6.2.0, with no direct replacement
 	 */
+	@Deprecated
 	public void setAccess(boolean access) {
 	}
 
@@ -611,6 +614,10 @@ public class PortletDisplay implements Serializable {
 
 	public void setPortletName(String portletName) {
 		_portletName = portletName;
+	}
+
+	public void setPortletResource(String portletResource) {
+		_portletResource = portletResource;
 	}
 
 	public void setPortletSetup(PortletPreferences portletSetup) {
@@ -815,6 +822,7 @@ public class PortletDisplay implements Serializable {
 	private boolean _modeView;
 	private String _namespace = StringPool.BLANK;
 	private String _portletName = StringPool.BLANK;
+	private String _portletResource = StringPool.BLANK;
 	private PortletPreferences _portletSetup;
 	private String _resourcePK = StringPool.BLANK;
 	private boolean _restoreCurrentView;

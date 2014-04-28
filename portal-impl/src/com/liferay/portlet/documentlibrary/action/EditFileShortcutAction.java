@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,23 +15,19 @@
 package com.liferay.portlet.documentlibrary.action;
 
 import com.liferay.portal.kernel.servlet.SessionErrors;
-import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.struts.PortletAction;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.assetpublisher.util.AssetPublisherUtil;
 import com.liferay.portlet.documentlibrary.FileShortcutPermissionException;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.NoSuchFileShortcutException;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.liferay.portlet.trash.util.TrashUtil;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -64,12 +60,6 @@ public class EditFileShortcutAction extends PortletAction {
 			}
 			else if (cmd.equals(Constants.DELETE)) {
 				deleteFileShortcut(actionRequest, false);
-			}
-			else if (cmd.equals(Constants.MOVE)) {
-				moveFileShortcut(actionRequest, false);
-			}
-			else if (cmd.equals(Constants.MOVE_FROM_TRASH)) {
-				moveFileShortcut(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
 				deleteFileShortcut(actionRequest, true);
@@ -136,57 +126,12 @@ public class EditFileShortcutAction extends PortletAction {
 			DLFileShortcut fileShortcut =
 				DLAppServiceUtil.moveFileShortcutToTrash(fileShortcutId);
 
-			Map<String, String[]> data = new HashMap<String, String[]>();
-
-			data.put(
-				"deleteEntryClassName",
-				new String[] {DLFileShortcut.class.getName()});
-
-			if (fileShortcut != null) {
-				data.put(
-					"deleteEntryTitle",
-					new String[] {fileShortcut.getToTitle()});
-			}
-
-			data.put(
-				"restoreFileShortcutIds",
-				new String[] {String.valueOf(fileShortcutId)});
-
-			SessionMessages.add(
-				actionRequest,
-				PortalUtil.getPortletId(actionRequest) +
-					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
+			TrashUtil.addTrashSessionMessages(actionRequest, fileShortcut);
 
 			hideDefaultSuccessMessage(actionRequest);
 		}
 		else {
 			DLAppServiceUtil.deleteFileShortcut(fileShortcutId);
-		}
-	}
-
-	protected void moveFileShortcut(
-			ActionRequest actionRequest, boolean moveFromTrash)
-		throws Exception {
-
-		long fileShortcutId = ParamUtil.getLong(
-			actionRequest, "fileShortcutId");
-
-		long newFolderId = ParamUtil.getLong(actionRequest, "newFolderId");
-
-		DLFileShortcut fileShortcut = DLAppServiceUtil.getFileShortcut(
-			fileShortcutId);
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			DLFileShortcut.class.getName(), actionRequest);
-
-		if (moveFromTrash) {
-			DLAppServiceUtil.moveFileShortcutFromTrash(
-				fileShortcutId, newFolderId, serviceContext);
-		}
-		else {
-			DLAppServiceUtil.updateFileShortcut(
-				fileShortcutId, newFolderId, fileShortcut.getToFileEntryId(),
-				serviceContext);
 		}
 	}
 

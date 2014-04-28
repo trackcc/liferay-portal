@@ -1,4 +1,7 @@
-<definition>
+<definition component-name="portal-workflow">
+	<property name="web.plugins.includes" value="kaleo-web" />
+	<property name="testray.main.component.name" value="Workflow" />
+
 	<var name="pageName" value="Page Comments Page" />
 	<var name="portletName" value="Page Comments" />
 	<var name="workflowAssetType" value="Comments" />
@@ -38,7 +41,7 @@
 		<execute macro="Workflow#tearDownSiteWorkflow" />
 	</tear-down>
 
-	<command name="ApprovePageCommentPG">
+	<command name="ApprovePageCommentPG" priority="5">
 		<var name="commentBody" value="Page Comment Comment" />
 		<var name="commentUsername" value="Test Test" />
 
@@ -101,7 +104,7 @@
 		</execute>
 	</command>
 
-	<command name="RejectPageCommentPG">
+	<command name="RejectPageCommentPG" priority="5">
 		<var name="commentBody" value="Page Comment Comment" />
 		<var name="commentUsername" value="Test Test" />
 
@@ -129,7 +132,7 @@
 		</execute>
 
 		<execute macro="Workflow#assignToMeTaskByActions">
-		<var name="workflowAssetTitle" value="${commentBody}" />
+			<var name="workflowAssetTitle" value="${commentBody}" />
 			<var name="workflowAssetType" value="Comments" />
 			<var name="workflowTask" value="Review" />
 		</execute>

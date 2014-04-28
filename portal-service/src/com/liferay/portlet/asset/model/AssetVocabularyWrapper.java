@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.asset.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see AssetVocabulary
  * @generated
  */
+@ProviderType
 public class AssetVocabularyWrapper implements AssetVocabulary,
 	ModelWrapper<AssetVocabulary> {
 	public AssetVocabularyWrapper(AssetVocabulary assetVocabulary) {
@@ -849,6 +852,7 @@ public class AssetVocabularyWrapper implements AssetVocabulary,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AssetVocabulary getWrappedAssetVocabulary() {
 		return _assetVocabulary;
 	}
@@ -856,6 +860,16 @@ public class AssetVocabularyWrapper implements AssetVocabulary,
 	@Override
 	public AssetVocabulary getWrappedModel() {
 		return _assetVocabulary;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _assetVocabulary.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _assetVocabulary.isFinderCacheEnabled();
 	}
 
 	@Override

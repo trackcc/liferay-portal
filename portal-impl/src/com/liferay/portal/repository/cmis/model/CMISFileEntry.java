@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -40,6 +40,7 @@ import com.liferay.portal.service.RepositoryEntryLocalServiceUtil;
 import com.liferay.portal.service.persistence.LockUtil;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.NoSuchFileVersionException;
+import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppHelperLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.util.DLUtil;
 
@@ -300,6 +301,13 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 	}
 
 	@Override
+	public FileVersion getLatestFileVersion(boolean trusted)
+		throws PortalException, SystemException {
+
+		return getLatestFileVersion();
+	}
+
+	@Override
 	public Lock getLock() {
 		if (!isCheckedOut()) {
 			return null;
@@ -409,7 +417,7 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 
 	@Override
 	public StagedModelType getStagedModelType() {
-		return new StagedModelType(FileEntry.class);
+		return new StagedModelType(DLFileEntryConstants.getClassName());
 	}
 
 	@Override
@@ -467,6 +475,7 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link CMISFileVersion#getUserId()}
 	 */
+	@Deprecated
 	@Override
 	public long getVersionUserId() {
 		long versionUserId = 0;
@@ -487,6 +496,7 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             CMISFileVersion#getUserName()}
 	 */
+	@Deprecated
 	@Override
 	public String getVersionUserName() {
 		String versionUserName = StringPool.BLANK;
@@ -507,6 +517,7 @@ public class CMISFileEntry extends CMISModel implements FileEntry {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             CMISFileVersion#getUserUuid()}
 	 */
+	@Deprecated
 	@Override
 	public String getVersionUserUuid() {
 		String versionUserUuid = StringPool.BLANK;

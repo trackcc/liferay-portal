@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -115,11 +115,13 @@ public class GroovyExecutor extends BaseScriptingExecutor {
 			AggregateClassLoader.getAggregateClassLoader(
 				ClassLoaderUtil.getPortalClassLoader(), classLoaders);
 
-		GroovyShell groovyShell = null;
+		GroovyShell groovyShell = _groovyShells.get(aggregateClassLoader);
 
-		if (!_groovyShells.containsKey(aggregateClassLoader)) {
+		if (groovyShell == null) {
 			synchronized (this) {
-				if (!_groovyShells.containsKey(aggregateClassLoader)) {
+				groovyShell = _groovyShells.get(aggregateClassLoader);
+
+				if (groovyShell == null) {
 					groovyShell = new GroovyShell(aggregateClassLoader);
 
 					_groovyShells.put(aggregateClassLoader, groovyShell);

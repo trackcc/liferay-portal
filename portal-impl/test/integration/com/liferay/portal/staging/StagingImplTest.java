@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,6 +24,7 @@ import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.StagingLocalServiceUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
@@ -130,15 +131,16 @@ public class StagingImplTest {
 		Map<String, String[]> parameters = StagingUtil.getStagingParameters();
 
 		parameters.put(
-			PortletDataHandlerKeys.CATEGORIES,
-			new String[] {String.valueOf(stageCategories)});
-		parameters.put(
-			PortletDataHandlerKeys.PORTLET_CONFIGURATION + "_" +
-				PortletKeys.JOURNAL,
+			PortletDataHandlerKeys.PORTLET_CONFIGURATION +
+				StringPool.UNDERLINE + PortletKeys.JOURNAL,
 			new String[] {String.valueOf(stageJournal)});
 		parameters.put(
 			PortletDataHandlerKeys.PORTLET_CONFIGURATION_ALL,
 			new String[] {Boolean.FALSE.toString()});
+		parameters.put(
+			PortletDataHandlerKeys.PORTLET_DATA + StringPool.UNDERLINE +
+				PortletKeys.ASSET_CATEGORIES_ADMIN,
+			new String[] {String.valueOf(stageCategories)});
 		parameters.put(
 			PortletDataHandlerKeys.PORTLET_DATA + StringPool.UNDERLINE +
 				PortletKeys.JOURNAL,
@@ -152,9 +154,6 @@ public class StagingImplTest {
 			new String[] {String.valueOf(stageJournal)});
 
 		serviceContext.setAttribute(
-			StagingUtil.getStagedPortletId(PortletDataHandlerKeys.CATEGORIES),
-			stageCategories);
-		serviceContext.setAttribute(
 			StagingUtil.getStagedPortletId(PortletKeys.JOURNAL), stageJournal);
 
 		for (String parameterName : parameters.keySet()) {
@@ -164,9 +163,8 @@ public class StagingImplTest {
 
 		// Enable staging
 
-		StagingUtil.enableLocalStaging(
-			TestPropsValues.getUserId(), _group, _group, false, false,
-			serviceContext);
+		StagingLocalServiceUtil.enableLocalStaging(
+			TestPropsValues.getUserId(), _group, false, false, serviceContext);
 
 		Group stagingGroup = _group.getStagingGroup();
 

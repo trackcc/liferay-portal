@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,9 +28,12 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.ServiceComponent;
 import com.liferay.portal.model.impl.ServiceComponentModelImpl;
+import com.liferay.portal.service.ServiceComponentLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -40,6 +43,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -57,6 +61,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ServiceComponentPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<ServiceComponent> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -78,6 +91,10 @@ public class ServiceComponentPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<ServiceComponent> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -113,6 +130,8 @@ public class ServiceComponentPersistenceTest {
 
 		ServiceComponent newServiceComponent = _persistence.create(pk);
 
+		newServiceComponent.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newServiceComponent.setBuildNamespace(ServiceTestUtil.randomString());
 
 		newServiceComponent.setBuildNumber(ServiceTestUtil.nextLong());
@@ -125,6 +144,8 @@ public class ServiceComponentPersistenceTest {
 
 		ServiceComponent existingServiceComponent = _persistence.findByPrimaryKey(newServiceComponent.getPrimaryKey());
 
+		Assert.assertEquals(existingServiceComponent.getMvccVersion(),
+			newServiceComponent.getMvccVersion());
 		Assert.assertEquals(existingServiceComponent.getServiceComponentId(),
 			newServiceComponent.getServiceComponentId());
 		Assert.assertEquals(existingServiceComponent.getBuildNamespace(),
@@ -135,6 +156,35 @@ public class ServiceComponentPersistenceTest {
 			newServiceComponent.getBuildDate());
 		Assert.assertEquals(existingServiceComponent.getData(),
 			newServiceComponent.getData());
+	}
+
+	@Test
+	public void testCountByBuildNamespace() {
+		try {
+			_persistence.countByBuildNamespace(StringPool.BLANK);
+
+			_persistence.countByBuildNamespace(StringPool.NULL);
+
+			_persistence.countByBuildNamespace((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByBNS_BNU() {
+		try {
+			_persistence.countByBNS_BNU(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByBNS_BNU(StringPool.NULL, 0L);
+
+			_persistence.countByBNS_BNU((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -173,8 +223,8 @@ public class ServiceComponentPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("ServiceComponent",
-			"serviceComponentId", true, "buildNamespace", true, "buildNumber",
-			true, "buildDate", true, "data", true);
+			"mvccVersion", true, "serviceComponentId", true, "buildNamespace",
+			true, "buildNumber", true, "buildDate", true, "data", true);
 	}
 
 	@Test
@@ -199,16 +249,18 @@ public class ServiceComponentPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new ServiceComponentActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = ServiceComponentLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					ServiceComponent serviceComponent = (ServiceComponent)object;
 
 					Assert.assertNotNull(serviceComponent);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -313,6 +365,8 @@ public class ServiceComponentPersistenceTest {
 
 		ServiceComponent serviceComponent = _persistence.create(pk);
 
+		serviceComponent.setMvccVersion(ServiceTestUtil.nextLong());
+
 		serviceComponent.setBuildNamespace(ServiceTestUtil.randomString());
 
 		serviceComponent.setBuildNumber(ServiceTestUtil.nextLong());
@@ -327,6 +381,7 @@ public class ServiceComponentPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ServiceComponentPersistenceTest.class);
+	private ModelListener<ServiceComponent>[] _modelListeners;
 	private ServiceComponentPersistence _persistence = (ServiceComponentPersistence)PortalBeanLocatorUtil.locate(ServiceComponentPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,6 +24,7 @@ UnicodeProperties liveGroupTypeSettings = (UnicodeProperties)request.getAttribut
 LayoutSet privateLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.getGroupId(), true);
 LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.getGroupId(), false);
 
+boolean liveGroupRemoteStaging = liveGroup.hasRemoteStagingGroup() && PropsValues.STAGING_LIVE_GROUP_REMOTE_STAGING_ENABLED;
 boolean stagedLocally = liveGroup.isStaged() && !liveGroup.isStagedRemotely();
 boolean stagedRemotely = liveGroup.isStaged() && !stagedLocally;
 
@@ -34,7 +35,40 @@ if (stagedLocally) {
 	stagingGroup = liveGroup.getStagingGroup();
 	stagingGroupId = stagingGroup.getGroupId();
 }
+
+BackgroundTask lastCompletedInitialPublicationBackgroundTask = BackgroundTaskLocalServiceUtil.fetchFirstBackgroundTask(liveGroupId, LayoutStagingBackgroundTaskExecutor.class.getName(), true, new BackgroundTaskCreateDateComparator(false));
 %>
+
+<h3><liferay-ui:message key="staging" /></h3>
+
+<c:if test="<%= liveGroupRemoteStaging %>">
+	<div class="alert alert-info">
+		<liferay-ui:message key="live-group-remote-staging-alert" />
+	</div>
+</c:if>
+
+<c:if test="<%= (lastCompletedInitialPublicationBackgroundTask != null) && (lastCompletedInitialPublicationBackgroundTask.getStatus() == BackgroundTaskConstants.STATUS_FAILED) %>">
+	<div class="alert alert-error">
+		<liferay-ui:message key="an-unexpected-error-occurred--with-the-initial-staging-publication" />
+
+		<liferay-portlet:actionURL portletName="<%= PortletKeys.GROUP_PAGES %>" var="deleteBackgroundTaskURL">
+			<portlet:param name="struts_action" value="/group_pages/delete_background_task" />
+			<portlet:param name="redirect" value="<%= currentURL %>" />
+			<portlet:param name="backgroundTaskId" value="<%= String.valueOf(lastCompletedInitialPublicationBackgroundTask.getBackgroundTaskId()) %>" />
+		</liferay-portlet:actionURL>
+
+		<liferay-ui:icon-delete
+			confirmation="are-you-sure-you-want-to-remove-the-initial-staging-publication"
+			label="true"
+			message="clear"
+			url="<%= deleteBackgroundTaskURL %>"
+		/>
+	</div>
+
+	<liferay-util:include page="/html/portlet/layouts_admin/publish_process_message_task_details.jsp">
+		<liferay-util:param name="backgroundTaskId" value="<%= String.valueOf(lastCompletedInitialPublicationBackgroundTask.getBackgroundTaskId()) %>" />
+	</liferay-util:include>
+</c:if>
 
 <c:if test="<%= stagedLocally && (BackgroundTaskLocalServiceUtil.getBackgroundTasksCount(liveGroupId, LayoutStagingBackgroundTaskExecutor.class.getName(), false) > 0) %>">
 	<liferay-portlet:renderURL portletName="<%= PortletKeys.LAYOUTS_ADMIN %>" var="publishProcessesURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
@@ -87,7 +121,7 @@ if (stagedLocally) {
 			</c:choose>
 		</div>
 	</c:when>
-	<c:when test="<%= GroupPermissionUtil.contains(permissionChecker, liveGroupId, ActionKeys.MANAGE_STAGING) %>">
+	<c:when test="<%= GroupPermissionUtil.contains(permissionChecker, liveGroup, ActionKeys.MANAGE_STAGING) %>">
 
 		<liferay-ui:error exception="<%= LocaleException.class %>">
 
@@ -96,7 +130,7 @@ if (stagedLocally) {
 			%>
 
 			<c:if test="<%= le.getType() == LocaleException.TYPE_EXPORT_IMPORT %>">
-				<liferay-ui:message arguments="<%= new String[] {StringUtil.merge(le.getSourceAvailableLocales(), StringPool.COMMA_AND_SPACE), StringUtil.merge(le.getTargetAvailableLocales(), StringPool.COMMA_AND_SPACE)} %>" key="the-default-language-x-does-not-match-the-portal's-available-languages-x" />
+				<liferay-ui:message arguments="<%= new String[] {StringUtil.merge(le.getSourceAvailableLocales(), StringPool.COMMA_AND_SPACE), StringUtil.merge(le.getTargetAvailableLocales(), StringPool.COMMA_AND_SPACE)} %>" key="the-default-language-x-does-not-match-the-portal's-available-languages-x" translateArguments="<%= false %>" />
 			</c:if>
 		</liferay-ui:error>
 
@@ -113,7 +147,9 @@ if (stagedLocally) {
 			<aui:field-wrapper label="staging-type">
 				<aui:input checked="<%= !liveGroup.isStaged() %>" id="none" label="none" name="stagingType" type="radio" value="<%= StagingConstants.TYPE_NOT_STAGED %>" />
 
-				<aui:input checked="<%= stagedLocally %>" helpMessage="staging-type-local" id="local" label="local-live" name="stagingType" type="radio" value="<%= StagingConstants.TYPE_LOCAL_STAGING %>" />
+				<c:if test="<%= !liveGroupRemoteStaging %>">
+					<aui:input checked="<%= stagedLocally %>" helpMessage="staging-type-local" id="local" label="local-live" name="stagingType" type="radio" value="<%= StagingConstants.TYPE_LOCAL_STAGING %>" />
+				</c:if>
 
 				<aui:input checked="<%= stagedRemotely %>" helpMessage="staging-type-remote" id="remote" label="remote-live" name="stagingType" type="radio" value="<%= StagingConstants.TYPE_REMOTE_STAGING %>" />
 			</aui:field-wrapper>
@@ -158,7 +194,7 @@ if (stagedLocally) {
 		<div class="<%= ((liveGroup.isStaged() || (stagingType != StagingConstants.TYPE_NOT_STAGED)) ? StringPool.BLANK : "hide") %> staging-section" id="<portlet:namespace />stagedPortlets">
 			<br />
 
-			<c:if test="<%= !liveGroup.isCompany() %>">
+			<c:if test="<%= !liveGroup.isCompany() && !liveGroupRemoteStaging %>">
 				<aui:fieldset helpMessage="page-versioning-help" label="page-versioning">
 					<aui:input label="enabled-on-public-pages" name="branchingPublic" type="checkbox" value='<%= GetterUtil.getBoolean(liveGroupTypeSettings.getProperty("branchingPublic")) %>' />
 
@@ -174,7 +210,7 @@ if (stagedLocally) {
 				<%
 				Set<String> portletDataHandlerClasses = new HashSet<String>();
 
-				List<Portlet> dataSiteLevelPortlets = LayoutExporter.getDataSiteLevelPortlets(company.getCompanyId());
+				List<Portlet> dataSiteLevelPortlets = LayoutExporter.getDataSiteLevelPortlets(company.getCompanyId(), true);
 
 				dataSiteLevelPortlets = ListUtil.sort(dataSiteLevelPortlets, new PortletTitleComparator(application, locale));
 
@@ -193,7 +229,7 @@ if (stagedLocally) {
 					boolean staged = GetterUtil.getBoolean(liveGroupTypeSettings.getProperty(StagingUtil.getStagedPortletId(curPortlet.getRootPortletId())), portletDataHandler.isPublishToLiveByDefault());
 				%>
 
-					<aui:input label="<%= PortalUtil.getPortletTitle(curPortlet, application, locale) %>" name="<%= StagingUtil.getStagedPortletId(curPortlet.getRootPortletId()) %>" type="checkbox" value="<%= staged %>" />
+					<aui:input disabled="<%= liveGroupRemoteStaging %>" label="<%= PortalUtil.getPortletTitle(curPortlet, application, locale) %>" name="<%= StagingUtil.getStagedPortletId(curPortlet.getRootPortletId()) %>" type="checkbox" value="<%= staged %>" />
 
 				<%
 				}

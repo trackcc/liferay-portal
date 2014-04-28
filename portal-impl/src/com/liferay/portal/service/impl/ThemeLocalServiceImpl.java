@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -109,16 +109,18 @@ public class ThemeLocalServiceImpl extends ThemeLocalServiceBaseImpl {
 
 		ColorScheme colorScheme = colorSchemesMap.get(colorSchemeId);
 
-		if (colorScheme == null) {
-			List<ColorScheme> colorSchemes = theme.getColorSchemes();
+		if (colorScheme != null) {
+			return colorScheme;
+		}
 
-			if (colorSchemes.size() > 0) {
-				for (int i = (colorSchemes.size() - 1); i >= 0; i--) {
-					colorScheme = colorSchemes.get(i);
+		List<ColorScheme> colorSchemes = theme.getColorSchemes();
 
-					if (colorScheme.isDefaultCs()) {
-						break;
-					}
+		if (!colorSchemes.isEmpty()) {
+			for (int i = (colorSchemes.size() - 1); i >= 0; i--) {
+				colorScheme = colorSchemes.get(i);
+
+				if (colorScheme.isDefaultCs()) {
+					return colorScheme;
 				}
 			}
 		}
@@ -137,66 +139,31 @@ public class ThemeLocalServiceImpl extends ThemeLocalServiceBaseImpl {
 	}
 
 	@Override
-	public Theme getTheme(long companyId, String themeId, boolean wapTheme)
+	public List<Theme> getControlPanelThemes(
+			long companyId, long userId, boolean wapTheme)
 		throws SystemException {
 
-		themeId = GetterUtil.getString(themeId);
+		List<Theme> themes = getThemes(companyId);
 
-		Map<String, Theme> themes = _getThemes(companyId);
+		themes = PluginUtil.restrictPlugins(themes, companyId, userId);
 
-		Theme theme = themes.get(themeId);
+		Iterator<Theme> itr = themes.iterator();
 
-		if (theme == null) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"No theme found for specified theme id " + themeId +
-						". Returning the default theme.");
-			}
+		while (itr.hasNext()) {
+			Theme theme = itr.next();
 
-			if (wapTheme) {
-				themeId = ThemeFactoryUtil.getDefaultWapThemeId(companyId);
-			}
-			else {
-				themeId = ThemeFactoryUtil.getDefaultRegularThemeId(companyId);
-			}
+			if (!theme.isControlPanelTheme() ||
+				(theme.isWapTheme() != wapTheme)) {
 
-			theme = _themes.get(themeId);
-		}
-
-		if (theme == null) {
-			if (_themes.isEmpty()) {
-				if (_log.isDebugEnabled()) {
-					_log.debug("No themes are installed");
-				}
-
-				return null;
-			}
-
-			if (!themeId.contains(PortletConstants.WAR_SEPARATOR)) {
-				_log.error(
-					"No theme found for default theme id " + themeId +
-						". Returning a random theme.");
-			}
-
-			for (Map.Entry<String, Theme> entry : _themes.entrySet()) {
-				theme = entry.getValue();
+				itr.remove();
 			}
 		}
 
-		return theme;
+		return themes;
 	}
 
 	@Override
-	public List<Theme> getThemes(long companyId) {
-		Map<String, Theme> themes = _getThemes(companyId);
-
-		List<Theme> themesList = ListUtil.fromMapValues(themes);
-
-		return ListUtil.sort(themesList);
-	}
-
-	@Override
-	public List<Theme> getThemes(
+	public List<Theme> getPageThemes(
 			long companyId, long groupId, long userId, boolean wapTheme)
 		throws SystemException {
 
@@ -209,7 +176,7 @@ public class ThemeLocalServiceImpl extends ThemeLocalServiceBaseImpl {
 		while (itr.hasNext()) {
 			Theme theme = itr.next();
 
-			if (theme.getThemeId().equals("controlpanel") ||
+			if (!theme.isPageTheme() ||
 				!theme.isGroupAvailable(groupId) ||
 				(theme.isWapTheme() != wapTheme)) {
 
@@ -218,6 +185,85 @@ public class ThemeLocalServiceImpl extends ThemeLocalServiceBaseImpl {
 		}
 
 		return themes;
+	}
+
+	@Override
+	public Theme getTheme(long companyId, String themeId, boolean wapTheme)
+		throws SystemException {
+
+		themeId = GetterUtil.getString(themeId);
+
+		Map<String, Theme> themes = _getThemes(companyId);
+
+		Theme theme = themes.get(themeId);
+
+		if (theme != null) {
+			return theme;
+		}
+
+		if (_log.isWarnEnabled()) {
+			_log.warn(
+				"No theme found for specified theme id " + themeId +
+					". Returning the default theme.");
+		}
+
+		if (wapTheme) {
+			themeId = ThemeFactoryUtil.getDefaultWapThemeId(companyId);
+		}
+		else {
+			themeId = ThemeFactoryUtil.getDefaultRegularThemeId(companyId);
+		}
+
+		theme = _themes.get(themeId);
+
+		if (theme != null) {
+			return theme;
+		}
+
+		if (_themes.isEmpty()) {
+			if (_log.isDebugEnabled()) {
+				_log.debug("No themes are installed");
+			}
+
+			return null;
+		}
+
+		if (!themeId.contains(PortletConstants.WAR_SEPARATOR)) {
+			_log.error(
+				"No theme found for default theme id " + themeId +
+					". Returning a random theme.");
+		}
+
+		for (Map.Entry<String, Theme> entry : _themes.entrySet()) {
+			theme = entry.getValue();
+
+			if ((theme != null) && (theme.isWapTheme() == wapTheme)) {
+				return theme;
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public List<Theme> getThemes(long companyId) {
+		Map<String, Theme> themes = _getThemes(companyId);
+
+		List<Theme> themesList = ListUtil.fromMapValues(themes);
+
+		return ListUtil.sort(themesList);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #getPageThemes}
+	 */
+	@Deprecated
+	@Override
+	public List<Theme> getThemes(
+			long companyId, long groupId, long userId, boolean wapTheme)
+		throws SystemException {
+
+		return getPageThemes(companyId, groupId, userId, wapTheme);
 	}
 
 	@Override
@@ -667,6 +713,12 @@ public class ThemeLocalServiceImpl extends ThemeLocalServiceBaseImpl {
 				}
 			}
 
+			theme.setControlPanelTheme(
+				GetterUtil.getBoolean(
+					themeElement.elementText("control-panel-theme")));
+			theme.setPageTheme(
+				GetterUtil.getBoolean(
+					themeElement.elementText("page-theme"), true));
 			theme.setWapTheme(
 				GetterUtil.getBoolean(
 					themeElement.elementText("wap-theme"), theme.isWapTheme()));

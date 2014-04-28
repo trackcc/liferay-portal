@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.taglib.ui;
 
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.taglib.util.IncludeTag;
 
 import java.util.Date;
@@ -54,6 +55,10 @@ public class AppViewEntryTag extends IncludeTag {
 
 	public void setAuthor(String author) {
 		_author = author;
+	}
+
+	public void setClassTypeName(String classTypeName) {
+		_classTypeName = classTypeName;
 	}
 
 	public void setCreateDate(Date createDate) {
@@ -170,6 +175,7 @@ public class AppViewEntryTag extends IncludeTag {
 		_assetTagClassName = null;
 		_assetTagClassPK = 0;
 		_author = null;
+		_classTypeName = null;
 		_createDate = null;
 		_cssClass = null;
 		_data = null;
@@ -190,7 +196,7 @@ public class AppViewEntryTag extends IncludeTag {
 		_showCheckbox = false;
 		_showLinkTitle = true;
 		_status = 0;
-		_thumbnailDivStyle = null;
+		_thumbnailDivStyle = StringPool.BLANK;
 		_thumbnailSrc = null;
 		_thumbnailStyle = null;
 		_title = null;
@@ -222,6 +228,8 @@ public class AppViewEntryTag extends IncludeTag {
 		request.setAttribute(
 			"liferay-ui:app-view-entry:assetTagClassPK", _assetTagClassPK);
 		request.setAttribute("liferay-ui:app-view-entry:author", _author);
+		request.setAttribute(
+			"liferay-ui:app-view-entry:classTypeName", _classTypeName);
 		request.setAttribute(
 			"liferay-ui:app-view-entry:createDate", _createDate);
 		request.setAttribute("liferay-ui:app-view-entry:cssClass", _cssClass);
@@ -279,6 +287,7 @@ public class AppViewEntryTag extends IncludeTag {
 	private String _assetTagClassName;
 	private long _assetTagClassPK;
 	private String _author;
+	private String _classTypeName;
 	private Date _createDate;
 	private String _cssClass;
 	private Map<String, Object> _data;
@@ -299,7 +308,7 @@ public class AppViewEntryTag extends IncludeTag {
 	private boolean _showCheckbox = false;
 	private boolean _showLinkTitle = true;
 	private int _status = 0;
-	private String _thumbnailDivStyle;
+	private String _thumbnailDivStyle = StringPool.BLANK;
 	private String _thumbnailSrc;
 	private String _thumbnailStyle;
 	private String _title;

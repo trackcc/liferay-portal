@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 
@@ -28,6 +30,7 @@ import java.util.Map;
  * @see Group
  * @generated
  */
+@ProviderType
 public class GroupWrapper implements Group, ModelWrapper<Group> {
 	public GroupWrapper(Group group) {
 		_group = group;
@@ -47,6 +50,7 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -72,6 +76,12 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -207,6 +217,26 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_group.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this group.
+	*
+	* @return the mvcc version of this group
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _group.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this group.
+	*
+	* @param mvccVersion the mvcc version of this group
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_group.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -768,6 +798,17 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	}
 
 	@Override
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_group.updateTreePath(treePath);
+	}
+
+	@Override
+	public void clearStagingGroup() {
+		_group.clearStagingGroup();
+	}
+
+	@Override
 	public java.util.List<com.liferay.portal.model.Group> getAncestors()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -802,6 +843,13 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	@Override
 	public long getDefaultPublicPlid() {
 		return _group.getDefaultPublicPlid();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getDescendants(
+		boolean site)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _group.getDescendants(site);
 	}
 
 	@Override
@@ -885,6 +933,11 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	}
 
 	@Override
+	public long getRemoteLiveGroupId() {
+		return _group.getRemoteLiveGroupId();
+	}
+
+	@Override
 	public java.lang.String getScopeDescriptiveName(
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -939,10 +992,19 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	}
 
 	@Override
+	public boolean hasRemoteStagingGroup() {
+		return _group.hasRemoteStagingGroup();
+	}
+
+	@Override
 	public boolean hasStagingGroup() {
 		return _group.hasStagingGroup();
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #hasAncestor}
+	*/
+	@Deprecated
 	@Override
 	public boolean isChild(long groupId) {
 		return _group.isChild(groupId);
@@ -951,6 +1013,7 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	/**
 	* @deprecated As of 6.1.0, renamed to {@link #isRegularSite}
 	*/
+	@Deprecated
 	@Override
 	public boolean isCommunity() {
 		return _group.isCommunity();
@@ -1088,6 +1151,7 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Group getWrappedGroup() {
 		return _group;
 	}
@@ -1095,6 +1159,16 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	@Override
 	public Group getWrappedModel() {
 		return _group;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _group.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _group.isFinderCacheEnabled();
 	}
 
 	@Override

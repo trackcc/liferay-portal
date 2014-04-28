@@ -20,17 +20,17 @@
 </tr>
 <tr>
 	<td>SUCCESS_MESSAGE</td>
-	<td>//div[@class='alert alert-success']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-success')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>INFO_MESSAGE</td>
-	<td>//div[@class='alert alert-info']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-info')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ADD</td>
-	<td>//div[@class='navbar-inner']//span[contains(.,'Add')]</td>
+	<td>//ul[@role='menubar']/li/a[@title='Add']/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -45,17 +45,12 @@
 </tr>
 <tr>
 	<td>SEARCH_ALL_ORGANIZATIONS</td>
-	<td>//ul[@class='nav nav-tabs']/li/a[contains(.,'All Organizations')]/span</td>
+	<td>//ul[contains(@class,'nav') and contains(@class,'nav-tabs')]/li/a[contains(.,'All Organizations')]/span</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SEARCH_ALL_USERS</td>
-	<td>//ul[@class='nav nav-tabs']/li/a[contains(.,'All Users')]/span</td>
-	<td></td>
-</tr>
-<tr>
-	<td>INFO_MESSAGE</td>
-	<td>//div[@class='alert alert-info']</td>
+	<td>//ul[contains(@class,'nav') and contains(@class,'nav-tabs')]/li/a[contains(.,'All Users')]/span</td>
 	<td></td>
 </tr>
 <tr>
@@ -77,12 +72,12 @@
 <!--ADD-->
 <tr>
 	<td>ADD_USER</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'User')]</td>
+	<td>//ul[@class='dropdown-menu']/li/a[@title='User']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ADD_REGULAR_ORGANIZATION</td>
-	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Regular Organization')]</td>
+	<td>//ul[@class='dropdown-menu']/li/a[@title='Regular Organization']</td>
 	<td></td>
 </tr>
 <tr>
@@ -125,6 +120,11 @@
 <tr>
 	<td>ORGANIZATION_MENULIST_EDIT</td>
 	<td>//a[@role='menuitem' and contains(.,'Edit')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORGANIZATION_MENULIST_MANAGE_SITE</td>
+	<td>//a[@role='menuitem' and contains(.,'Manage Site')]</td>
 	<td></td>
 </tr>
 <tr>

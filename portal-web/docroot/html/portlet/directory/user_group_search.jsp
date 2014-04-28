@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,15 @@ UserGroupSearch searchContainer = (UserGroupSearch)request.getAttribute("liferay
 UserGroupDisplayTerms displayTerms = (UserGroupDisplayTerms)searchContainer.getDisplayTerms();
 %>
 
-<div class="form-search">
-	<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="<%= displayTerms.KEYWORDS %>" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
-</div>
+<liferay-ui:search-toggle
+	autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>"
+	buttonLabel="search"
+	displayTerms="<%= displayTerms %>"
+	id="toggle_id_directory_user_group_search"
+>
+	<aui:fieldset>
+		<aui:input inlineField="<%= true %>" name="<%= displayTerms.NAME %>" size="20" value="<%= displayTerms.getName() %>" />
+
+		<aui:input inlineField="<%= true %>" name="<%= displayTerms.DESCRIPTION %>" size="20" value="<%= displayTerms.getDescription() %>" />
+	</aui:fieldset>
+</liferay-ui:search-toggle>

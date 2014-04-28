@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -137,6 +137,7 @@ public class AnnouncementsEntryServiceImpl
 	 *             String, String, String, String, int, int, int, int, int,
 	 *             boolean, int, int, int, int, int, int, boolean)}
 	 */
+	@Deprecated
 	@Override
 	public AnnouncementsEntry addEntry(
 			long plid, long classNameId, long classPK, String title,
@@ -183,7 +184,8 @@ public class AnnouncementsEntryServiceImpl
 	public AnnouncementsEntry updateEntry(
 			long entryId, String title, String content, String url, String type,
 			int displayDateMonth, int displayDateDay, int displayDateYear,
-			int displayDateHour, int displayDateMinute, int expirationDateMonth,
+			int displayDateHour, int displayDateMinute,
+			boolean displayImmediately, int expirationDateMonth,
 			int expirationDateDay, int expirationDateYear,
 			int expirationDateHour, int expirationDateMinute, int priority)
 		throws PortalException, SystemException {
@@ -194,8 +196,9 @@ public class AnnouncementsEntryServiceImpl
 		return announcementsEntryLocalService.updateEntry(
 			getUserId(), entryId, title, content, url, type, displayDateMonth,
 			displayDateDay, displayDateYear, displayDateHour, displayDateMinute,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, priority);
+			displayImmediately, expirationDateMonth, expirationDateDay,
+			expirationDateYear, expirationDateHour, expirationDateMinute,
+			priority);
 	}
 
 }

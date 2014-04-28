@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.counter.service.persistence;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.counter.model.Counter;
 
@@ -30,6 +32,7 @@ import com.liferay.portal.service.persistence.BasePersistence;
  * @see CounterUtil
  * @generated
  */
+@ProviderType
 public interface CounterPersistence extends BasePersistence<Counter> {
 	/*
 	 * NOTE FOR DEVELOPERS:

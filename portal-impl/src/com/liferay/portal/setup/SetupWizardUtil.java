@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -225,7 +225,10 @@ public class SetupWizardUtil {
 
 		_initPlugins();
 
-		boolean propertiesFileCreated = _writePropertiesFile(unicodeProperties);
+		if (ParamUtil.getBoolean(request, "addSampleData")) {
+			SetupWizardSampleDataUtil.addSampleData(
+				PortalInstances.getDefaultCompanyId());
+		}
 
 		HttpSession session = request.getSession();
 
@@ -233,7 +236,7 @@ public class SetupWizardUtil {
 			WebKeys.SETUP_WIZARD_PROPERTIES, unicodeProperties);
 		session.setAttribute(
 			WebKeys.SETUP_WIZARD_PROPERTIES_FILE_CREATED,
-			propertiesFileCreated);
+			_writePropertiesFile(unicodeProperties));
 	}
 
 	private static String _getParameter(
@@ -245,7 +248,7 @@ public class SetupWizardUtil {
 	}
 
 	/**
-	 * @see {@link com.liferay.portal.servlet.MainServlet#initPlugins}
+	 * @see com.liferay.portal.servlet.MainServlet#initPlugins
 	 */
 	private static void _initPlugins() {
 		HotDeployUtil.setCapturePrematureEvents(false);
@@ -430,7 +433,7 @@ public class SetupWizardUtil {
 				user.getUserId(), StringPool.BLANK, StringPool.BLANK,
 				StringPool.BLANK, false, user.getReminderQueryQuestion(),
 				user.getReminderQueryAnswer(), screenName, emailAddress,
-				user.getFacebookId(), user.getOpenId(),
+				user.getFacebookId(), user.getOpenId(), false, null,
 				themeDisplay.getLanguageId(), user.getTimeZoneId(), greeting,
 				user.getComments(), firstName, user.getMiddleName(), lastName,
 				contact.getPrefixId(), contact.getSuffixId(), contact.isMale(),
@@ -461,8 +464,8 @@ public class SetupWizardUtil {
 
 				if (testUser != null) {
 					UserLocalServiceUtil.updateStatus(
-						testUser.getUserId(),
-						WorkflowConstants.STATUS_INACTIVE);
+						testUser.getUserId(), WorkflowConstants.STATUS_INACTIVE,
+						new ServiceContext());
 				}
 			}
 		}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.kernel.workflow.permission.WorkflowPermissionUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.BaseModelPermissionChecker;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
@@ -32,7 +33,7 @@ import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
 /**
  * @author Brian Wing Shun Chan
  */
-public class WikiPagePermission {
+public class WikiPagePermission implements BaseModelPermissionChecker {
 
 	public static void check(
 			PermissionChecker permissionChecker, long resourcePrimKey,
@@ -66,7 +67,7 @@ public class WikiPagePermission {
 
 	public static void check(
 			PermissionChecker permissionChecker, WikiPage page, String actionId)
-		throws PortalException {
+		throws PortalException, SystemException {
 
 		if (!contains(permissionChecker, page, actionId)) {
 			throw new PrincipalException();
@@ -124,7 +125,8 @@ public class WikiPagePermission {
 	}
 
 	public static boolean contains(
-		PermissionChecker permissionChecker, WikiPage page, String actionId) {
+			PermissionChecker permissionChecker, WikiPage page, String actionId)
+		throws SystemException {
 
 		Boolean hasPermission = StagingPermissionUtil.hasPermission(
 			permissionChecker, page.getGroupId(), WikiPage.class.getName(),
@@ -134,8 +136,38 @@ public class WikiPagePermission {
 			return hasPermission.booleanValue();
 		}
 
+		if (page.isDraft()) {
+			if (actionId.equals(ActionKeys.VIEW) &&
+				!contains(permissionChecker, page, ActionKeys.UPDATE)) {
+
+				return false;
+			}
+
+			if (actionId.equals(ActionKeys.DELETE) &&
+				(page.getStatusByUserId() == permissionChecker.getUserId())) {
+
+				return true;
+			}
+		}
+		else if (page.isPending()) {
+			hasPermission = WorkflowPermissionUtil.hasPermission(
+				permissionChecker, page.getGroupId(), WikiPage.class.getName(),
+				page.getResourcePrimKey(), actionId);
+
+			if ((hasPermission != null) && hasPermission.booleanValue()) {
+				return true;
+			}
+		}
+		else if (page.isScheduled()) {
+			if (actionId.equals(ActionKeys.VIEW) &&
+				!contains(permissionChecker, page, ActionKeys.UPDATE)) {
+
+				return false;
+			}
+		}
+
 		if (actionId.equals(ActionKeys.VIEW)) {
-			WikiPage redirectPage = page.getRedirectPage();
+			WikiPage redirectPage = page.fetchRedirectPage();
 
 			if (redirectPage != null) {
 				page = redirectPage;
@@ -155,30 +187,23 @@ public class WikiPagePermission {
 						return false;
 					}
 
-					page = page.getParentPage();
+					page = page.fetchParentPage();
 				}
 
 				return true;
 			}
 		}
 
-		if (page.isPending()) {
-			hasPermission = WorkflowPermissionUtil.hasPermission(
-				permissionChecker, page.getGroupId(), WikiPage.class.getName(),
-				page.getResourcePrimKey(), actionId);
-
-			if ((hasPermission != null) && hasPermission.booleanValue()) {
-				return true;
-			}
-		}
-
-		if (page.isDraft() && actionId.equals(ActionKeys.DELETE) &&
-			(page.getStatusByUserId() == permissionChecker.getUserId())) {
-
-			return true;
-		}
-
 		return _hasPermission(permissionChecker, page, actionId);
+	}
+
+	@Override
+	public void checkBaseModel(
+			PermissionChecker permissionChecker, long groupId, long primaryKey,
+			String actionId)
+		throws PortalException, SystemException {
+
+		check(permissionChecker, primaryKey, actionId);
 	}
 
 	private static boolean _hasPermission(

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,8 +16,6 @@ package com.liferay.portlet.journal.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portlet.journal.NoSuchFolderException;
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
@@ -32,15 +30,6 @@ import java.util.List;
 public class JournalFolderImpl extends JournalFolderBaseImpl {
 
 	public JournalFolderImpl() {
-	}
-
-	@Override
-	public String buildTreePath() throws PortalException, SystemException {
-		StringBundler sb = new StringBundler();
-
-		buildTreePath(sb, this);
-
-		return sb.toString();
 	}
 
 	@Override
@@ -108,20 +97,6 @@ public class JournalFolderImpl extends JournalFolderBaseImpl {
 		}
 
 		return false;
-	}
-
-	protected void buildTreePath(StringBundler sb, JournalFolder folder)
-		throws PortalException, SystemException {
-
-		if (folder == null) {
-			sb.append(StringPool.SLASH);
-		}
-		else {
-			buildTreePath(sb, folder.getParentFolder());
-
-			sb.append(folder.getFolderId());
-			sb.append(StringPool.SLASH);
-		}
 	}
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,9 +35,14 @@ public class RoleConstants {
 
 	public static final String OWNER = "Owner";
 
+	public static final String PORTAL_CONTENT_REVIEWER =
+		"Portal Content Reviewer";
+
 	public static final String POWER_USER = "Power User";
 
 	public static final String SITE_ADMINISTRATOR = "Site Administrator";
+
+	public static final String SITE_CONTENT_REVIEWER = "Site Content Reviewer";
 
 	public static final String SITE_MEMBER = "Site Member";
 

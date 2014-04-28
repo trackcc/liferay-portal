@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -30,6 +32,7 @@ import java.util.Map;
  * @see LayoutFriendlyURL
  * @generated
  */
+@ProviderType
 public class LayoutFriendlyURLWrapper implements LayoutFriendlyURL,
 	ModelWrapper<LayoutFriendlyURL> {
 	public LayoutFriendlyURLWrapper(LayoutFriendlyURL layoutFriendlyURL) {
@@ -50,6 +53,7 @@ public class LayoutFriendlyURLWrapper implements LayoutFriendlyURL,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("layoutFriendlyURLId", getLayoutFriendlyURLId());
 		attributes.put("groupId", getGroupId());
@@ -68,6 +72,12 @@ public class LayoutFriendlyURLWrapper implements LayoutFriendlyURL,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -159,6 +169,26 @@ public class LayoutFriendlyURLWrapper implements LayoutFriendlyURL,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_layoutFriendlyURL.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this layout friendly u r l.
+	*
+	* @return the mvcc version of this layout friendly u r l
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _layoutFriendlyURL.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this layout friendly u r l.
+	*
+	* @param mvccVersion the mvcc version of this layout friendly u r l
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_layoutFriendlyURL.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -566,6 +596,7 @@ public class LayoutFriendlyURLWrapper implements LayoutFriendlyURL,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public LayoutFriendlyURL getWrappedLayoutFriendlyURL() {
 		return _layoutFriendlyURL;
 	}
@@ -573,6 +604,16 @@ public class LayoutFriendlyURLWrapper implements LayoutFriendlyURL,
 	@Override
 	public LayoutFriendlyURL getWrappedModel() {
 		return _layoutFriendlyURL;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _layoutFriendlyURL.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _layoutFriendlyURL.isFinderCacheEnabled();
 	}
 
 	@Override

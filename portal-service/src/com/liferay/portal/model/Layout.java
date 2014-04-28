@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.Accessor;
 
 /**
@@ -25,6 +27,7 @@ import com.liferay.portal.kernel.util.Accessor;
  * @see com.liferay.portal.model.impl.LayoutModelImpl
  * @generated
  */
+@ProviderType
 public interface Layout extends LayoutModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -35,6 +38,16 @@ public interface Layout extends LayoutModel, PersistedModel {
 			@Override
 			public Long get(Layout layout) {
 				return layout.getLayoutId();
+			}
+
+			@Override
+			public Class<Long> getAttributeClass() {
+				return Long.class;
+			}
+
+			@Override
+			public Class<Layout> getTypeClass() {
+				return Layout.class;
 			}
 		};
 
@@ -69,6 +82,9 @@ public interface Layout extends LayoutModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	public java.lang.String getDefaultThemeSetting(java.lang.String key,
+		java.lang.String device, boolean inheritLookAndFeel);
+
 	public java.lang.String getFriendlyURL(java.util.Locale locale);
 
 	public java.util.Map<java.util.Locale, java.lang.String> getFriendlyURLMap()
@@ -85,11 +101,16 @@ public interface Layout extends LayoutModel, PersistedModel {
 
 	public java.lang.String getHTMLTitle(java.lang.String localeLanguageId);
 
+	public boolean getIconImage();
+
 	public com.liferay.portal.model.LayoutSet getLayoutSet()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
 	public com.liferay.portal.model.LayoutType getLayoutType();
+
+	public com.liferay.portal.model.Layout getLinkedToLayout()
+		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public long getParentPlid()
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -122,6 +143,9 @@ public interface Layout extends LayoutModel, PersistedModel {
 
 	public java.lang.String getThemeSetting(java.lang.String key,
 		java.lang.String device);
+
+	public java.lang.String getThemeSetting(java.lang.String key,
+		java.lang.String device, boolean inheritLookAndFeel);
 
 	public com.liferay.portal.kernel.util.UnicodeProperties getTypeSettingsProperties();
 
@@ -159,6 +183,8 @@ public interface Layout extends LayoutModel, PersistedModel {
 	public boolean isFirstChild();
 
 	public boolean isFirstParent();
+
+	public boolean isIconImage();
 
 	public boolean isInheritLookAndFeel();
 

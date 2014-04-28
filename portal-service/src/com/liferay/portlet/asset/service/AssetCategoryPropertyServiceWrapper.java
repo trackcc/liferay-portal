@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see AssetCategoryPropertyService
  * @generated
  */
+@ProviderType
 public class AssetCategoryPropertyServiceWrapper
 	implements AssetCategoryPropertyService,
 		ServiceWrapper<AssetCategoryPropertyService> {
@@ -84,6 +87,16 @@ public class AssetCategoryPropertyServiceWrapper
 
 	@Override
 	public com.liferay.portlet.asset.model.AssetCategoryProperty updateCategoryProperty(
+		long userId, long categoryPropertyId, java.lang.String key,
+		java.lang.String value)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryPropertyService.updateCategoryProperty(userId,
+			categoryPropertyId, key, value);
+	}
+
+	@Override
+	public com.liferay.portlet.asset.model.AssetCategoryProperty updateCategoryProperty(
 		long categoryPropertyId, java.lang.String key, java.lang.String value)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -94,6 +107,7 @@ public class AssetCategoryPropertyServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetCategoryPropertyService getWrappedAssetCategoryPropertyService() {
 		return _assetCategoryPropertyService;
 	}
@@ -101,6 +115,7 @@ public class AssetCategoryPropertyServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetCategoryPropertyService(
 		AssetCategoryPropertyService assetCategoryPropertyService) {
 		_assetCategoryPropertyService = assetCategoryPropertyService;

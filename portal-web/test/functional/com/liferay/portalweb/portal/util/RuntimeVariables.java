@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,8 @@ import com.liferay.util.ContextReplace;
 
 import java.io.File;
 
+import java.net.InetAddress;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,22 +36,49 @@ import java.util.regex.Pattern;
  */
 public class RuntimeVariables {
 
+	public static String evaluateLocator(
+			String locator, Map<String, String> context)
+		throws Exception {
+
+		String locatorValue = locator;
+
+		if (locatorValue.contains("${") && locatorValue.contains("}")) {
+			String regex = "\\$\\{([^}]*?)\\}";
+
+			Pattern pattern = Pattern.compile(regex);
+
+			Matcher matcher = pattern.matcher(locatorValue);
+
+			while (matcher.find()) {
+				String variableKey = matcher.group(1);
+
+				if (context.containsKey(variableKey)) {
+					locatorValue = locatorValue.replaceFirst(
+						regex, context.get(variableKey));
+				}
+				else {
+					throw new Exception(
+						"Variable \"" + variableKey + "\" found in \"" +
+							locator + "\" is not set");
+				}
+			}
+		}
+
+		return locatorValue;
+	}
+
 	public static String evaluateVariable(
 		String value, Map<String, String> context) {
 
 		String varValue = value;
 
-		Pattern pattern = Pattern.compile("\\$\\{([^}]*?)\\}");
-
-		Matcher matcher = pattern.matcher(varValue);
-
-		Pattern statementPattern = Pattern.compile(
-			"(.*)\\?(.*)\\(([^\\)]*?)\\)");
+		Matcher matcher = _variablePattern.matcher(varValue);
 
 		while (matcher.find()) {
 			String statement = matcher.group(1);
 
-			Matcher statementMatcher = statementPattern.matcher(statement);
+			Matcher statementMatcher = _variableStatementPattern.matcher(
+				statement);
 
 			if (statementMatcher.find()) {
 				String operand = statementMatcher.group(1);
@@ -95,8 +124,23 @@ public class RuntimeVariables {
 					result = operandValue.replace(
 						argumentsList.get(0), argumentsList.get(1));
 				}
+				else if (method.startsWith("uppercase")) {
+					result = StringUtil.toUpperCase(operandValue);
+				}
 
 				varValue = varValue.replaceFirst(replaceRegex, result);
+			}
+			else if (statement.equals("getIPAddress()")) {
+				try {
+					InetAddress inetAddress = InetAddress.getLocalHost();
+
+					String result = inetAddress.getHostAddress();
+
+					varValue = varValue.replaceFirst(
+						"\\$\\{([^}]*?)\\}", result);
+				}
+				catch (Exception e) {
+				}
 			}
 			else {
 				String varName = statement;
@@ -126,8 +170,40 @@ public class RuntimeVariables {
 		return _instance._getValue(key);
 	}
 
+	public static boolean isVariableSet(
+		String varName, Map<String, String> context) {
+
+		if (!context.containsKey(varName)) {
+			return false;
+		}
+
+		String varValue = context.get(varName);
+
+		varValue = StringUtil.replace(varValue, "${line.separator}", "");
+
+		if (varValue.contains("${") && varValue.contains("}")) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public static String replace(String text) {
 		return _instance._replace(text);
+	}
+
+	public static String replaceRegularExpression(
+		String content, String regex, int group) {
+
+		Pattern pattern = Pattern.compile(regex);
+
+		Matcher matcher = pattern.matcher(content);
+
+		if (matcher.find()) {
+			return matcher.group(group);
+		}
+
+		return StringPool.BLANK;
 	}
 
 	public static void setValue(String key, String value) {
@@ -222,6 +298,11 @@ public class RuntimeVariables {
 	}
 
 	private static RuntimeVariables _instance = new RuntimeVariables();
+
+	private static Pattern _variablePattern = Pattern.compile(
+		"\\$\\{([^}]*?)\\}");
+	private static Pattern _variableStatementPattern = Pattern.compile(
+		"(.*)\\?(.*)\\(([^\\)]*?)\\)");
 
 	private ContextReplace _contextReplace;
 	private Map<String, String> _runtimeVariables =

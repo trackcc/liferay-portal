@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -145,17 +145,15 @@ if (feed != null) {
 				</c:choose>
 			</c:when>
 			<c:otherwise>
-				<aui:field-wrapper label="id">
-					<liferay-ui:input-resource url="<%= feedId %>" />
-				</aui:field-wrapper>
+				<aui:input name="id" type="resource" value="<%= feedId %>" />
 			</c:otherwise>
 		</c:choose>
 
-		<aui:input autoFocus="<%= ((feed != null) && !PropsValues.JOURNAL_FEED_FORCE_AUTOGENERATE_ID && windowState.equals(WindowState.MAXIMIZED)) %>" cssClass="lfr-input-text-container" name="name" />
+		<aui:input autoFocus="<%= ((feed != null) && !PropsValues.JOURNAL_FEED_FORCE_AUTOGENERATE_ID && (windowState.equals(WindowState.MAXIMIZED)) || windowState.equals(LiferayWindowState.POP_UP)) %>" cssClass="lfr-input-text-container" name="name" />
 
 		<aui:input cssClass="lfr-textarea-container" name="description" />
 
-		<aui:input cssClass="lfr-input-text-container" helpMessage="journal-feed-target-layout-friendly-url-help" name="targetLayoutFriendlyUrl" />
+		<aui:input cssClass="lfr-input-text-container" helpMessage="journal-feed-target-layout-friendly-url-help" name="targetLayoutFriendlyURL" />
 
 		<aui:input cssClass="lfr-input-text-container" helpMessage="journal-feed-target-portlet-id-help" name="targetPortletId" />
 
@@ -166,9 +164,7 @@ if (feed != null) {
 				</aui:field-wrapper>
 			</c:when>
 			<c:otherwise>
-				<aui:field-wrapper label="url">
-					<liferay-ui:input-resource url="<%= feedURL.toString() %>" />
-				</aui:field-wrapper>
+				<aui:input name="url" type="resource" value="<%= feedURL.toString() %>" />
 			</c:otherwise>
 		</c:choose>
 	</aui:fieldset>
@@ -190,24 +186,22 @@ if (feed != null) {
 
 				</aui:select>
 
-				<aui:field-wrapper label="structure">
-					<aui:input name="structureId" type="hidden" value="<%= structureId %>" />
+				<div class="control-group">
+					<aui:input name="structureId" required="<%= true %>" type="hidden" value="<%= structureId %>" />
 
-					<div class="input-append">
-						<liferay-ui:input-resource url="<%= ddmStructureName %>" />
+					<aui:input name="structure" type="resource" value="<%= ddmStructureName %>" />
 
-						<aui:button name="selectStructureButton" onClick='<%= renderResponse.getNamespace() + "openStructureSelector();" %>' value="select" />
+					<aui:button name="selectStructureButton" onClick='<%= renderResponse.getNamespace() + "openStructureSelector();" %>' value="select" />
 
-						<aui:button disabled="<%= Validator.isNull(structureId) %>" name="removeStructureButton" onClick='<%= renderResponse.getNamespace() + "removeStructure();" %>' value="remove" />
-					</div>
-				</aui:field-wrapper>
+					<aui:button disabled="<%= Validator.isNull(structureId) %>" name="removeStructureButton" onClick='<%= renderResponse.getNamespace() + "removeStructure();" %>' value="remove" />
+				</div>
 
-				<aui:field-wrapper label="template">
-					<c:choose>
-						<c:when test="<%= ddmTemplates.isEmpty() %>">
-							<aui:input name="templateId" type="hidden" value="<%= templateId %>" />
-						</c:when>
-						<c:otherwise>
+				<c:choose>
+					<c:when test="<%= ddmTemplates.isEmpty() %>">
+						<aui:input name="templateId" type="hidden" value="<%= templateId %>" />
+					</c:when>
+					<c:otherwise>
+						<aui:field-wrapper label="template">
 							<liferay-ui:table-iterator
 								list="<%= ddmTemplates %>"
 								listType="com.liferay.portlet.dynamicdatamapping.model.DDMTemplate"
@@ -228,12 +222,12 @@ if (feed != null) {
 								<c:if test="<%= tableIteratorObj.isSmallImage() %>">
 									<br />
 
-									<img border="0" hspace="0" src="<%= Validator.isNotNull(tableIteratorObj.getSmallImageURL()) ? tableIteratorObj.getSmallImageURL() : themeDisplay.getPathImage() + "/journal/template?img_id=" + tableIteratorObj.getSmallImageId() + "&t=" + WebServerServletTokenUtil.getToken(tableIteratorObj.getSmallImageId()) %>" vspace="0" />
+									<img alt="" border="0" hspace="0" src="<%= Validator.isNotNull(tableIteratorObj.getSmallImageURL()) ? tableIteratorObj.getSmallImageURL() : themeDisplay.getPathImage() + "/journal/template?img_id=" + tableIteratorObj.getSmallImageId() + "&t=" + WebServerServletTokenUtil.getToken(tableIteratorObj.getSmallImageId()) %>" vspace="0" />
 								</c:if>
 							</liferay-ui:table-iterator>
-						</c:otherwise>
-					</c:choose>
-				</aui:field-wrapper>
+						</aui:field-wrapper>
+					</c:otherwise>
+				</c:choose>
 			</aui:fieldset>
 		</liferay-ui:panel>
 
@@ -251,7 +245,7 @@ if (feed != null) {
 							for (DDMTemplate curTemplate : ddmTemplates) {
 							%>
 
-								<aui:option data-contentField="<%= JournalFeedConstants.RENDERED_WEB_CONTENT %>" label='<%= LanguageUtil.format(pageContext, "use-template-x", HtmlUtil.escape(curTemplate.getName(locale))) %>' selected="<%= rendererTemplateId.equals(curTemplate.getTemplateKey()) %>" value="<%= curTemplate.getTemplateKey() %>" />
+								<aui:option data-contentField="<%= JournalFeedConstants.RENDERED_WEB_CONTENT %>" label='<%= LanguageUtil.format(pageContext, "use-template-x", HtmlUtil.escape(curTemplate.getName(locale)), false) %>' selected="<%= rendererTemplateId.equals(curTemplate.getTemplateKey()) %>" value="<%= curTemplate.getTemplateKey() %>" />
 
 							<%
 							}
@@ -360,13 +354,15 @@ if (feed != null) {
 				},
 				eventName: '<portlet:namespace />selectStructure',
 				groupId: <%= themeDisplay.getSiteGroupId() %>,
+				refererPortletName: '<%= PortletKeys.JOURNAL %>',
 
 				<%
 				Portlet portlet = PortletLocalServiceUtil.getPortletById(portletDisplay.getId());
 				%>
 
-				refererPortletName: '<%= PortletKeys.JOURNAL %>',
 				refererWebDAVToken: '<%= portlet.getWebDAVStorageToken() %>',
+
+				showAncestorScopes: true,
 				struts_action: '/dynamic_data_mapping/select_structure',
 				title: '<%= UnicodeLanguageUtil.get(pageContext, "structures") %>'
 			},

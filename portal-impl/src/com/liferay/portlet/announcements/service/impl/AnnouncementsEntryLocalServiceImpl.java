@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -132,6 +132,7 @@ public class AnnouncementsEntryLocalServiceImpl
 	 *             String, String, String, String, int, int, int, int, int,
 	 *             boolean, int, int, int, int, int, int, boolean)}
 	 */
+	@Deprecated
 	@Override
 	public AnnouncementsEntry addEntry(
 			long userId, long classNameId, long classPK, String title,
@@ -346,19 +347,25 @@ public class AnnouncementsEntryLocalServiceImpl
 			long userId, long entryId, String title, String content, String url,
 			String type, int displayDateMonth, int displayDateDay,
 			int displayDateYear, int displayDateHour, int displayDateMinute,
-			int expirationDateMonth, int expirationDateDay,
-			int expirationDateYear, int expirationDateHour,
-			int expirationDateMinute, int priority)
+			boolean displayImmediately, int expirationDateMonth,
+			int expirationDateDay, int expirationDateYear,
+			int expirationDateHour, int expirationDateMinute, int priority)
 		throws PortalException, SystemException {
 
 		// Entry
 
 		User user = userPersistence.findByPrimaryKey(userId);
 
-		Date displayDate = PortalUtil.getDate(
-			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
-			displayDateMinute, user.getTimeZone(),
-			EntryDisplayDateException.class);
+		Date now = new Date();
+
+		Date displayDate = now;
+
+		if (!displayImmediately) {
+			displayDate = PortalUtil.getDate(
+				displayDateMonth, displayDateDay, displayDateYear,
+				displayDateHour, displayDateMinute, user.getTimeZone(),
+				EntryDisplayDateException.class);
+		}
 
 		Date expirationDate = PortalUtil.getDate(
 			expirationDateMonth, expirationDateDay, expirationDateYear,
@@ -370,7 +377,7 @@ public class AnnouncementsEntryLocalServiceImpl
 		AnnouncementsEntry entry =
 			announcementsEntryPersistence.findByPrimaryKey(entryId);
 
-		entry.setModifiedDate(new Date());
+		entry.setModifiedDate(now);
 		entry.setTitle(title);
 		entry.setContent(content);
 		entry.setUrl(url);
@@ -399,6 +406,8 @@ public class AnnouncementsEntryLocalServiceImpl
 
 		String toName = PropsValues.ANNOUNCEMENTS_EMAIL_TO_NAME;
 		String toAddress = PropsValues.ANNOUNCEMENTS_EMAIL_TO_ADDRESS;
+
+		long teamId = 0;
 
 		LinkedHashMap<String, Object> params =
 			new LinkedHashMap<String, Object>();
@@ -433,6 +442,9 @@ public class AnnouncementsEntryLocalServiceImpl
 					params.put("inherit", Boolean.TRUE);
 					params.put("usersRoles", classPK);
 				}
+				else if (role.isTeam()) {
+					teamId = role.getClassPK();
+				}
 				else {
 					params.put(
 						"userGroupRole", new Long[] {Long.valueOf(0), classPK});
@@ -461,9 +473,16 @@ public class AnnouncementsEntryLocalServiceImpl
 				user.getFullName());
 		}
 		else {
-			int count = userLocalService.searchCount(
-				company.getCompanyId(), null, WorkflowConstants.STATUS_APPROVED,
-				params);
+			int count = 0;
+
+			if (teamId > 0) {
+				count = userLocalService.getTeamUsersCount(teamId);
+			}
+			else {
+				count = userLocalService.searchCount(
+					company.getCompanyId(), null,
+					WorkflowConstants.STATUS_APPROVED, params);
+			}
 
 			int pages = count / Indexer.DEFAULT_INTERVAL;
 
@@ -471,10 +490,17 @@ public class AnnouncementsEntryLocalServiceImpl
 				int start = (i * Indexer.DEFAULT_INTERVAL);
 				int end = start + Indexer.DEFAULT_INTERVAL;
 
-				List<User> users = userLocalService.search(
-					company.getCompanyId(), null,
-					WorkflowConstants.STATUS_APPROVED, params, start, end,
-					(OrderByComparator)null);
+				List<User> users = null;
+
+				if (teamId > 0) {
+					users = userLocalService.getTeamUsers(teamId, start, end);
+				}
+				else {
+					users = userLocalService.search(
+						company.getCompanyId(), null,
+						WorkflowConstants.STATUS_APPROVED, params, start, end,
+						(OrderByComparator)null);
+				}
 
 				notifyUsers(
 					users, entry, company.getLocale(), toAddress, toName);
@@ -537,8 +563,9 @@ public class AnnouncementsEntryLocalServiceImpl
 			"[$ENTRY_CONTENT$]", entry.getContent(), false);
 		subscriptionSender.setContextAttributes(
 			"[$ENTRY_ID$]", entry.getEntryId(), "[$ENTRY_TITLE$]",
-			entry.getTitle(), "[$ENTRY_TYPE$]", "[$ENTRY_URL$]", entry.getUrl(),
-			"[$PORTLET_NAME$]",
+			entry.getTitle(), "[$ENTRY_TYPE$]",
+			LanguageUtil.get(locale, entry.getType()), "[$ENTRY_URL$]",
+			entry.getUrl(), "[$PORTLET_NAME$]",
 			LanguageUtil.get(
 				locale, (entry.isAlert() ? "alert" : "announcement")));
 		subscriptionSender.setFrom(fromAddress, fromName);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,6 +29,7 @@ import com.liferay.portal.RequiredGroupException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.servlet.MultiSessionMessages;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.staging.StagingConstants;
 import com.liferay.portal.kernel.staging.StagingUtil;
@@ -137,9 +138,24 @@ public class EditGroupAction extends PortletAction {
 							actionResponse, themeDisplay,
 							PortletKeys.SITE_SETTINGS);
 
+					String controlPanelURL = HttpUtil.setParameter(
+						themeDisplay.getURLControlPanel(), "p_p_id",
+						PortletKeys.SITES_ADMIN);
+
+					controlPanelURL = HttpUtil.setParameter(
+						controlPanelURL, "controlPanelCategory",
+						themeDisplay.getControlPanelCategory());
+
+					siteAdministrationURL.setParameter(
+						"redirect", controlPanelURL);
+
 					redirect = siteAdministrationURL.toString();
 
 					hideDefaultSuccessMessage(actionRequest);
+
+					MultiSessionMessages.add(
+						actionRequest,
+						PortletKeys.SITE_SETTINGS + "requestProcessed");
 				}
 				else {
 					String oldFriendlyURL = (String)returnValue[1];

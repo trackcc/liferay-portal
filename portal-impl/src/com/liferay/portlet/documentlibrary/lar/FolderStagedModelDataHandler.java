@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,10 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BaseStagedModelDataHandler;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
+import com.liferay.portal.kernel.lar.PortletDataException;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
@@ -59,12 +62,10 @@ public class FolderStagedModelDataHandler
 			String uuid, long groupId, String className, String extraData)
 		throws PortalException, SystemException {
 
-		DLFolder dlFolder =
-			DLFolderLocalServiceUtil.fetchDLFolderByUuidAndGroupId(
-				uuid, groupId);
+		Folder folder = FolderUtil.fetchByUUID_R(uuid, groupId);
 
-		if (dlFolder != null) {
-			DLFolderLocalServiceUtil.deleteFolder(dlFolder);
+		if (folder != null) {
+			DLAppLocalServiceUtil.deleteFolder(folder.getFolderId());
 		}
 	}
 
@@ -83,8 +84,7 @@ public class FolderStagedModelDataHandler
 			PortletDataContext portletDataContext, Folder folder)
 		throws Exception {
 
-		Element folderElement = portletDataContext.getExportDataElement(
-			folder, Folder.class);
+		Element folderElement = portletDataContext.getExportDataElement(folder);
 
 		String folderPath = ExportImportPathUtil.getModelPath(folder);
 
@@ -92,8 +92,7 @@ public class FolderStagedModelDataHandler
 				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 
 			StagedModelDataHandlerUtil.exportReferenceStagedModel(
-				portletDataContext, folder, Folder.class,
-				folder.getParentFolder(), Folder.class,
+				portletDataContext, folder, folder.getParentFolder(),
 				PortletDataContext.REFERENCE_TYPE_PARENT);
 		}
 
@@ -104,12 +103,12 @@ public class FolderStagedModelDataHandler
 	}
 
 	@Override
-	protected void doImportCompanyStagedModel(
-			PortletDataContext portletDataContext, String uuid, long folderId)
+	protected void doImportMissingReference(
+			PortletDataContext portletDataContext, String uuid, long groupId,
+			long folderId)
 		throws Exception {
 
-		Folder existingFolder = FolderUtil.fetchByUUID_R(
-			uuid, portletDataContext.getCompanyGroupId());
+		Folder existingFolder = FolderUtil.fetchByUUID_R(uuid, groupId);
 
 		Map<Long, Long> folderIds =
 			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
@@ -125,17 +124,11 @@ public class FolderStagedModelDataHandler
 
 		long userId = portletDataContext.getUserId(folder.getUserUuid());
 
-		String path = ExportImportPathUtil.getModelPath(
-			portletDataContext, Folder.class.getName(), folder.getFolderId());
-
-		Element folderElement = portletDataContext.getImportDataElement(
-			Folder.class.getSimpleName(), "path", path);
-
 		if (folder.getParentFolderId() !=
 				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 
 			StagedModelDataHandlerUtil.importReferenceStagedModel(
-				portletDataContext, folder, Folder.class,
+				portletDataContext, folder, DLFolder.class,
 				folder.getParentFolderId());
 		}
 
@@ -189,8 +182,11 @@ public class FolderStagedModelDataHandler
 				name, folder.getDescription(), serviceContext);
 		}
 
+		Element folderElement = portletDataContext.getImportDataElement(folder);
+
 		importFolderFileEntryTypes(
-			portletDataContext, folderElement, folder, serviceContext);
+			portletDataContext, folderElement, folder, importedFolder,
+			serviceContext);
 
 		portletDataContext.importClassedModel(
 			folder, importedFolder, DLFolder.class);
@@ -234,6 +230,10 @@ public class FolderStagedModelDataHandler
 			Folder folder)
 		throws Exception {
 
+		if (!folder.isDefaultRepository()) {
+			return;
+		}
+
 		List<DLFileEntryType> dlFileEntryTypes =
 			DLFileEntryTypeLocalServiceUtil.getFolderFileEntryTypes(
 				new long[] {
@@ -266,8 +266,7 @@ public class FolderStagedModelDataHandler
 
 			if (dlFileEntryType.isExportable()) {
 				StagedModelDataHandlerUtil.exportReferenceStagedModel(
-					portletDataContext, folder, Folder.class, dlFileEntryType,
-					DLFileEntryType.class,
+					portletDataContext, folder, dlFileEntryType,
 					PortletDataContext.REFERENCE_TYPE_STRONG);
 			}
 		}
@@ -304,8 +303,12 @@ public class FolderStagedModelDataHandler
 
 	protected void importFolderFileEntryTypes(
 			PortletDataContext portletDataContext, Element folderElement,
-			Folder folder, ServiceContext serviceContext)
+			Folder folder, Folder importedFolder, ServiceContext serviceContext)
 		throws Exception {
+
+		if (!folder.isDefaultRepository()) {
+			return;
+		}
 
 		List<Long> currentFolderFileEntryTypeIds = new ArrayList<Long>();
 
@@ -361,7 +364,7 @@ public class FolderStagedModelDataHandler
 		}
 
 		if (!currentFolderFileEntryTypeIds.isEmpty()) {
-			DLFolder dlFolder = (DLFolder)folder.getModel();
+			DLFolder dlFolder = (DLFolder)importedFolder.getModel();
 
 			dlFolder.setDefaultFileEntryTypeId(defaultFileEntryTypeId);
 			dlFolder.setOverrideFileEntryTypes(true);
@@ -371,6 +374,47 @@ public class FolderStagedModelDataHandler
 			DLFileEntryTypeLocalServiceUtil.updateFolderFileEntryTypes(
 				dlFolder, currentFolderFileEntryTypeIds, defaultFileEntryTypeId,
 				serviceContext);
+		}
+	}
+
+	@Override
+	protected void validateExport(
+			PortletDataContext portletDataContext, Folder folder)
+		throws PortletDataException {
+
+		if ((folder.getGroupId() != portletDataContext.getGroupId()) &&
+			(folder.getGroupId() != portletDataContext.getScopeGroupId())) {
+
+			PortletDataException pde = new PortletDataException(
+				PortletDataException.INVALID_GROUP);
+
+			pde.setStagedModel(folder);
+
+			throw pde;
+		}
+
+		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
+			DLFolder.class.getName());
+
+		if (trashHandler != null) {
+			try {
+				if (trashHandler.isInTrash(folder.getFolderId()) ||
+					trashHandler.isInTrashContainer(folder.getFolderId())) {
+
+					throw new PortletDataException(
+						PortletDataException.STATUS_IN_TRASH);
+				}
+			}
+			catch (PortletDataException pde) {
+				throw pde;
+			}
+			catch (Exception e) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Unable to check trash status for " +
+							DLFolder.class.getName());
+				}
+			}
 		}
 	}
 
@@ -389,5 +433,8 @@ public class FolderStagedModelDataHandler
 
 		return true;
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(
+		FolderStagedModelDataHandler.class);
 
 }

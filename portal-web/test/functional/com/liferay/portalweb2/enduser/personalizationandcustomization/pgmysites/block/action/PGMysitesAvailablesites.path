@@ -20,37 +20,37 @@
 </tr>
 <tr>
 	<td>SUCCESS_MESSAGE</td>
-	<td>xpath=(//div[@class='alert alert-success'])[1]</td>
+	<td>xpath=(//div[contains(@class,'alert') and contains(@class,'alert-success')])[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SUCCESS_MESSAGE_2</td>
-	<td>xpath=(//div[@class='alert alert-success'])[2]</td>
+	<td>xpath=(//div[contains(@class,'alert') and contains(@class,'alert-success')])[2]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>INFO_MESSAGE</td>
-	<td>//div[@class='alert alert-info']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-info')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>NAVIGATION_MY_SITES</td>
-	<td>//ul[@class='nav nav-tabs']/li/a[contains(.,'My Sites')]</td>
+	<td>//ul[contains(@class,'nav') and contains(@class,'nav-tabs')]/li/a[contains(.,'My Sites')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>NAVIGATION_AVAILABLE_SITES</td>
-	<td>//ul[@class='nav nav-tabs']/li/a[contains(.,'Available Sites')]</td>
+	<td>//ul[contains(@class,'nav') and contains(@class,'nav-tabs')]/li/a[contains(.,'Available Sites')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SEARCH_FIELD</td>
-	<td>//div[@id='toggle_id_users_admin_group_searchsimple']/input</td>
+	<td>//div[@id='toggle_id_users_admin_group_searchsimple']//input</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SEARCH_BUTTON</td>
-	<td>//div[@id='toggle_id_users_admin_group_searchsimple']/button</td>
+	<td>//div[@id='toggle_id_users_admin_group_searchsimple']//button</td>
 	<td></td>
 </tr>
 <tr>

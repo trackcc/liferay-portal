@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.dynamicdatamapping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see DDMTemplateLocalService
  * @generated
  */
+@ProviderType
 public class DDMTemplateLocalServiceWrapper implements DDMTemplateLocalService,
 	ServiceWrapper<DDMTemplateLocalService> {
 	public DDMTemplateLocalServiceWrapper(
@@ -236,6 +239,19 @@ public class DDMTemplateLocalServiceWrapper implements DDMTemplateLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _ddmTemplateLocalService.getDDMTemplate(templateId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddmTemplateLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddmTemplateLocalService.getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	@Override
@@ -622,8 +638,8 @@ public class DDMTemplateLocalServiceWrapper implements DDMTemplateLocalService,
 	* @param classNameId the primary key of the class name for the template's
 	related model
 	* @param templateKey the unique string identifying the template
-	* @param includeGlobalTemplates whether to include the global scope in the
-	search
+	* @param includeAncestorTemplates whether to include the global scope in
+	the search
 	* @return the matching template, or <code>null</code> if a matching
 	template could not be found
 	* @throws PortalException if a portal exception occurred
@@ -632,11 +648,11 @@ public class DDMTemplateLocalServiceWrapper implements DDMTemplateLocalService,
 	@Override
 	public com.liferay.portlet.dynamicdatamapping.model.DDMTemplate fetchTemplate(
 		long groupId, long classNameId, java.lang.String templateKey,
-		boolean includeGlobalTemplates)
+		boolean includeAncestorTemplates)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _ddmTemplateLocalService.fetchTemplate(groupId, classNameId,
-			templateKey, includeGlobalTemplates);
+			templateKey, includeAncestorTemplates);
 	}
 
 	/**
@@ -677,20 +693,20 @@ public class DDMTemplateLocalServiceWrapper implements DDMTemplateLocalService,
 
 	/**
 	* Returns the template matching the group and template key, optionally in
-	* the global scope.
+	* the parent sites.
 	*
 	* <p>
 	* This method first searches in the group. If the template is still not
-	* found and <code>includeGlobalTemplates</code> is set to
-	* <code>true</code>, this method searches the global group.
+	* found and <code>includeAncestorTemplates</code> is set to
+	* <code>true</code>, this method searches the parent sites.
 	* </p>
 	*
 	* @param groupId the primary key of the group
 	* @param classNameId the primary key of the class name for the template's
 	related model
 	* @param templateKey the unique string identifying the template
-	* @param includeGlobalTemplates whether to include the global scope in the
-	search
+	* @param includeAncestorTemplates whether to include the parent sites in
+	the search
 	* @return the matching template
 	* @throws PortalException if a matching template could not be found
 	* @throws SystemException if a system exception occurred
@@ -698,11 +714,11 @@ public class DDMTemplateLocalServiceWrapper implements DDMTemplateLocalService,
 	@Override
 	public com.liferay.portlet.dynamicdatamapping.model.DDMTemplate getTemplate(
 		long groupId, long classNameId, java.lang.String templateKey,
-		boolean includeGlobalTemplates)
+		boolean includeAncestorTemplates)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _ddmTemplateLocalService.getTemplate(groupId, classNameId,
-			templateKey, includeGlobalTemplates);
+			templateKey, includeAncestorTemplates);
 	}
 
 	@Override
@@ -759,6 +775,14 @@ public class DDMTemplateLocalServiceWrapper implements DDMTemplateLocalService,
 		long groupId, long classNameId, long classPK)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _ddmTemplateLocalService.getTemplates(groupId, classNameId,
+			classPK);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMTemplate> getTemplates(
+		long[] groupIds, long classNameId, long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddmTemplateLocalService.getTemplates(groupIds, classNameId,
 			classPK);
 	}
 
@@ -1329,6 +1353,7 @@ public class DDMTemplateLocalServiceWrapper implements DDMTemplateLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DDMTemplateLocalService getWrappedDDMTemplateLocalService() {
 		return _ddmTemplateLocalService;
 	}
@@ -1336,6 +1361,7 @@ public class DDMTemplateLocalServiceWrapper implements DDMTemplateLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDDMTemplateLocalService(
 		DDMTemplateLocalService ddmTemplateLocalService) {
 		_ddmTemplateLocalService = ddmTemplateLocalService;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -122,7 +122,6 @@ public class LayoutSetBranchLocalServiceImpl
 		layoutSetBranch.setName(name);
 		layoutSetBranch.setDescription(description);
 		layoutSetBranch.setMaster(master);
-		layoutSetBranch.setLogo(logo);
 		layoutSetBranch.setLogoId(logoId);
 
 		if (logo) {
@@ -248,6 +247,12 @@ public class LayoutSetBranchLocalServiceImpl
 			}
 		}
 
+		LayoutSet layoutSet = layoutSetBranch.getLayoutSet();
+
+		StagingUtil.setRecentLayoutSetBranchId(
+			user, layoutSet.getLayoutSetId(),
+			layoutSetBranch.getLayoutSetBranchId());
+
 		return layoutSetBranch;
 	}
 
@@ -363,6 +368,7 @@ public class LayoutSetBranchLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link #getUserLayoutSetBranch(long,
 	 *             long, boolean, long, long)}
 	 */
+	@Deprecated
 	@Override
 	public LayoutSetBranch getUserLayoutSetBranch(
 			long userId, long groupId, boolean privateLayout,
@@ -442,7 +448,8 @@ public class LayoutSetBranchLocalServiceImpl
 			sb.append(
 				LanguageUtil.format(
 					locale, "merged-from-x-x",
-					new String[] {mergeLayoutSetBranch.getName(), nowString}));
+					new String[] {mergeLayoutSetBranch.getName(), nowString},
+					false));
 
 			LayoutBranch layoutBranch =
 				layoutBranchLocalService.addLayoutBranch(

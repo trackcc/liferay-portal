@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.documentlibrary.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see DLFileShortcut
  * @generated
  */
+@ProviderType
 public class DLFileShortcutWrapper implements DLFileShortcut,
 	ModelWrapper<DLFileShortcut> {
 	public DLFileShortcutWrapper(DLFileShortcut dlFileShortcut) {
@@ -645,9 +648,22 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 		return _dlFileShortcut.isInTrashContainer();
 	}
 
+	@Override
+	public boolean isInTrashExplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileShortcut.isInTrashExplicitly();
+	}
+
+	@Override
+	public boolean isInTrashImplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileShortcut.isInTrashImplicitly();
+	}
+
 	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _dlFileShortcut.getApproved();
@@ -839,6 +855,12 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 	}
 
 	@Override
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_dlFileShortcut.updateTreePath(treePath);
+	}
+
+	@Override
 	public java.lang.String buildTreePath()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -897,6 +919,7 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DLFileShortcut getWrappedDLFileShortcut() {
 		return _dlFileShortcut;
 	}
@@ -904,6 +927,16 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 	@Override
 	public DLFileShortcut getWrappedModel() {
 		return _dlFileShortcut;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _dlFileShortcut.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _dlFileShortcut.isFinderCacheEnabled();
 	}
 
 	@Override

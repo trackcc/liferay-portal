@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -115,6 +115,11 @@
 							>
 
 								<%
+								TrashHandler curTrashHandler = TrashHandlerRegistryUtil.getTrashHandler(curTrashRenderer.getClassName());
+
+								int curContainerModelsCount = curTrashHandler.getTrashContainerModelsCount(curTrashRenderer.getClassPK());
+								int curBaseModelsCount = curTrashHandler.getTrashContainedModelsCount(curTrashRenderer.getClassPK());
+
 								PortletURL rowURL = renderResponse.createRenderURL();
 
 								rowURL.setParameter("struts_action", "/trash/view_content");
@@ -129,19 +134,20 @@
 									<liferay-ui:icon
 										label="<%= true %>"
 										message="<%= HtmlUtil.escape(curTrashRenderer.getTitle(locale)) %>"
+										method="get"
 										src="<%= curTrashRenderer.getIconPath(renderRequest) %>"
 										url="<%= rowURL.toString() %>"
 									/>
 								</liferay-ui:search-container-column-text>
 
 								<liferay-ui:search-container-column-text
-									name='<%= LanguageUtil.format(pageContext, "num-of-x", trashHandler.getTrashContainedModelName(), true) %>'
-									value="<%= String.valueOf(baseModelsCount) %>"
+									name='<%= LanguageUtil.format(pageContext, "num-of-x", curTrashHandler.getTrashContainedModelName()) %>'
+									value="<%= String.valueOf(curBaseModelsCount) %>"
 								/>
 
 								<liferay-ui:search-container-column-text
-									name='<%= LanguageUtil.format(pageContext, "num-of-x", trashHandler.getTrashContainerModelName(), true) %>'
-									value="<%= String.valueOf(containerModelsCount) %>"
+									name='<%= LanguageUtil.format(pageContext, "num-of-x", curTrashHandler.getTrashContainerModelName()) %>'
+									value="<%= String.valueOf(curContainerModelsCount) %>"
 								/>
 
 								<liferay-ui:search-container-column-jsp
@@ -187,6 +193,7 @@
 									<liferay-ui:icon
 										label="<%= true %>"
 										message="<%= HtmlUtil.escape(curTrashRenderer.getTitle(locale)) %>"
+										method="get"
 										src="<%= curTrashRenderer.getIconPath(renderRequest) %>"
 										url="<%= rowURL.toString() %>"
 									/>
@@ -205,7 +212,7 @@
 
 				<c:if test="<%= (containerModelsCount + baseModelsCount) == 0 %>">
 					<div class="alert alert-info">
-						<liferay-ui:message arguments="<%= new String[] {ResourceActionsUtil.getModelResource(locale, className)} %>" key="this-x-does-not-contain-an-entry" />
+						<liferay-ui:message arguments="<%= new String[] {ResourceActionsUtil.getModelResource(locale, className)} %>" key="this-x-does-not-contain-an-entry" translateArguments="<%= false %>" />
 					</div>
 				</c:if>
 			</liferay-ui:panel-container>
@@ -216,7 +223,7 @@
 			</liferay-util:include>
 		</c:when>
 		<c:otherwise>
-			<%= trashRenderer.getSummary(locale) %>
+			<%= HtmlUtil.escape(trashRenderer.getSummary(renderRequest, renderResponse)) %>
 		</c:otherwise>
 	</c:choose>
 

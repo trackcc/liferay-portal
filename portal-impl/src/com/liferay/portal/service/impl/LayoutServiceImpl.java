@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,7 +18,10 @@ import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.kernel.cache.ThreadLocalCachable;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.ExportImportHelperUtil;
 import com.liferay.portal.kernel.lar.MissingReferences;
+import com.liferay.portal.kernel.lar.exportimportconfiguration.ExportImportConfigurationConstants;
+import com.liferay.portal.kernel.lar.exportimportconfiguration.ExportImportConfigurationSettingsMapFactory;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.scheduler.CronTrigger;
@@ -26,12 +29,11 @@ import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.scheduler.StorageType;
 import com.liferay.portal.kernel.scheduler.Trigger;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.TempFileUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
-import com.liferay.portal.messaging.LayoutsLocalPublisherRequest;
-import com.liferay.portal.messaging.LayoutsRemotePublisherRequest;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.model.ExportImportConfiguration;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
@@ -51,6 +53,7 @@ import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -116,6 +119,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	 *             long, Map, Map, Map, Map, Map, String, String, boolean, Map,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Layout addLayout(
 			long groupId, boolean privateLayout, long parentLayoutId,
@@ -513,7 +517,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 		Group companyGroup = groupLocalService.getCompanyGroup(companyId);
 
 		GroupPermissionUtil.check(
-			getPermissionChecker(), companyGroup.getGroupId(),
+			getPermissionChecker(), companyGroup,
 			ActionKeys.EXPORT_IMPORT_PORTLET_INFO);
 
 		return layoutLocalService.exportPortletInfo(
@@ -568,7 +572,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 			user.getCompanyId());
 
 		GroupPermissionUtil.check(
-			getPermissionChecker(), companyGroup.getGroupId(),
+			getPermissionChecker(), companyGroup,
 			ActionKeys.EXPORT_IMPORT_PORTLET_INFO);
 
 		return layoutLocalService.exportPortletInfoAsFile(
@@ -606,7 +610,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 			user.getCompanyId());
 
 		GroupPermissionUtil.check(
-			getPermissionChecker(), companyGroup.getGroupId(),
+			getPermissionChecker(), companyGroup,
 			ActionKeys.EXPORT_IMPORT_PORTLET_INFO);
 
 		return layoutLocalService.exportPortletInfoAsFileInBackground(
@@ -1054,7 +1058,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 			user.getCompanyId());
 
 		GroupPermissionUtil.check(
-			getPermissionChecker(), companyGroup.getGroupId(),
+			getPermissionChecker(), companyGroup,
 			ActionKeys.EXPORT_IMPORT_PORTLET_INFO);
 
 		layoutLocalService.importPortletInfo(
@@ -1073,7 +1077,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 			user.getCompanyId());
 
 		GroupPermissionUtil.check(
-			getPermissionChecker(), companyGroup.getGroupId(),
+			getPermissionChecker(), companyGroup,
 			ActionKeys.EXPORT_IMPORT_PORTLET_INFO);
 
 		layoutLocalService.importPortletInfo(
@@ -1121,7 +1125,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 			user.getCompanyId());
 
 		GroupPermissionUtil.check(
-			getPermissionChecker(), companyGroup.getGroupId(),
+			getPermissionChecker(), companyGroup,
 			ActionKeys.EXPORT_IMPORT_PORTLET_INFO);
 
 		layoutLocalService.importPortletInfoInBackground(
@@ -1140,7 +1144,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 			user.getCompanyId());
 
 		GroupPermissionUtil.check(
-			getPermissionChecker(), companyGroup.getGroupId(),
+			getPermissionChecker(), companyGroup,
 			ActionKeys.EXPORT_IMPORT_PORTLET_INFO);
 
 		layoutLocalService.importPortletInfoInBackground(
@@ -1153,8 +1157,8 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	 * @param  sourceGroupId the primary key of the source group
 	 * @param  targetGroupId the primary key of the target group
 	 * @param  privateLayout whether the layout is private to the group
-	 * @param  layoutIdMap the layouts considered for publishing, specified by
-	 *         the layout IDs and booleans indicating whether they have children
+	 * @param  layoutIds the layouts considered for publishing, specified by the
+	 *         layout IDs
 	 * @param  parameterMap the mapping of parameters indicating which
 	 *         information will be used. See {@link
 	 *         com.liferay.portal.kernel.lar.PortletDataHandlerKeys}
@@ -1177,37 +1181,85 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	@Override
 	public void schedulePublishToLive(
 			long sourceGroupId, long targetGroupId, boolean privateLayout,
+			long[] layoutIds, Map<String, String[]> parameterMap, String scope,
+			Date startDate, Date endDate, String groupName, String cronText,
+			Date schedulerStartDate, Date schedulerEndDate, String description)
+		throws PortalException, SystemException {
+
+		GroupPermissionUtil.check(
+			getPermissionChecker(), targetGroupId, ActionKeys.PUBLISH_STAGING);
+
+		Trigger trigger = new CronTrigger(
+			PortalUUIDUtil.generate(), groupName, schedulerStartDate,
+			schedulerEndDate, cronText);
+
+		Map<String, Serializable> settingsMap =
+			ExportImportConfigurationSettingsMapFactory.buildSettingsMap(
+				getUserId(), sourceGroupId, targetGroupId, privateLayout,
+				layoutIds, parameterMap, startDate, endDate, null, null);
+
+		ExportImportConfiguration exportImportConfiguration =
+			exportImportConfigurationLocalService.addExportImportConfiguration(
+				getUserId(), sourceGroupId, trigger.getJobName(), description,
+				ExportImportConfigurationConstants.
+					TYPE_SCHEDULED_PUBLISH_LAYOUT_LOCAL,
+				settingsMap, WorkflowConstants.STATUS_DRAFT,
+				new ServiceContext());
+
+		SchedulerEngineHelperUtil.schedule(
+			trigger, StorageType.PERSISTED, description,
+			DestinationNames.LAYOUTS_LOCAL_PUBLISHER,
+			exportImportConfiguration.getExportImportConfigurationId(), 0);
+	}
+
+	/**
+	 * Schedules a range of layouts to be published.
+	 *
+	 * @param      sourceGroupId the primary key of the source group
+	 * @param      targetGroupId the primary key of the target group
+	 * @param      privateLayout whether the layout is private to the group
+	 * @param      layoutIdMap the layouts considered for publishing, specified
+	 *             by the layout IDs and booleans indicating whether they have
+	 *             children
+	 * @param      parameterMap the mapping of parameters indicating which
+	 *             information will be used. See {@link
+	 *             com.liferay.portal.kernel.lar.PortletDataHandlerKeys}
+	 * @param      scope the scope of the pages. It can be
+	 *             <code>all-pages</code> or <code>selected-pages</code>.
+	 * @param      startDate the start date
+	 * @param      endDate the end date
+	 * @param      groupName the group name (optionally {@link
+	 *             com.liferay.portal.kernel.messaging.DestinationNames#LAYOUTS_LOCAL_PUBLISHER}).
+	 *             See {@link
+	 *             com.liferay.portal.kernel.messaging.DestinationNames}.
+	 * @param      cronText the cron text. See {@link
+	 *             com.liferay.portal.kernel.cal.RecurrenceSerializer
+	 *             #toCronText}
+	 * @param      schedulerStartDate the scheduler start date
+	 * @param      schedulerEndDate the scheduler end date
+	 * @param      description the scheduler description
+	 * @throws     PortalException if the group did not have permission to
+	 *             manage and publish
+	 * @throws     SystemException if a system exception occurred
+	 * @deprecated As of 7.0.0, replaced by {@link #schedulePublishToLive(long,
+	 *             long, boolean, long[], Map, String, Date, Date, String,
+	 *             String, Date, Date, String)}
+	 */
+	@Deprecated
+	@Override
+	public void schedulePublishToLive(
+			long sourceGroupId, long targetGroupId, boolean privateLayout,
 			Map<Long, Boolean> layoutIdMap, Map<String, String[]> parameterMap,
 			String scope, Date startDate, Date endDate, String groupName,
 			String cronText, Date schedulerStartDate, Date schedulerEndDate,
 			String description)
 		throws PortalException, SystemException {
 
-		GroupPermissionUtil.check(
-			getPermissionChecker(), targetGroupId, ActionKeys.PUBLISH_STAGING);
-
-		String jobName = PortalUUIDUtil.generate();
-
-		Trigger trigger = new CronTrigger(
-			jobName, groupName, schedulerStartDate, schedulerEndDate, cronText);
-
-		String command = StringPool.BLANK;
-
-		if (scope.equals("all-pages")) {
-			command = LayoutsLocalPublisherRequest.COMMAND_ALL_PAGES;
-		}
-		else if (scope.equals("selected-pages")) {
-			command = LayoutsLocalPublisherRequest.COMMAND_SELECTED_PAGES;
-		}
-
-		LayoutsLocalPublisherRequest publisherRequest =
-			new LayoutsLocalPublisherRequest(
-				command, getUserId(), sourceGroupId, targetGroupId,
-				privateLayout, layoutIdMap, parameterMap, startDate, endDate);
-
-		SchedulerEngineHelperUtil.schedule(
-			trigger, StorageType.PERSISTED, description,
-			DestinationNames.LAYOUTS_LOCAL_PUBLISHER, publisherRequest, 0);
+		schedulePublishToLive(
+			sourceGroupId, targetGroupId, privateLayout,
+			ExportImportHelperUtil.getLayoutIds(layoutIdMap, targetGroupId),
+			parameterMap, scope, startDate, endDate, groupName, cronText,
+			schedulerStartDate, schedulerEndDate, description);
 	}
 
 	/**
@@ -1254,21 +1306,29 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 		GroupPermissionUtil.check(
 			getPermissionChecker(), sourceGroupId, ActionKeys.PUBLISH_STAGING);
 
-		LayoutsRemotePublisherRequest publisherRequest =
-			new LayoutsRemotePublisherRequest(
+		Trigger trigger = new CronTrigger(
+			PortalUUIDUtil.generate(), groupName, schedulerStartDate,
+			schedulerEndDate, cronText);
+
+		Map<String, Serializable> settingsMap =
+			ExportImportConfigurationSettingsMapFactory.buildSettingsMap(
 				getUserId(), sourceGroupId, privateLayout, layoutIdMap,
 				parameterMap, remoteAddress, remotePort, remotePathContext,
 				secureConnection, remoteGroupId, remotePrivateLayout, startDate,
-				endDate);
+				endDate, null, null);
 
-		String jobName = PortalUUIDUtil.generate();
-
-		Trigger trigger = new CronTrigger(
-			jobName, groupName, schedulerStartDate, schedulerEndDate, cronText);
+		ExportImportConfiguration exportImportConfiguration =
+			exportImportConfigurationLocalService.addExportImportConfiguration(
+				getUserId(), sourceGroupId, trigger.getJobName(), description,
+				ExportImportConfigurationConstants.
+					TYPE_SCHEDULED_PUBLISH_LAYOUT_REMOTE,
+				settingsMap, WorkflowConstants.STATUS_DRAFT,
+				new ServiceContext());
 
 		SchedulerEngineHelperUtil.schedule(
 			trigger, StorageType.PERSISTED, description,
-			DestinationNames.LAYOUTS_REMOTE_PUBLISHER, publisherRequest, 0);
+			DestinationNames.LAYOUTS_REMOTE_PUBLISHER,
+			exportImportConfiguration.getExportImportConfigurationId(), 0);
 	}
 
 	/**
@@ -1348,6 +1408,16 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 			jobName, groupName, StorageType.PERSISTED);
 	}
 
+	@Override
+	public Layout updateIconImage(long plid, byte[] bytes)
+		throws PortalException, SystemException {
+
+		LayoutPermissionUtil.check(
+			getPermissionChecker(), plid, ActionKeys.UPDATE);
+
+		return layoutLocalService.updateIconImage(plid, bytes);
+	}
+
 	/**
 	 * Updates the layout with additional parameters.
 	 *
@@ -1389,7 +1459,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 			Map<Locale, String> localeTitlesMap,
 			Map<Locale, String> descriptionMap, Map<Locale, String> keywordsMap,
 			Map<Locale, String> robotsMap, String type, boolean hidden,
-			Map<Locale, String> friendlyURLMap, Boolean iconImage,
+			Map<Locale, String> friendlyURLMap, boolean iconImage,
 			byte[] iconBytes, ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
@@ -1442,6 +1512,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	 *             long, long, Map, Map, Map, Map, Map, String, boolean, Map,
 	 *             Boolean, byte[], ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Layout updateLayout(
 			long groupId, boolean privateLayout, long layoutId,
@@ -1768,8 +1839,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 
 		for (Layout layout : layouts) {
 			if (LayoutPermissionUtil.contains(
-					getPermissionChecker(), layout.getPlid(),
-					ActionKeys.VIEW)) {
+					getPermissionChecker(), layout, ActionKeys.VIEW)) {
 
 				filteredLayouts.add(layout);
 			}

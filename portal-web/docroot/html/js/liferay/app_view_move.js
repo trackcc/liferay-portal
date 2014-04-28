@@ -122,15 +122,12 @@ AUI.add(
 						instance._eventEditEntry = instance.ns('editEntry');
 
 						var eventHandles = [
-							Liferay.on(instance._eventEditEntry, instance._editEntry, instance),
-							Liferay.after(instance.ns('dataRetrieveSuccess'), instance._initDropTargets, instance)
+							Liferay.on(instance._eventEditEntry, instance._editEntry, instance)
 						];
 
 						instance._eventHandles = eventHandles;
 
-						if (themeDisplay.isSignedIn() && this.get('updateable')) {
-							instance._initDragDrop();
-						}
+						instance._registerDragDrop();
 					},
 
 					destructor: function() {
@@ -237,25 +234,6 @@ AUI.add(
 							);
 						}
 
-						if (TOUCH) {
-							instance._dragTask = A.debounce(
-								function(entryLink) {
-									if (entryLink) {
-										entryLink.simulate('click');
-									}
-								},
-								A.DD.DDM.get('clickTimeThresh')
-							);
-
-							dd.after(
-								'afterMouseDown',
-								function(event) {
-									instance._dragTask(event.target.get(STR_NODE).one(instance.get('draggableCSSClass')));
-								},
-								instance
-							);
-						}
-
 						instance._initDropTargets();
 
 						instance._ddHandler = ddHandler;
@@ -344,7 +322,7 @@ AUI.add(
 
 							var itemTitle = Lang.trim(dropTarget.attr('data-title'));
 
-							proxyNode.html(Lang.sub(moveText, [selectedItemsCount, itemTitle]));
+							proxyNode.html(Lang.sub(moveText, [selectedItemsCount, Liferay.Util.escapeHTML(itemTitle)]));
 						}
 					},
 
@@ -368,10 +346,6 @@ AUI.add(
 
 					_onDragStart: function(event) {
 						var instance = this;
-
-						if (instance._dragTask) {
-							instance._dragTask.cancel();
-						}
 
 						var target = event.target;
 
@@ -447,6 +421,16 @@ AUI.add(
 						}
 
 						submitForm(form, url);
+					},
+
+					_registerDragDrop: function() {
+						var instance = this;
+
+						instance._eventHandles.push(Liferay.after(instance.ns('dataRetrieveSuccess'), instance._initDropTargets, instance));
+
+						if (themeDisplay.isSignedIn() && this.get('updateable')) {
+							instance._initDragDrop();
+						}
 					},
 
 					_updateFolderIdRedirectUrl: function(redirectUrl) {

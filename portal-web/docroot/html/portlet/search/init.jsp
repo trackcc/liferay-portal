@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,6 +32,7 @@ page import="com.liferay.portal.kernel.search.facet.config.FacetConfiguration" %
 page import="com.liferay.portal.kernel.search.facet.config.FacetConfigurationUtil" %><%@
 page import="com.liferay.portal.kernel.search.facet.util.FacetFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.search.facet.util.RangeParserUtil" %><%@
+page import="com.liferay.portal.kernel.search.util.SearchUtil" %><%@
 page import="com.liferay.portal.kernel.util.DateFormatFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.xml.Element" %><%@
 page import="com.liferay.portal.kernel.xml.SAXReaderUtil" %><%@
@@ -112,7 +113,7 @@ private String _buildAssetCategoryPath(AssetCategory assetCategory, Locale local
 	List<AssetCategory> assetCategories = assetCategory.getAncestors();
 
 	if (assetCategories.isEmpty()) {
-		return HtmlUtil.escape(assetCategory.getName());
+		return HtmlUtil.escape(assetCategory.getTitle(locale));
 	}
 
 	Collections.reverse(assetCategories);
@@ -124,7 +125,7 @@ private String _buildAssetCategoryPath(AssetCategory assetCategory, Locale local
 		sb.append(" &raquo; ");
 	}
 
-	sb.append(HtmlUtil.escape(assetCategory.getName()));
+	sb.append(HtmlUtil.escape(assetCategory.getTitle(locale)));
 
 	return sb.toString();
 }

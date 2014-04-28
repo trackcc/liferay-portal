@@ -5,9 +5,19 @@ AUI.add(
 
 		var AArray = A.Array;
 
+		var SELECTOR_LANG_VALUE = '.language-value';
+
+		var STR_BLANK = '';
+
 		var STR_INPUT_PLACEHOLDER = 'inputPlaceholder';
 
 		var STR_INPUT_VALUE_CHANGE = '_onInputValueChange';
+
+		var STR_ITEMS = 'items';
+
+		var STR_ITEMS_ERROR = 'itemsError';
+
+		var STR_SELECTED = 'selected';
 
 		var STR_SUBMIT = '_onSubmit';
 
@@ -24,6 +34,7 @@ AUI.add(
 			{
 				ATTRS: {
 					animateClass: {
+						validator: Lang.isString,
 						value: 'highlight-animation'
 					},
 
@@ -32,6 +43,18 @@ AUI.add(
 					},
 
 					editor: {},
+
+					fieldPrefix: {
+						validator: Lang.isString
+					},
+
+					fieldPrefixSeparator: {
+						validator: Lang.isString
+					},
+
+					id: {
+						validator: Lang.isString
+					},
 
 					name: {
 						validator: Lang.isString
@@ -49,15 +72,28 @@ AUI.add(
 						value: availableLanguageIds
 					},
 
+					itemsError: {
+						validator: Lang.isArray
+					},
+
 					selected: {
 						valueFn: function() {
 							var instance = this;
 
-							var items = instance.get('items');
+							var items = instance.get(STR_ITEMS);
 
-							defaultLanguageId = instance.get('defaultLanguageId');
+							var itemsError = instance.get(STR_ITEMS_ERROR);
 
-							return AArray.indexOf(items, defaultLanguageId);
+							var selectedIndex;
+
+							if (itemsError.length) {
+								selectedIndex = AArray.indexOf(items, itemsError[0]);
+							}
+							else {
+								selectedIndex = AArray.indexOf(items, instance.get('defaultLanguageId'));
+							}
+
+							return selectedIndex;
 						}
 					},
 
@@ -84,14 +120,14 @@ AUI.add(
 				prototype: {
 					BOUNDING_TEMPLATE: '<span />',
 
-					INPUT_HIDDEN_TEMPLATE: '<input id="{namespace}{value}" name="{name}{value}" type="hidden" value="" />',
+					INPUT_HIDDEN_TEMPLATE: '<input id="{namespace}{id}_{value}" name="{namespace}{fieldNamePrefix}{name}_{value}{fieldNameSuffix}" type="hidden" value="" />',
 
-					ITEM_TEMPLATE: '<td class="palette-item {selectedClassName}" data-column={column} data-index={index} data-row={row} data-value="{value}">' +
+					ITEM_TEMPLATE: '<li class="palette-item {selectedClassName}" data-column={column} data-index={index} data-row={row} data-value="{value}">' +
 						'<a href="" class="palette-item-inner" onclick="return false;">' +
 							'<img class="lfr-input-localized-flag" data-languageId="{value}" src="' + themeDisplay.getPathThemeImages() + '/language/{value}.png" />' +
-							'<div class="lfr-input-localized-state"></div>' +
+							'<div class="lfr-input-localized-state {stateClass}"></div>' +
 						'</a>' +
-					'</td>',
+					'</li>',
 
 					initializer: function() {
 						var instance = this;
@@ -112,6 +148,21 @@ AUI.add(
 						];
 
 						instance._eventHandles = eventHandles;
+
+						var boundingBox = instance.get('boundingBox');
+
+						boundingBox.plug(
+							A.Plugin.NodeFocusManager,
+							{
+								descendants: '.palette-item a',
+								keys: {
+									next: 'down:39,40',
+									previous: 'down:37,38'
+								}
+							}
+						);
+
+						instance._inputPlaceholderDescription = boundingBox.one('#' + inputPlaceholder.attr('id') + '_desc');
 					},
 
 					destructor: function() {
@@ -131,8 +182,8 @@ AUI.add(
 					getSelectedLanguageId: function() {
 						var instance = this;
 
-						var items = instance.get('items');
-						var selected = instance.get('selected');
+						var items = instance.get(STR_ITEMS);
+						var selected = instance.get(STR_SELECTED);
 
 						return items[selected];
 					},
@@ -161,6 +212,10 @@ AUI.add(
 
 						if (editor) {
 							editor.setHTML(inputPlaceholder.val());
+						}
+
+						if (instance._inputPlaceholderDescription) {
+							instance._inputPlaceholderDescription.text(instance._flags.one('[data-languageId="' + languageId + '"]').attr('alt'));
 						}
 					},
 
@@ -245,16 +300,30 @@ AUI.add(
 						var instance = this;
 
 						var boundingBox = instance.get('boundingBox');
+						var fieldPrefix = instance.get('fieldPrefix');
+						var fieldPrefixSeparator = instance.get('fieldPrefixSeparator');
+						var id = instance.get('id');
 						var name = instance.get('name');
 						var namespace = instance.get('namespace');
 
-						var inputLanguage = boundingBox.one('#' + namespace + languageId);
+						var fieldNamePrefix = STR_BLANK;
+						var fieldNameSuffix = STR_BLANK;
+
+						if (fieldPrefix) {
+							fieldNamePrefix = fieldPrefix + fieldPrefixSeparator;
+							fieldNameSuffix = fieldPrefixSeparator;
+						}
+
+						var inputLanguage = boundingBox.one('#' + namespace + id + '_' + languageId);
 
 						if (!inputLanguage) {
 							inputLanguage = A.Node.create(
 								A.Lang.sub(
 									instance.INPUT_HIDDEN_TEMPLATE,
 									{
+										fieldNamePrefix: fieldNamePrefix,
+										fieldNameSuffix: fieldNameSuffix,
+										id: id,
 										name: name,
 										namespace: namespace,
 										value: languageId
@@ -348,7 +417,7 @@ AUI.add(
 					_syncTranslatedLanguagesUI: function() {
 						var instance = this;
 
-						var flags = instance.get('items');
+						var flags = instance.get(STR_ITEMS);
 
 						var translatedLanguages = instance.get('translatedLanguages');
 
@@ -363,6 +432,27 @@ AUI.add(
 								);
 							}
 						);
+					},
+
+					_valueFormatterFn: function() {
+						return function(items, index, row, column, selected) {
+							var instance = this;
+
+							var item = items[index];
+
+							var itemsError = instance.get(STR_ITEMS_ERROR);
+
+							return Lang.sub(
+								instance.ITEM_TEMPLATE, {
+									column: column,
+									index: index,
+									row: row,
+									selectedClassName: selected ? 'palette-item-selected' : STR_BLANK,
+									stateClass: AArray.indexOf(itemsError, item) >= 0 ? 'lfr-input-localized-state-error' : STR_BLANK,
+									value: Lang.isObject(item) ? item.value : item
+								}
+							);
+						};
 					},
 
 					_animating: null,
@@ -410,10 +500,8 @@ AUI.add(
 					delete InputLocalized._instances[id];
 				},
 
-				_onInputUserInteraction: function(event) {
+				_initializeInputLocalized: function(event, input, initialLanguageId) {
 					var instance = this;
-
-					var input = event.currentTarget;
 
 					var id = input.attr('id');
 
@@ -424,15 +512,54 @@ AUI.add(
 
 						inputLocalized._onDocFocus(event);
 
+						if (initialLanguageId) {
+							var items = inputLocalized.get(STR_ITEMS);
+
+							inputLocalized.set(STR_SELECTED, AArray.indexOf(items, initialLanguageId));
+
+							inputLocalized.selectFlag(initialLanguageId);
+						}
+
+						inputLocalized._onInputValueChange(event, input);
+
 						delete InputLocalized._registered[id];
 					}
+				},
+
+				_onFlagUserInteraction: function(event) {
+					var instance = this;
+
+					var currentTarget = event.currentTarget;
+
+					var flag = currentTarget.one('.lfr-input-localized-flag');
+
+					var input = currentTarget.ancestor('.input-localized').one(SELECTOR_LANG_VALUE);
+
+					if (input && flag) {
+						InputLocalized._initializeInputLocalized(event, input, flag.attr('data-languageid'));
+					}
+				},
+
+				_onInputUserInteraction: function(event) {
+					var instance = this;
+
+					var currentTarget = event.currentTarget;
+
+					InputLocalized._initializeInputLocalized(event, currentTarget);
 				},
 
 				_registerConfiguration: function(id, config) {
 					InputLocalized._registered[id] = config;
 
 					if (!InputLocalized._interactionHandle) {
-						InputLocalized._interactionHandle = A.getDoc().delegate(['focus', 'input'], InputLocalized._onInputUserInteraction, '.language-value');
+						var doc = A.getDoc();
+
+						InputLocalized._interactionHandle = new A.EventHandle(
+							[
+								doc.delegate(['focus', 'input'], InputLocalized._onInputUserInteraction, SELECTOR_LANG_VALUE),
+								doc.delegate('click', InputLocalized._onFlagUserInteraction, '.input-localized-content .palette-item')
+							]
+						);
 					}
 				},
 

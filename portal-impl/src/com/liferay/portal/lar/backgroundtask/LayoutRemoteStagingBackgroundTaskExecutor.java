@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,8 +26,10 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.model.BackgroundTask;
+import com.liferay.portal.model.ExportImportConfiguration;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.security.auth.HttpPrincipal;
+import com.liferay.portal.service.ExportImportConfigurationLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.http.LayoutServiceHttp;
 import com.liferay.portal.service.http.StagingServiceHttp;
@@ -55,17 +57,27 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 		Map<String, Serializable> taskContextMap =
 			backgroundTask.getTaskContextMap();
 
-		long sourceGroupId = MapUtil.getLong(taskContextMap, "groupId");
+		long exportImportConfigurationId = MapUtil.getLong(
+			taskContextMap, "exportImportConfigurationId");
+
+		ExportImportConfiguration exportImportConfiguration =
+			ExportImportConfigurationLocalServiceUtil.
+				getExportImportConfiguration(exportImportConfigurationId);
+
+		Map<String, Serializable> settingsMap =
+			exportImportConfiguration.getSettingsMap();
+
+		long sourceGroupId = MapUtil.getLong(settingsMap, "sourceGroupId");
 		boolean privateLayout = MapUtil.getBoolean(
-			taskContextMap, "privateLayout");
-		Map<Long, Boolean> layoutIdMap = (Map<Long, Boolean>)taskContextMap.get(
+			settingsMap, "privateLayout");
+		Map<Long, Boolean> layoutIdMap = (Map<Long, Boolean>)settingsMap.get(
 			"layoutIdMap");
 		Map<String, String[]> parameterMap =
-			(Map<String, String[]>)taskContextMap.get("parameterMap");
-		long remoteGroupId = MapUtil.getLong(taskContextMap, "remoteGroupId");
-		Date startDate = (Date)taskContextMap.get("startDate");
-		Date endDate = (Date)taskContextMap.get("endDate");
-		HttpPrincipal httpPrincipal = (HttpPrincipal)taskContextMap.get(
+			(Map<String, String[]>)settingsMap.get("parameterMap");
+		long remoteGroupId = MapUtil.getLong(settingsMap, "remoteGroupId");
+		Date startDate = (Date)settingsMap.get("startDate");
+		Date endDate = (Date)settingsMap.get("endDate");
+		HttpPrincipal httpPrincipal = (HttpPrincipal)settingsMap.get(
 			"httpPrincipal");
 
 		clearBackgroundTaskStatus(backgroundTask);
@@ -77,12 +89,6 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 		MissingReferences missingReferences = null;
 
 		try {
-			Date lastPublishDate = endDate;
-
-			if (lastPublishDate == null) {
-				lastPublishDate = new Date();
-			}
-
 			file = exportLayoutsAsFile(
 				sourceGroupId, privateLayout, layoutIdMap, parameterMap,
 				remoteGroupId, startDate, endDate, httpPrincipal);
@@ -118,12 +124,14 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 					new byte[PropsValues.STAGING_REMOTE_TRANSFER_BUFFER_SIZE];
 			}
 
-			backgroundTask = markBackgroundTask(backgroundTask, "exported");
+			markBackgroundTask(
+				backgroundTask.getBackgroundTaskId(), "exported");
 
 			missingReferences = StagingServiceHttp.validateStagingRequest(
 				httpPrincipal, stagingRequestId, privateLayout, parameterMap);
 
-			backgroundTask = markBackgroundTask(backgroundTask, "validated");
+			markBackgroundTask(
+				backgroundTask.getBackgroundTaskId(), "validated");
 
 			StagingServiceHttp.publishStagingRequest(
 				httpPrincipal, stagingRequestId, privateLayout, parameterMap);
@@ -133,7 +141,7 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 
 			if (updateLastPublishDate) {
 				StagingUtil.updateLastPublishDate(
-					sourceGroupId, privateLayout, lastPublishDate);
+					sourceGroupId, privateLayout, endDate);
 			}
 		}
 		finally {
@@ -147,7 +155,8 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 			}
 		}
 
-		return processMissingReferences(backgroundTask, missingReferences);
+		return processMissingReferences(
+			backgroundTask.getBackgroundTaskId(), missingReferences);
 	}
 
 	protected File exportLayoutsAsFile(
@@ -207,7 +216,7 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 	}
 
 	/**
-	 * @see com.liferay.portal.staging.StagingImpl#getMissingParentLayouts(
+	 * @see com.liferay.portal.lar.ExportImportHelperImpl#getMissingParentLayouts(
 	 *      Layout, long)
 	 */
 	protected List<Layout> getMissingRemoteParentLayouts(
@@ -227,7 +236,7 @@ public class LayoutRemoteStagingBackgroundTaskExecutor
 					httpPrincipal, parentLayout.getUuid(), remoteGroupId,
 					parentLayout.getPrivateLayout());
 
-				// If one parent is found all others are assumed to exist
+				// If one parent is found, all others are assumed to exist
 
 				break;
 			}

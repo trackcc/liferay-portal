@@ -3,9 +3,12 @@
 <#assign displayElementName = displayElement.getName()>
 
 <#if
+	(displayElementName == "and") ||
 	(displayElementName == "command") ||
 	(displayElementName == "elseif") ||
-	(displayElementName == "if")
+	(displayElementName == "if") ||
+	(displayElementName == "not") ||
+	(displayElementName == "or")
 >
 	<#assign collapsed = false>
 </#if>
@@ -38,6 +41,10 @@
 		<span class="arrow">&gt;</span>
 
 		<div class="line-number">${lineNumber}</div>
+
+		<#if collapsed>
+			<#include "element_open_parameters_html.ftl">
+		</#if>
 	</div>
 </div>
 

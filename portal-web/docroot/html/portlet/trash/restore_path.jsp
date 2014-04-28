@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -44,14 +44,14 @@
 				%>
 
 					<liferay-util:buffer var="entityLink">
-						<em class="restore-entry-title"><aui:a href="<%= restoreEntryLinks.get(i) %>" label="<%= restoreEntryMessages.get(i) %>" /></em>
+						<em class="restore-entry-title"><aui:a href="<%= restoreEntryLinks.get(i) %>" label="<%= HtmlUtil.escape(restoreEntryMessages.get(i)) %>" /></em>
 					</liferay-util:buffer>
 
 					<liferay-util:buffer var="link">
-						<em class="restore-entry-title"><aui:a href="<%= restoreLinks.get(i) %>" label="<%= restoreMessages.get(i) %>" /></em>
+						<em class="restore-entry-title"><aui:a href="<%= restoreLinks.get(i) %>" label="<%= HtmlUtil.escape(restoreMessages.get(i)) %>" /></em>
 					</liferay-util:buffer>
 
-					<liferay-ui:message arguments="<%= new Object[] {type, entityLink.trim(), link.trim()} %>" key="the-x-x-was-restored-to-x" />
+					<liferay-ui:message arguments="<%= new Object[] {type, entityLink.trim(), link.trim()} %>" key="the-x-x-was-restored-to-x" translateArguments="<%= false %>" />
 
 				<%
 				}
@@ -83,9 +83,9 @@
 	A.getBody().delegate(
 		'click',
 		function(event) {
-			var target = event.target;
+			var link = event.currentTarget.one('a');
 
-			<portlet:namespace />restoreDialog(target.attr('data-uri'));
+			<portlet:namespace />restoreDialog(link.attr('data-uri'));
 		},
 		'.trash-restore-link'
 	);
@@ -98,9 +98,11 @@
 				{
 					dialog: {
 						constrain: true,
+						destroyOnHide: true,
 						modal: true,
-						width: 680
+						width: 1024
 					},
+					eventName: '<portlet:namespace />selectFolder',
 					id: '<portlet:namespace />selectFolder',
 					title: '<liferay-ui:message key="warning" />',
 					uri: uri

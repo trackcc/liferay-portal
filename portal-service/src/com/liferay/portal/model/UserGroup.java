@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.Accessor;
 
 /**
@@ -25,6 +27,7 @@ import com.liferay.portal.kernel.util.Accessor;
  * @see com.liferay.portal.model.impl.UserGroupModelImpl
  * @generated
  */
+@ProviderType
 public interface UserGroup extends UserGroupModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -35,6 +38,16 @@ public interface UserGroup extends UserGroupModel, PersistedModel {
 			@Override
 			public String get(UserGroup userGroup) {
 				return userGroup.getName();
+			}
+
+			@Override
+			public Class<String> getAttributeClass() {
+				return String.class;
+			}
+
+			@Override
+			public Class<UserGroup> getTypeClass() {
+				return UserGroup.class;
 			}
 		};
 

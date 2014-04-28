@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -167,7 +167,8 @@ public class SitemapImpl implements Sitemap {
 				Locale locale = entry.getKey();
 				String href = entry.getValue();
 
-				Element alternateURLElement = urlElement.addElement("link");
+				Element alternateURLElement = urlElement.addElement(
+					"xhtml:link", "http://www.w3.org/1999/xhtml");
 
 				alternateURLElement.addAttribute("href", href);
 				alternateURLElement.addAttribute(
@@ -175,7 +176,8 @@ public class SitemapImpl implements Sitemap {
 				alternateURLElement.addAttribute("rel", "alternate");
 			}
 
-			Element alternateURLElement = urlElement.addElement("link");
+			Element alternateURLElement = urlElement.addElement(
+				"xhtml:link", "http://www.w3.org/1999/xhtml");
 
 			alternateURLElement.addAttribute("rel", "alternate");
 			alternateURLElement.addAttribute("hreflang", "x-default");

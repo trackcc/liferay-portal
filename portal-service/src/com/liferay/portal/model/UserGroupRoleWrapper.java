@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 
@@ -28,6 +30,7 @@ import java.util.Map;
  * @see UserGroupRole
  * @generated
  */
+@ProviderType
 public class UserGroupRoleWrapper implements UserGroupRole,
 	ModelWrapper<UserGroupRole> {
 	public UserGroupRoleWrapper(UserGroupRole userGroupRole) {
@@ -48,6 +51,7 @@ public class UserGroupRoleWrapper implements UserGroupRole,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("userId", getUserId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("roleId", getRoleId());
@@ -57,6 +61,12 @@ public class UserGroupRoleWrapper implements UserGroupRole,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long userId = (Long)attributes.get("userId");
 
 		if (userId != null) {
@@ -95,6 +105,26 @@ public class UserGroupRoleWrapper implements UserGroupRole,
 	public void setPrimaryKey(
 		com.liferay.portal.service.persistence.UserGroupRolePK primaryKey) {
 		_userGroupRole.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this user group role.
+	*
+	* @return the mvcc version of this user group role
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _userGroupRole.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this user group role.
+	*
+	* @param mvccVersion the mvcc version of this user group role
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_userGroupRole.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -326,6 +356,7 @@ public class UserGroupRoleWrapper implements UserGroupRole,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public UserGroupRole getWrappedUserGroupRole() {
 		return _userGroupRole;
 	}
@@ -333,6 +364,16 @@ public class UserGroupRoleWrapper implements UserGroupRole,
 	@Override
 	public UserGroupRole getWrappedModel() {
 		return _userGroupRole;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _userGroupRole.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _userGroupRole.isFinderCacheEnabled();
 	}
 
 	@Override

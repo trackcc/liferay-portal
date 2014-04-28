@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.messageboards.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import java.util.Map;
  * @see MBThreadFlag
  * @generated
  */
+@ProviderType
 public class MBThreadFlagWrapper implements MBThreadFlag,
 	ModelWrapper<MBThreadFlag> {
 	public MBThreadFlagWrapper(MBThreadFlag mbThreadFlag) {
@@ -475,6 +478,7 @@ public class MBThreadFlagWrapper implements MBThreadFlag,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MBThreadFlag getWrappedMBThreadFlag() {
 		return _mbThreadFlag;
 	}
@@ -482,6 +486,16 @@ public class MBThreadFlagWrapper implements MBThreadFlag,
 	@Override
 	public MBThreadFlag getWrappedModel() {
 		return _mbThreadFlag;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mbThreadFlag.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mbThreadFlag.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet.bookmarks.service.impl;
 
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -25,6 +26,8 @@ import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.TreeModelFinder;
+import com.liferay.portal.kernel.util.TreePathUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.ResourceConstants;
@@ -38,6 +41,7 @@ import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
 import com.liferay.portlet.bookmarks.model.BookmarksFolderConstants;
 import com.liferay.portlet.bookmarks.service.base.BookmarksFolderLocalServiceBaseImpl;
+import com.liferay.portlet.bookmarks.util.comparator.FolderIdComparator;
 import com.liferay.portlet.social.model.SocialActivityConstants;
 import com.liferay.portlet.trash.model.TrashEntry;
 import com.liferay.portlet.trash.model.TrashVersion;
@@ -104,18 +108,18 @@ public class BookmarksFolderLocalServiceImpl
 	@Indexable(type = IndexableType.DELETE)
 	@Override
 	@SystemEvent(
-		action = SystemEventConstants.ACTION_SKIP, send = false,
+		action = SystemEventConstants.ACTION_SKIP,
 		type = SystemEventConstants.TYPE_DELETE)
 	public BookmarksFolder deleteFolder(BookmarksFolder folder)
 		throws PortalException, SystemException {
 
-		return deleteFolder(folder, true);
+		return bookmarksFolderLocalService.deleteFolder(folder, true);
 	}
 
 	@Indexable(type = IndexableType.DELETE)
 	@Override
 	@SystemEvent(
-		action = SystemEventConstants.ACTION_SKIP, send = false,
+		action = SystemEventConstants.ACTION_SKIP,
 		type = SystemEventConstants.TYPE_DELETE)
 	public BookmarksFolder deleteFolder(
 			BookmarksFolder folder, boolean includeTrashedEntries)
@@ -125,8 +129,8 @@ public class BookmarksFolderLocalServiceImpl
 			folder.getGroupId(), folder.getFolderId());
 
 		for (BookmarksFolder curFolder : folders) {
-			if (includeTrashedEntries || !curFolder.isInTrash()) {
-				deleteFolder(curFolder);
+			if (includeTrashedEntries || !curFolder.isInTrashExplicitly()) {
+				bookmarksFolderLocalService.deleteFolder(curFolder);
 			}
 		}
 
@@ -161,8 +165,14 @@ public class BookmarksFolderLocalServiceImpl
 
 		// Trash
 
-		trashEntryLocalService.deleteEntry(
-			BookmarksFolder.class.getName(), folder.getFolderId());
+		if (folder.isInTrashExplicitly()) {
+			trashEntryLocalService.deleteEntry(
+				BookmarksFolder.class.getName(), folder.getFolderId());
+		}
+		else {
+			trashVersionLocalService.deleteTrashVersion(
+				BookmarksFolder.class.getName(), folder.getFolderId());
+		}
 
 		return folder;
 	}
@@ -360,14 +370,14 @@ public class BookmarksFolderLocalServiceImpl
 		BookmarksFolder folder = bookmarksFolderPersistence.findByPrimaryKey(
 			folderId);
 
-		TrashEntry trashEntry = folder.getTrashEntry();
-
-		if (trashEntry.isTrashEntry(BookmarksFolder.class, folderId)) {
+		if (folder.isInTrashExplicitly()) {
 			restoreFolderFromTrash(userId, folderId);
 		}
 		else {
 
 			// Folder
+
+			TrashEntry trashEntry = folder.getTrashEntry();
 
 			TrashVersion trashVersion =
 				trashVersionLocalService.fetchVersion(
@@ -447,17 +457,25 @@ public class BookmarksFolderLocalServiceImpl
 	}
 
 	@Override
-	public void rebuildTree(long companyId)
-		throws PortalException, SystemException {
+	public void rebuildTree(long companyId) throws SystemException {
+		TreePathUtil.rebuildTree(
+			companyId, BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			new TreeModelFinder<BookmarksFolder>() {
 
-		List<BookmarksFolder> folders = bookmarksFolderPersistence.findByC_NotS(
-			companyId, WorkflowConstants.STATUS_IN_TRASH);
+				@Override
+				public List<BookmarksFolder> findTreeModels(
+						long previousId, long companyId, long parentPrimaryKey,
+						int size)
+					throws SystemException {
 
-		for (BookmarksFolder folder : folders) {
-			folder.setTreePath(folder.buildTreePath());
+					return bookmarksFolderPersistence.findByF_C_P_NotS(
+						previousId, companyId, parentPrimaryKey,
+						WorkflowConstants.STATUS_IN_TRASH, QueryUtil.ALL_POS,
+						size, new FolderIdComparator(true));
+				}
 
-			bookmarksFolderPersistence.update(folder);
-		}
+			}
+		);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
@@ -739,7 +757,7 @@ public class BookmarksFolderLocalServiceImpl
 				if (oldStatus != WorkflowConstants.STATUS_APPROVED) {
 					trashVersionLocalService.addTrashVersion(
 						trashEntryId, BookmarksEntry.class.getName(),
-						entry.getEntryId(), status);
+						entry.getEntryId(), status, null);
 				}
 
 				// Asset
@@ -774,8 +792,8 @@ public class BookmarksFolderLocalServiceImpl
 
 				if (oldStatus != WorkflowConstants.STATUS_APPROVED) {
 					trashVersionLocalService.addTrashVersion(
-						trashEntryId, BookmarksEntry.class.getName(),
-						folder.getFolderId(), oldStatus);
+						trashEntryId, BookmarksFolder.class.getName(),
+						folder.getFolderId(), oldStatus, null);
 				}
 
 				// Folders and entries
@@ -886,7 +904,8 @@ public class BookmarksFolderLocalServiceImpl
 				// Folders and entries
 
 				List<Object> curFoldersAndEntries = getFoldersAndEntries(
-					folder.getGroupId(), folder.getFolderId());
+					folder.getGroupId(), folder.getFolderId(),
+					WorkflowConstants.STATUS_IN_TRASH);
 
 				restoreDependentsFromTrash(curFoldersAndEntries, trashEntryId);
 

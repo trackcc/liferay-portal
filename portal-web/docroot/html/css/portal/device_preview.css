@@ -37,6 +37,10 @@
 		display: none;
 	}
 
+	&.autosize {
+		border-width: 0;
+	}
+
 	.lfr-device-size-status {
 		position: absolute;
 		width: 100%;
@@ -147,8 +151,8 @@
 			padding: 20px 50px;
 
 			&:before {
-				width: 10px;
 				height: 10px;
+				width: 10px;
 			}
 		}
 
@@ -173,7 +177,7 @@
 	bottom: 0;
 	display: none;
 	left: 220px;
-	position: absolute;
+	position: fixed;
 	right: 0;
 	top: 0;
 	z-index: 500;
@@ -203,7 +207,7 @@
 
 	&.selected {
 		background-color: #3EA9DB;
-		color: #FFFFFF;
+		color: #FFF;
 	}
 
 	.device-info {

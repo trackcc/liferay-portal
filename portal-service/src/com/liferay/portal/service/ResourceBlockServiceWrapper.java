@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ResourceBlockService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see ResourceBlockService
  * @generated
  */
+@ProviderType
 public class ResourceBlockServiceWrapper implements ResourceBlockService,
 	ServiceWrapper<ResourceBlockService> {
 	public ResourceBlockServiceWrapper(
@@ -159,6 +162,7 @@ public class ResourceBlockServiceWrapper implements ResourceBlockService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ResourceBlockService getWrappedResourceBlockService() {
 		return _resourceBlockService;
 	}
@@ -166,6 +170,7 @@ public class ResourceBlockServiceWrapper implements ResourceBlockService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedResourceBlockService(
 		ResourceBlockService resourceBlockService) {
 		_resourceBlockService = resourceBlockService;

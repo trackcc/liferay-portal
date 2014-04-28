@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,18 +25,14 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.SetUtil;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.model.Address;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.OrganizationConstants;
 import com.liferay.portal.service.AddressLocalServiceUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.PortalPreferencesLocalServiceUtil;
 import com.liferay.portal.util.PortletKeys;
@@ -96,39 +92,13 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 	}
 
 	@Override
-	public String buildTreePath() throws PortalException, SystemException {
-		List<Organization> organizations = new ArrayList<Organization>();
-
-		Organization organization = this;
-
-		while (organization != null) {
-			organizations.add(organization);
-
-			organization = organization.getParentOrganization();
-		}
-
-		StringBundler sb = new StringBundler(organizations.size() * 2 + 1);
-
-		sb.append(StringPool.SLASH);
-
-		for (int i = organizations.size() - 1; i >= 0; i--) {
-			organization = organizations.get(i);
-
-			sb.append(organization.getOrganizationId());
-			sb.append(StringPool.SLASH);
-		}
-
-		return sb.toString();
-	}
-
-	@Override
 	public Address getAddress() {
 		Address address = null;
 
 		try {
 			List<Address> addresses = getAddresses();
 
-			if (addresses.size() > 0) {
+			if (!addresses.isEmpty()) {
 				address = addresses.get(0);
 			}
 		}
@@ -203,33 +173,6 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		Group group = getGroup();
 
 		return group.getGroupId();
-	}
-
-	@Override
-	public long getLogoId() {
-		long logoId = 0;
-
-		try {
-			Group group = getGroup();
-
-			LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
-				group.getGroupId(), false);
-
-			logoId = publicLayoutSet.getLogoId();
-
-			if (logoId == 0) {
-				LayoutSet privateLayoutSet =
-					LayoutSetLocalServiceUtil.getLayoutSet(
-						group.getGroupId(), true);
-
-				logoId = privateLayoutSet.getLogoId();
-			}
-		}
-		catch (Exception e) {
-			_log.error(e);
-		}
-
-		return logoId;
 	}
 
 	@Override

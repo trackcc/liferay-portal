@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,7 @@
 
 package com.liferay.portlet.trash.model.impl;
 
-import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.model.ClassedModel;
-import com.liferay.portal.model.TrashedModel;
 import com.liferay.portlet.trash.model.TrashEntry;
 
 /**
@@ -71,28 +68,16 @@ public class TrashEntryImpl extends TrashEntryBaseImpl {
 			return false;
 		}
 
-		String className = clazz.getName();
+		return isTrashEntry(clazz.getName(), classPK);
+	}
 
+	@Override
+	public boolean isTrashEntry(String className, long classPK) {
 		if (className.equals(getClassName()) && (classPK == getClassPK())) {
 			return true;
 		}
 
 		return false;
-	}
-
-	@Override
-	public boolean isTrashEntry(TrashedModel trashedModel) {
-		TrashHandler trashHandler = trashedModel.getTrashHandler();
-
-		if (trashHandler == null) {
-			return false;
-		}
-
-		if (!(trashedModel instanceof ClassedModel)) {
-			return false;
-		}
-
-		return trashHandler.isTrashEntry(this, (ClassedModel)trashedModel);
 	}
 
 	@Override

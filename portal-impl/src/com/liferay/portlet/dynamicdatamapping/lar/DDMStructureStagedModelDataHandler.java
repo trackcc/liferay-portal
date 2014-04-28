@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,8 +26,10 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructureConstants;
 import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
@@ -75,24 +77,60 @@ public class DDMStructureStagedModelDataHandler
 
 		Map<String, String> referenceAttributes = new HashMap<String, String>();
 
+		referenceAttributes.put(
+			"referenced-class-name", structure.getClassName());
 		referenceAttributes.put("structure-key", structure.getStructureKey());
+
+		long defaultUserId = 0;
+
+		try {
+			defaultUserId = UserLocalServiceUtil.getDefaultUserId(
+				structure.getCompanyId());
+		}
+		catch (Exception e) {
+			return referenceAttributes;
+		}
+
+		boolean preloaded = false;
+
+		if (defaultUserId == structure.getUserId()) {
+			preloaded = true;
+		}
+
+		referenceAttributes.put("preloaded", String.valueOf(preloaded));
 
 		return referenceAttributes;
 	}
 
 	@Override
-	public void importCompanyStagedModel(
-			PortletDataContext portletDataContext, Element element)
+	public void importMissingReference(
+			PortletDataContext portletDataContext, Element referenceElement)
 		throws PortletDataException {
 
-		String uuid = element.attributeValue("uuid");
+		importMissingGroupReference(portletDataContext, referenceElement);
+
+		String uuid = referenceElement.attributeValue("uuid");
+
+		Map<Long, Long> groupIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				Group.class);
+
+		long liveGroupId = GetterUtil.getLong(
+			referenceElement.attributeValue("live-group-id"));
+
+		liveGroupId = MapUtil.getLong(groupIds, liveGroupId, liveGroupId);
+
+		long classNameId = PortalUtil.getClassNameId(
+			referenceElement.attributeValue("referenced-class-name"));
+		String structureKey = referenceElement.attributeValue("structure-key");
+		boolean preloaded = GetterUtil.getBoolean(
+			referenceElement.attributeValue("preloaded"));
 
 		DDMStructure existingStructure = null;
 
 		try {
-			existingStructure =
-				DDMStructureLocalServiceUtil.fetchDDMStructureByUuidAndGroupId(
-					uuid, portletDataContext.getCompanyGroupId());
+			existingStructure = fetchExistingStructure(
+				uuid, liveGroupId, classNameId, structureKey, preloaded);
 		}
 		catch (SystemException se) {
 			throw new PortletDataException(se);
@@ -103,7 +141,7 @@ public class DDMStructureStagedModelDataHandler
 				DDMStructure.class);
 
 		long structureId = GetterUtil.getLong(
-			element.attributeValue("class-pk"));
+			referenceElement.attributeValue("class-pk"));
 
 		structureIds.put(structureId, existingStructure.getStructureId());
 
@@ -111,9 +149,49 @@ public class DDMStructureStagedModelDataHandler
 			(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
 				DDMStructure.class + ".ddmStructureKey");
 
-		String structureKey = element.attributeValue("structure-key");
-
 		structureKeys.put(structureKey, existingStructure.getStructureKey());
+	}
+
+	@Override
+	public boolean validateReference(
+		PortletDataContext portletDataContext, Element referenceElement) {
+
+		if (!validateMissingGroupReference(
+				portletDataContext, referenceElement)) {
+
+			return false;
+		}
+
+		String uuid = referenceElement.attributeValue("uuid");
+
+		Map<Long, Long> groupIds =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				Group.class);
+
+		long liveGroupId = GetterUtil.getLong(
+			referenceElement.attributeValue("live-group-id"));
+
+		liveGroupId = MapUtil.getLong(groupIds, liveGroupId, liveGroupId);
+
+		long classNameId = PortalUtil.getClassNameId(
+			referenceElement.attributeValue("referenced-class-name"));
+		String structureKey = referenceElement.attributeValue("structure-key");
+		boolean preloaded = GetterUtil.getBoolean(
+			referenceElement.attributeValue("preloaded"));
+
+		try {
+			DDMStructure existingStructure = fetchExistingStructure(
+				uuid, liveGroupId, classNameId, structureKey, preloaded);
+
+			if (existingStructure == null) {
+				return false;
+			}
+
+			return true;
+		}
+		catch (SystemException se) {
+			return false;
+		}
 	}
 
 	@Override
@@ -160,13 +238,9 @@ public class DDMStructureStagedModelDataHandler
 		if (structure.getParentStructureId() !=
 				DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID) {
 
-			Element structureElement =
-				portletDataContext.getReferenceDataElement(
-					structure, DDMStructure.class,
-					structure.getParentStructureId());
-
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, structureElement);
+			StagedModelDataHandlerUtil.importReferenceStagedModel(
+				portletDataContext, structure, DDMStructure.class,
+				structure.getParentStructureId());
 		}
 
 		Map<Long, Long> structureIds =
@@ -193,20 +267,10 @@ public class DDMStructureStagedModelDataHandler
 			boolean preloaded = GetterUtil.getBoolean(
 				element.attributeValue("preloaded"));
 
-			DDMStructure existingStructure = null;
-
-			if (!preloaded) {
-				existingStructure =
-					DDMStructureLocalServiceUtil.
-						fetchDDMStructureByUuidAndGroupId(
-							structure.getUuid(),
-							portletDataContext.getScopeGroupId());
-			}
-			else {
-				existingStructure = DDMStructureLocalServiceUtil.fetchStructure(
-					portletDataContext.getScopeGroupId(),
-					structure.getClassNameId(), structure.getStructureKey());
-			}
+			DDMStructure existingStructure = fetchExistingStructure(
+				structure.getUuid(), portletDataContext.getScopeGroupId(),
+				structure.getClassNameId(), structure.getStructureKey(),
+				preloaded);
 
 			if (existingStructure == null) {
 				serviceContext.setUuid(structure.getUuid());
@@ -242,6 +306,26 @@ public class DDMStructureStagedModelDataHandler
 			structure.getStructureKey(), importedStructure.getStructureKey());
 	}
 
+	protected DDMStructure fetchExistingStructure(
+			String uuid, long groupId, long classNameId, String structureKey,
+			boolean preloaded)
+		throws SystemException {
+
+		DDMStructure existingStructure = null;
+
+		if (!preloaded) {
+			existingStructure =
+				DDMStructureLocalServiceUtil.fetchDDMStructureByUuidAndGroupId(
+					uuid, groupId);
+		}
+		else {
+			existingStructure = DDMStructureLocalServiceUtil.fetchStructure(
+				groupId, classNameId, structureKey);
+		}
+
+		return existingStructure;
+	}
+
 	protected void prepareLanguagesForImport(DDMStructure structure)
 		throws PortalException {
 
@@ -256,22 +340,6 @@ public class DDMStructureStagedModelDataHandler
 			defaultLocale, availableLocales);
 
 		structure.prepareLocalizedFieldsForImport(defaultImportLocale);
-	}
-
-	@Override
-	protected boolean validateMissingReference(
-			String uuid, long companyId, long groupId)
-		throws Exception {
-
-		DDMStructure structure =
-			DDMStructureLocalServiceUtil.fetchDDMStructureByUuidAndGroupId(
-				uuid, groupId);
-
-		if (structure == null) {
-			return false;
-		}
-
-		return true;
 	}
 
 }

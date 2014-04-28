@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.service.http;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -64,6 +66,7 @@ import java.util.Map;
  * @see com.liferay.portal.service.LayoutServiceUtil
  * @generated
  */
+@ProviderType
 public class LayoutServiceSoap {
 	/**
 	* Adds a layout with additional parameters.
@@ -112,6 +115,7 @@ public class LayoutServiceSoap {
 	long, Map, Map, Map, Map, Map, String, String, boolean, Map,
 	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.LayoutSoap addLayout(long groupId,
 		boolean privateLayout, long parentLayoutId,
 		java.lang.String[] localeNamesMapLanguageIds,
@@ -666,6 +670,21 @@ public class LayoutServiceSoap {
 		}
 	}
 
+	public static com.liferay.portal.model.LayoutSoap updateIconImage(
+		long plid, byte[] bytes) throws RemoteException {
+		try {
+			com.liferay.portal.model.Layout returnValue = LayoutServiceUtil.updateIconImage(plid,
+					bytes);
+
+			return com.liferay.portal.model.LayoutSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	/**
 	* Updates the layout with additional parameters.
 	*
@@ -713,7 +732,7 @@ public class LayoutServiceSoap {
 		java.lang.String[] robotsMapLanguageIds,
 		java.lang.String[] robotsMapValues, java.lang.String type,
 		boolean hidden, java.lang.String[] friendlyURLMapLanguageIds,
-		java.lang.String[] friendlyURLMapValues, java.lang.Boolean iconImage,
+		java.lang.String[] friendlyURLMapValues, boolean iconImage,
 		byte[] iconBytes,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws RemoteException {
@@ -785,6 +804,7 @@ public class LayoutServiceSoap {
 	long, long, Map, Map, Map, Map, Map, String, boolean, Map,
 	Boolean, byte[], ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.LayoutSoap updateLayout(
 		long groupId, boolean privateLayout, long layoutId,
 		long parentLayoutId, java.lang.String[] localeNamesMapLanguageIds,

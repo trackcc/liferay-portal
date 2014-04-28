@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,13 +22,14 @@ import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.trash.TrashRenderer;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.PortletURLFactoryUtil;
-import com.liferay.portlet.trash.DuplicateEntryException;
+import com.liferay.portlet.trash.RestoreEntryException;
 import com.liferay.portlet.trash.model.TrashEntry;
 import com.liferay.portlet.wiki.asset.WikiNodeTrashRenderer;
 import com.liferay.portlet.wiki.model.WikiNode;
@@ -51,7 +52,7 @@ import javax.portlet.PortletURL;
 public class WikiNodeTrashHandler extends BaseTrashHandler {
 
 	@Override
-	public void checkDuplicateTrashEntry(
+	public void checkRestorableEntry(
 			TrashEntry trashEntry, long containerModelId, String newName)
 		throws PortalException, SystemException {
 
@@ -68,13 +69,14 @@ public class WikiNodeTrashHandler extends BaseTrashHandler {
 			node.getGroupId(), originalTitle);
 
 		if (duplicateNode != null) {
-			DuplicateEntryException dee = new DuplicateEntryException();
+			RestoreEntryException ree = new RestoreEntryException(
+				RestoreEntryException.DUPLICATE);
 
-			dee.setDuplicateEntryId(duplicateNode.getNodeId());
-			dee.setOldName(duplicateNode.getName());
-			dee.setTrashEntryId(trashEntry.getEntryId());
+			ree.setDuplicateEntryId(duplicateNode.getNodeId());
+			ree.setOldName(duplicateNode.getName());
+			ree.setTrashEntryId(trashEntry.getEntryId());
 
-			throw dee;
+			throw ree;
 		}
 	}
 
@@ -133,7 +135,8 @@ public class WikiNodeTrashHandler extends BaseTrashHandler {
 	public int getTrashContainedModelsCount(long classPK)
 		throws SystemException {
 
-		return WikiPageLocalServiceUtil.getPagesCount(classPK);
+		return WikiPageLocalServiceUtil.getPagesCount(
+			classPK, true, WorkflowConstants.STATUS_IN_TRASH);
 	}
 
 	@Override
@@ -144,7 +147,7 @@ public class WikiNodeTrashHandler extends BaseTrashHandler {
 		List<TrashRenderer> trashRenderers = new ArrayList<TrashRenderer>();
 
 		List<WikiPage> pages = WikiPageLocalServiceUtil.getPages(
-			classPK, start, end);
+			classPK, true, WorkflowConstants.STATUS_IN_TRASH, start, end);
 
 		for (WikiPage page : pages) {
 			TrashHandler trashHandler =

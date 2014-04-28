@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.lar;
 
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
+import com.liferay.portal.kernel.lar.PortletDataException;
 import com.liferay.portal.kernel.lar.StagedModelDataHandler;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerRegistryUtil;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
@@ -63,8 +64,15 @@ public abstract class BaseWorkflowedStagedModelDataHandlerTestCase
 				"Staged model is not a workflowed model",
 				stagedModel instanceof WorkflowedModel);
 
-			StagedModelDataHandlerUtil.exportStagedModel(
-				portletDataContext, stagedModel);
+			try {
+				StagedModelDataHandlerUtil.exportStagedModel(
+					portletDataContext, stagedModel);
+			}
+			catch (PortletDataException pde) {
+				Assert.assertEquals(
+					"An unexpected error occurred during the export",
+					PortletDataException.STATUS_UNAVAILABLE, pde.getType());
+			}
 
 			validateWorkflowedExport(portletDataContext, stagedModel);
 		}

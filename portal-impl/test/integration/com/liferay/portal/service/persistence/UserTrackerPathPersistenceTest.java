@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,8 +29,10 @@ import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.UserTrackerPath;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.UserTrackerPathLocalServiceUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
@@ -38,6 +40,7 @@ import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -55,6 +58,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class UserTrackerPathPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<UserTrackerPath> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -76,6 +88,10 @@ public class UserTrackerPathPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<UserTrackerPath> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -111,6 +127,8 @@ public class UserTrackerPathPersistenceTest {
 
 		UserTrackerPath newUserTrackerPath = _persistence.create(pk);
 
+		newUserTrackerPath.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newUserTrackerPath.setUserTrackerId(ServiceTestUtil.nextLong());
 
 		newUserTrackerPath.setPath(ServiceTestUtil.randomString());
@@ -121,6 +139,8 @@ public class UserTrackerPathPersistenceTest {
 
 		UserTrackerPath existingUserTrackerPath = _persistence.findByPrimaryKey(newUserTrackerPath.getPrimaryKey());
 
+		Assert.assertEquals(existingUserTrackerPath.getMvccVersion(),
+			newUserTrackerPath.getMvccVersion());
 		Assert.assertEquals(existingUserTrackerPath.getUserTrackerPathId(),
 			newUserTrackerPath.getUserTrackerPathId());
 		Assert.assertEquals(existingUserTrackerPath.getUserTrackerId(),
@@ -130,6 +150,18 @@ public class UserTrackerPathPersistenceTest {
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingUserTrackerPath.getPathDate()),
 			Time.getShortTimestamp(newUserTrackerPath.getPathDate()));
+	}
+
+	@Test
+	public void testCountByUserTrackerId() {
+		try {
+			_persistence.countByUserTrackerId(ServiceTestUtil.nextLong());
+
+			_persistence.countByUserTrackerId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -168,8 +200,8 @@ public class UserTrackerPathPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("UserTrackerPath",
-			"userTrackerPathId", true, "userTrackerId", true, "path", true,
-			"pathDate", true);
+			"mvccVersion", true, "userTrackerPathId", true, "userTrackerId",
+			true, "path", true, "pathDate", true);
 	}
 
 	@Test
@@ -194,16 +226,18 @@ public class UserTrackerPathPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new UserTrackerPathActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = UserTrackerPathLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					UserTrackerPath userTrackerPath = (UserTrackerPath)object;
 
 					Assert.assertNotNull(userTrackerPath);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -289,6 +323,8 @@ public class UserTrackerPathPersistenceTest {
 
 		UserTrackerPath userTrackerPath = _persistence.create(pk);
 
+		userTrackerPath.setMvccVersion(ServiceTestUtil.nextLong());
+
 		userTrackerPath.setUserTrackerId(ServiceTestUtil.nextLong());
 
 		userTrackerPath.setPath(ServiceTestUtil.randomString());
@@ -301,6 +337,7 @@ public class UserTrackerPathPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(UserTrackerPathPersistenceTest.class);
+	private ModelListener<UserTrackerPath>[] _modelListeners;
 	private UserTrackerPathPersistence _persistence = (UserTrackerPathPersistence)PortalBeanLocatorUtil.locate(UserTrackerPathPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

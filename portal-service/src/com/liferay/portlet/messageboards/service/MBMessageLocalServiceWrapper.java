@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see MBMessageLocalService
  * @generated
  */
+@ProviderType
 public class MBMessageLocalServiceWrapper implements MBMessageLocalService,
 	ServiceWrapper<MBMessageLocalService> {
 	public MBMessageLocalServiceWrapper(
@@ -235,6 +238,19 @@ public class MBMessageLocalServiceWrapper implements MBMessageLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _mbMessageLocalService.getMBMessage(messageId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mbMessageLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mbMessageLocalService.getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	@Override
@@ -859,6 +875,11 @@ public class MBMessageLocalServiceWrapper implements MBMessageLocalService,
 		return _mbMessageLocalService.updateMessage(messageId, body);
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #updateStatus(long, long,
+	int, ServiceContext, Map)}
+	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.messageboards.model.MBMessage updateStatus(
 		long userId, long messageId, int status,
@@ -870,6 +891,17 @@ public class MBMessageLocalServiceWrapper implements MBMessageLocalService,
 	}
 
 	@Override
+	public com.liferay.portlet.messageboards.model.MBMessage updateStatus(
+		long userId, long messageId, int status,
+		com.liferay.portal.service.ServiceContext serviceContext,
+		java.util.Map<java.lang.String, java.io.Serializable> workflowContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbMessageLocalService.updateStatus(userId, messageId, status,
+			serviceContext, workflowContext);
+	}
+
+	@Override
 	public void updateUserName(long userId, java.lang.String userName)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_mbMessageLocalService.updateUserName(userId, userName);
@@ -878,6 +910,7 @@ public class MBMessageLocalServiceWrapper implements MBMessageLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MBMessageLocalService getWrappedMBMessageLocalService() {
 		return _mbMessageLocalService;
 	}
@@ -885,6 +918,7 @@ public class MBMessageLocalServiceWrapper implements MBMessageLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMBMessageLocalService(
 		MBMessageLocalService mbMessageLocalService) {
 		_mbMessageLocalService = mbMessageLocalService;

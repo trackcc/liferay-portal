@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.expando.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see ExpandoColumnLocalService
  * @generated
  */
+@ProviderType
 public class ExpandoColumnLocalServiceWrapper
 	implements ExpandoColumnLocalService,
 		ServiceWrapper<ExpandoColumnLocalService> {
@@ -205,6 +208,12 @@ public class ExpandoColumnLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _expandoColumnLocalService.getExpandoColumn(columnId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _expandoColumnLocalService.getActionableDynamicQuery();
 	}
 
 	@Override
@@ -539,6 +548,7 @@ public class ExpandoColumnLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ExpandoColumnLocalService getWrappedExpandoColumnLocalService() {
 		return _expandoColumnLocalService;
 	}
@@ -546,6 +556,7 @@ public class ExpandoColumnLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedExpandoColumnLocalService(
 		ExpandoColumnLocalService expandoColumnLocalService) {
 		_expandoColumnLocalService = expandoColumnLocalService;

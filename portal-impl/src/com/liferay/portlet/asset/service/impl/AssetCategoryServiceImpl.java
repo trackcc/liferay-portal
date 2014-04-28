@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,11 +19,12 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.User;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.ServiceContext;
@@ -37,7 +38,6 @@ import com.liferay.util.Autocomplete;
 import com.liferay.util.dao.orm.CustomSQLUtil;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -89,6 +89,7 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 	 * @deprecated As of 6.2.0, Replaced by {@link #deleteCategories(long[],
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public void deleteCategories(long[] categoryIds)
 		throws PortalException, SystemException {
@@ -162,6 +163,18 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 	}
 
 	@Override
+	public String getCategoryPath(long categoryId)
+		throws PortalException, SystemException {
+
+		AssetCategoryPermission.check(
+			getPermissionChecker(), categoryId, ActionKeys.VIEW);
+
+		AssetCategory category = getCategory(categoryId);
+
+		return category.getPath(LocaleUtil.getMostRelevantLocale());
+	}
+
+	@Override
 	public List<AssetCategory> getChildCategories(long parentCategoryId)
 		throws PortalException, SystemException {
 
@@ -183,6 +196,7 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #search(long[], String,
 	 *             long[], int, int)}
 	 */
+	@Deprecated
 	@Override
 	public JSONArray getJSONSearch(
 			long groupId, String name, long[] vocabularyIds, int start, int end)
@@ -196,6 +210,7 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 	 *             #getVocabularyCategoriesDisplay(long, int, int,
 	 *             OrderByComparator)}
 	 */
+	@Deprecated
 	@Override
 	public JSONObject getJSONVocabularyCategories(
 			long vocabularyId, int start, int end, OrderByComparator obc)
@@ -218,6 +233,7 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 	 *             #getVocabularyCategoriesDisplay(long, String, long, int, int,
 	 *             OrderByComparator)}
 	 */
+	@Deprecated
 	@Override
 	public JSONObject getJSONVocabularyCategories(
 			long groupId, String name, long vocabularyId, int start, int end,
@@ -356,6 +372,7 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 	 *             #getVocabularyRootCategories(long, long, int, int,
 	 *             OrderByComparator)}
 	 */
+	@Deprecated
 	@Override
 	public List<AssetCategory> getVocabularyRootCategories(
 			long vocabularyId, int start, int end, OrderByComparator obc)
@@ -464,6 +481,33 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 	}
 
 	@Override
+	public AssetCategoryDisplay searchCategoriesDisplay(
+			long groupId, String title, long vocabularyId, int start, int end)
+		throws PortalException, SystemException {
+
+		return searchCategoriesDisplay(
+			new long[] {groupId}, title, new long[] {vocabularyId}, start, end);
+	}
+
+	@Override
+	public AssetCategoryDisplay searchCategoriesDisplay(
+			long[] groupIds, String title, long[] vocabularyIds, int start,
+			int end)
+		throws PortalException, SystemException {
+
+		User user = getUser();
+
+		BaseModelSearchResult<AssetCategory> baseModelSearchResult =
+			assetCategoryLocalService.searchCategories(
+				user.getCompanyId(), groupIds, title, vocabularyIds, start,
+				end);
+
+		return new AssetCategoryDisplay(
+			baseModelSearchResult.getBaseModels(),
+			baseModelSearchResult.getLength(), start, end);
+	}
+
+	@Override
 	public AssetCategory updateCategory(
 			long categoryId, long parentCategoryId,
 			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
@@ -481,7 +525,7 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 
 	protected List<AssetCategory> filterCategories(
 			List<AssetCategory> categories)
-		throws PortalException {
+		throws PortalException, SystemException {
 
 		PermissionChecker permissionChecker = getPermissionChecker();
 
@@ -513,33 +557,8 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 			JSONObject categoryJSONObject = JSONFactoryUtil.createJSONObject(
 				categoryJSON);
 
-			List<String> names = new ArrayList<String>();
-
-			AssetCategory curCategory = category;
-
-			while (curCategory.getParentCategoryId() > 0) {
-				AssetCategory parentCategory = getCategory(
-					curCategory.getParentCategoryId());
-
-				names.add(parentCategory.getName());
-				names.add(
-					StringPool.SPACE + StringPool.GREATER_THAN +
-						StringPool.SPACE);
-
-				curCategory = parentCategory;
-			}
-
-			Collections.reverse(names);
-
-			AssetVocabulary vocabulary = assetVocabularyService.getVocabulary(
-				category.getVocabularyId());
-
-			StringBundler sb = new StringBundler(1 + names.size());
-
-			sb.append(vocabulary.getName());
-			sb.append(names.toArray(new String[names.size()]));
-
-			categoryJSONObject.put("path", sb.toString());
+			categoryJSONObject.put(
+				"path", getCategoryPath(category.getCategoryId()));
 
 			jsonArray.put(categoryJSONObject);
 		}

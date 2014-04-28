@@ -5,12 +5,6 @@
 }
 
 .portlet-journal {
-	.expand-folder-container {
-		position: absolute;
-		right: 0;
-		top: 0;
-	}
-
 	.add-article-selector {
 		display: inline-block;
 		vertical-align: top;
@@ -74,8 +68,8 @@
 	.article-structure-template-toolbar {
 		.article-structure-toolbar, .article-template-toolbar {
 			display: inline;
-			margin-left: 0.5em;
 			margin-bottom: 0;
+			margin-left: 0.5em;
 		}
 
 		.article-template-image {
@@ -120,13 +114,13 @@
 
 	.lfr-panel-basic {
 		.lfr-panel-title {
-			border-bottom: 1px solid #ccc;
+			border-bottom: 1px solid #CCC;
 			float: none;
 			position: relative;
 			top: -0.5em;
 
 			span {
-				background: #fff;
+				background: #FFF;
 				padding: 0 8px 0 4px;
 				position: relative;
 				top: 0.55em;
@@ -148,13 +142,6 @@
 	}
 
 	.journal-article-container {
-		.lfr-ddm-container .field-wrapper .field-wrapper {
-			border: 1px solid #D0D0D0;
-			border-left-width: 10px;
-			margin: 7px 0 0 5px;
-			padding: 7px 10px 10px;
-		}
-
 		ul {
 			margin: 0;
 		}
@@ -281,6 +268,13 @@
 		}
 	}
 
+	.subscribe-action {
+		margin-bottom: 10px;
+		margin-right: 10px;
+		margin-top: 5px;
+		text-align: right;
+	}
+
 	.component-group .tree-placeholder {
 		display: none;
 	}
@@ -306,8 +300,8 @@
 	.component-group-title {
 		font-size: 12px;
 		font-weight: bold;
-		text-decoration: underline;
 		padding: 4px 0 0;
+		text-decoration: underline;
 	}
 
 	.journal-article-component-container {
@@ -369,8 +363,8 @@
 	}
 
 	.article-entries-pagination {
-		text-align: center;
 		margin: 10px 0;
+		text-align: center;
 
 		.pagination-content {
 			margin: 0;
@@ -404,14 +398,6 @@
 		right: 0;
 	}
 
-	.taglib-search-iterator {
-		table-layout: fixed;
-
-		.align-left {
-			word-wrap: break-word;
-		}
-	}
-
 	.entry-thumbnail .taglib-workflow-status {
 		left: 6px;
 		margin: 0;
@@ -422,6 +408,14 @@
 		.workflow-status {
 			margin: 0;
 			padding: 0;
+		}
+	}
+
+	.app-view-entry-taglib.entry-display-style.display-icon {
+		.entry-title {
+			@include ellipsis;
+
+			position: relative;
 		}
 	}
 
@@ -530,6 +524,9 @@
 			.article-name {
 				color: #036;
 				display: block;
+
+				@include ellipsis;
+
 				font-size: 14px;
 			}
 
@@ -573,7 +570,7 @@
 		margin-top: 0.5em;
 	}
 
-	.wcm-image-preview img {
+	.ddm-image-preview img {
 		max-width: 600px;
 	}
 }
@@ -656,8 +653,8 @@
 		}
 
 		.placeholder, .tree-placeholder, .tree-sub-placeholder {
-			background: #fff;
-			border: 1px #cdcdcd dashed;
+			background: #FFF;
+			border: 1px #CDCDCD dashed;
 			height: 100px;
 
 			@include opacity(0.75);
@@ -686,7 +683,7 @@
 
 		&:after {
 			clear: both;
-			content: ".";
+			content: '';
 			display: block;
 			height: 0;
 			visibility: hidden;
@@ -817,12 +814,12 @@
 	}
 
 	.component-dragging {
-		background-color: #fff !important;
+		background-color: #FFF !important;
 	}
 }
 
 .journal-article-helper {
-	background: #dedede;
+	background: #DEDEDE;
 	border: 1px #555 dashed;
 	cursor: move;
 
@@ -915,8 +912,8 @@
 
 	.user-instructions {
 		border-width: 0;
-		padding: 0;
 		margin-bottom: 1em;
+		padding: 0;
 	}
 
 	.button-holder {
@@ -955,7 +952,7 @@
 		}
 
 		.error-line {
-			background: #fdd;
+			background: #FDD;
 		}
 
 		pre {

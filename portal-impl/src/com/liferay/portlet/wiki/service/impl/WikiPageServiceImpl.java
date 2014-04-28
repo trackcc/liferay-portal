@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -201,6 +201,7 @@ public class WikiPageServiceImpl extends WikiPageServiceBaseImpl {
 	 * @deprecated As of 6.2.0 replaced by {@link #discardDraft(long, String,
 	 *             double)}
 	 */
+	@Deprecated
 	@Override
 	public void deletePage(long nodeId, String title, double version)
 		throws PortalException, SystemException {
@@ -263,6 +264,16 @@ public class WikiPageServiceImpl extends WikiPageServiceBaseImpl {
 	}
 
 	@Override
+	public WikiPage fetchPage(long nodeId, String title, double version)
+		throws PortalException, SystemException {
+
+		WikiPagePermission.check(
+			getPermissionChecker(), nodeId, title, version, ActionKeys.VIEW);
+
+		return wikiPageLocalService.fetchPage(nodeId, title, version);
+	}
+
+	@Override
 	public List<WikiPage> getChildren(
 			long groupId, long nodeId, boolean head, String parentTitle)
 		throws PortalException, SystemException {
@@ -321,6 +332,7 @@ public class WikiPageServiceImpl extends WikiPageServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #getNodePagesRSS(long, int,
 	 *             String, double, String, String, String, String)}
 	 */
+	@Deprecated
 	@Override
 	public String getNodePagesRSS(
 			long nodeId, int max, String type, double version,
@@ -375,7 +387,15 @@ public class WikiPageServiceImpl extends WikiPageServiceBaseImpl {
 			return pages.get(0);
 		}
 		else {
-			throw new NoSuchPageException();
+			StringBundler sb = new StringBundler(5);
+
+			sb.append("{nodeId=");
+			sb.append(nodeId);
+			sb.append(", title=");
+			sb.append(title);
+			sb.append("}");
+
+			throw new NoSuchPageException(sb.toString());
 		}
 	}
 
@@ -482,6 +502,7 @@ public class WikiPageServiceImpl extends WikiPageServiceBaseImpl {
 	 *             String, int, String, double, String, String, String, String,
 	 *             java.util.Locale)}
 	 */
+	@Deprecated
 	@Override
 	public String getPagesRSS(
 			long companyId, long nodeId, String title, int max, String type,

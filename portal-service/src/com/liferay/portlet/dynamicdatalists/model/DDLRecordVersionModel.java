@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.dynamicdatalists.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -40,6 +42,7 @@ import java.util.Date;
  * @see com.liferay.portlet.dynamicdatalists.model.impl.DDLRecordVersionModelImpl
  * @generated
  */
+@ProviderType
 public interface DDLRecordVersionModel extends BaseModel<DDLRecordVersion>,
 	WorkflowedModel {
 	/*
@@ -318,6 +321,7 @@ public interface DDLRecordVersionModel extends BaseModel<DDLRecordVersion>,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	 */
+	@Deprecated
 	@Override
 	public boolean getApproved();
 

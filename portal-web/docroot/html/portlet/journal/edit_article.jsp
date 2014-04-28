@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,8 +17,6 @@
 <%@ include file="/html/portlet/journal/init.jsp" %>
 
 <%
-String cmd = ParamUtil.getString(request, Constants.CMD);
-
 String tabs2 = ParamUtil.getString(request, "tabs2");
 
 String redirect = ParamUtil.getString(request, "redirect");
@@ -137,7 +135,7 @@ request.setAttribute("edit_article.jsp-defaultLanguageId", defaultLanguageId);
 request.setAttribute("edit_article.jsp-toLanguageId", toLanguageId);
 %>
 
-<div class="article-form <%= (article != null) ? "article-form-edit" : "article-form-add" %>">
+<div class="article-form <%= ((article != null) && !article.isNew()) ? "article-form-edit" : "article-form-add" %>">
 	<c:if test="<%= showHeader %>">
 		<liferay-util:include page="/html/portlet/journal/article_header.jsp" />
 	</c:if>
@@ -186,11 +184,11 @@ request.setAttribute("edit_article.jsp-toLanguageId", toLanguageId);
 		<div class="journal-article-wrapper" id="<portlet:namespace />journalArticleWrapper">
 			<div class="journal-article-wrapper-content">
 				<c:if test="<%= Validator.isNull(toLanguageId) %>">
-					<c:if test="<%= article != null %>">
+					<c:if test="<%= (article != null) && !article.isNew() %>">
 						<aui:workflow-status id="<%= String.valueOf(article.getArticleId()) %>" status="<%= article.getStatus() %>" version="<%= String.valueOf(article.getVersion()) %>" />
-					</c:if>
 
-					<liferay-util:include page="/html/portlet/journal/article_toolbar.jsp" />
+						<liferay-util:include page="/html/portlet/journal/article_toolbar.jsp" />
+					</c:if>
 				</c:if>
 
 				<liferay-util:buffer var="htmlTop">
@@ -245,7 +243,7 @@ request.setAttribute("edit_article.jsp-toLanguageId", toLanguageId);
 							hasSavePermission = JournalArticlePermission.contains(permissionChecker, article, ActionKeys.UPDATE);
 						}
 						else {
-							hasSavePermission = JournalPermission.contains(permissionChecker, groupId, ActionKeys.ADD_ARTICLE);
+							hasSavePermission = JournalFolderPermission.contains(permissionChecker, groupId, folderId, ActionKeys.ADD_ARTICLE);
 						}
 
 						String saveButtonLabel = "save";
@@ -324,7 +322,7 @@ request.setAttribute("edit_article.jsp-toLanguageId", toLanguageId);
 	</aui:form>
 </div>
 
-<c:if test="<%= (article != null) && Validator.equals(cmd, Constants.PREVIEW) %>">
+<c:if test='<%= (article != null) && SessionMessages.contains(renderRequest, "previewRequested") %>'>
 	<aui:script use="liferay-journal-preview">
 		<liferay-portlet:renderURL plid="<%= JournalUtil.getPreviewPlid(article, themeDisplay) %>" var="previewArticleContentURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
 			<portlet:param name="struts_action" value="/journal/preview_article_content" />
@@ -336,8 +334,8 @@ request.setAttribute("edit_article.jsp-toLanguageId", toLanguageId);
 		Liferay.fire(
 			'previewArticle',
 			{
-				title: '<%= article.getTitle(locale) %>',
-				uri: '<%= previewArticleContentURL.toString() %>'
+				title: '<%= HtmlUtil.escapeJS(article.getTitle(locale)) %>',
+				uri: '<%= HtmlUtil.escapeJS(previewArticleContentURL.toString()) %>'
 			}
 		);
 	</aui:script>

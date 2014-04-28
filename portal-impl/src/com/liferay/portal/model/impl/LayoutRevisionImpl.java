@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -96,6 +96,15 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		}
 
 		return htmlTitle;
+	}
+
+	@Override
+	public boolean getIconImage() {
+		if (getIconImageId() > 0) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
@@ -200,6 +209,20 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 	}
 
 	@Override
+	public String getTypeSettingsProperty(String key) {
+		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
+
+		return typeSettingsProperties.getProperty(key);
+	}
+
+	@Override
+	public String getTypeSettingsProperty(String key, String defaultValue) {
+		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
+
+		return typeSettingsProperties.getProperty(key, defaultValue);
+	}
+
+	@Override
 	public ColorScheme getWapColorScheme()
 		throws PortalException, SystemException {
 
@@ -247,6 +270,11 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		else {
 			return false;
 		}
+	}
+
+	@Override
+	public boolean isIconImage() {
+		return getIconImage();
 	}
 
 	@Override

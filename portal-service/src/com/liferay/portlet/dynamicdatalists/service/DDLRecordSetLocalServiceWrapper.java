@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.dynamicdatalists.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see DDLRecordSetLocalService
  * @generated
  */
+@ProviderType
 public class DDLRecordSetLocalServiceWrapper implements DDLRecordSetLocalService,
 	ServiceWrapper<DDLRecordSetLocalService> {
 	public DDLRecordSetLocalServiceWrapper(
@@ -236,6 +239,19 @@ public class DDLRecordSetLocalServiceWrapper implements DDLRecordSetLocalService
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _ddlRecordSetLocalService.getDDLRecordSet(recordSetId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddlRecordSetLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddlRecordSetLocalService.getExportActionableDynamicQuery(portletDataContext);
 	}
 
 	@Override
@@ -532,6 +548,7 @@ public class DDLRecordSetLocalServiceWrapper implements DDLRecordSetLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DDLRecordSetLocalService getWrappedDDLRecordSetLocalService() {
 		return _ddlRecordSetLocalService;
 	}
@@ -539,6 +556,7 @@ public class DDLRecordSetLocalServiceWrapper implements DDLRecordSetLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDDLRecordSetLocalService(
 		DDLRecordSetLocalService ddlRecordSetLocalService) {
 		_ddlRecordSetLocalService = ddlRecordSetLocalService;

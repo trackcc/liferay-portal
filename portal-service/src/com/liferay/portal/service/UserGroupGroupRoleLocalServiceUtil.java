@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.service;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.UserGroupGroupRoleLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class UserGroupGroupRoleLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -201,6 +204,11 @@ public class UserGroupGroupRoleLocalServiceUtil {
 		return getService().getUserGroupGroupRole(userGroupGroupRolePK);
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getActionableDynamicQuery();
+	}
+
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -337,6 +345,11 @@ public class UserGroupGroupRoleLocalServiceUtil {
 		return getService().getUserGroupGroupRolesByGroupAndRole(groupId, roleId);
 	}
 
+	public static java.util.List<com.liferay.portal.model.UserGroupGroupRole> getUserGroupGroupRolesByUser(
+		long userId) throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getUserGroupGroupRolesByUser(userId);
+	}
+
 	public static boolean hasUserGroupGroupRole(long userGroupId, long groupId,
 		long roleId) throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().hasUserGroupGroupRole(userGroupId, groupId, roleId);
@@ -363,6 +376,7 @@ public class UserGroupGroupRoleLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(UserGroupGroupRoleLocalService service) {
 	}
 

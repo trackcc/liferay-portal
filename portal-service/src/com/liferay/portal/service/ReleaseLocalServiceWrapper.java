@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ReleaseLocalService}.
  *
@@ -21,6 +23,7 @@ package com.liferay.portal.service;
  * @see ReleaseLocalService
  * @generated
  */
+@ProviderType
 public class ReleaseLocalServiceWrapper implements ReleaseLocalService,
 	ServiceWrapper<ReleaseLocalService> {
 	public ReleaseLocalServiceWrapper(ReleaseLocalService releaseLocalService) {
@@ -199,6 +202,12 @@ public class ReleaseLocalServiceWrapper implements ReleaseLocalService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _releaseLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -310,6 +319,7 @@ public class ReleaseLocalServiceWrapper implements ReleaseLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ReleaseLocalService getWrappedReleaseLocalService() {
 		return _releaseLocalService;
 	}
@@ -317,6 +327,7 @@ public class ReleaseLocalServiceWrapper implements ReleaseLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedReleaseLocalService(
 		ReleaseLocalService releaseLocalService) {
 		_releaseLocalService = releaseLocalService;

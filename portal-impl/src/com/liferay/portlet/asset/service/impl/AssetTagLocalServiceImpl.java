@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,13 +29,13 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.asset.AssetTagException;
 import com.liferay.portlet.asset.DuplicateTagException;
 import com.liferay.portlet.asset.NoSuchTagException;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetTag;
+import com.liferay.portlet.asset.model.AssetTagConstants;
 import com.liferay.portlet.asset.model.AssetTagProperty;
 import com.liferay.portlet.asset.service.base.AssetTagLocalServiceBaseImpl;
 import com.liferay.portlet.asset.util.AssetUtil;
@@ -118,7 +118,13 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 		for (int i = 0; i < tagProperties.length; i++) {
 			String[] tagProperty = StringUtil.split(
-				tagProperties[i], CharPool.COLON);
+				tagProperties[i],
+				AssetTagConstants.PROPERTY_KEY_VALUE_SEPARATOR);
+
+			if (tagProperty.length <= 1) {
+				tagProperty = StringUtil.split(
+					tagProperties[i], CharPool.COLON);
+			}
 
 			String key = StringPool.BLANK;
 
@@ -496,7 +502,7 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 	public List<AssetTag> getTags(String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getTags(classNameId, classPK);
 	}
@@ -645,7 +651,13 @@ public class AssetTagLocalServiceImpl extends AssetTagLocalServiceBaseImpl {
 
 		for (int i = 0; i < tagProperties.length; i++) {
 			String[] tagProperty = StringUtil.split(
-				tagProperties[i], CharPool.COLON);
+				tagProperties[i],
+				AssetTagConstants.PROPERTY_KEY_VALUE_SEPARATOR);
+
+			if (tagProperty.length <= 1) {
+				tagProperty = StringUtil.split(
+					tagProperties[i], CharPool.COLON);
+			}
 
 			String key = StringPool.BLANK;
 

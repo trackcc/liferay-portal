@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.softwarecatalog.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
@@ -30,6 +32,7 @@ import java.util.Map;
  * @see SCProductVersion
  * @generated
  */
+@ProviderType
 public class SCProductVersionWrapper implements SCProductVersion,
 	ModelWrapper<SCProductVersion> {
 	public SCProductVersionWrapper(SCProductVersion scProductVersion) {
@@ -572,6 +575,7 @@ public class SCProductVersionWrapper implements SCProductVersion,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SCProductVersion getWrappedSCProductVersion() {
 		return _scProductVersion;
 	}
@@ -579,6 +583,16 @@ public class SCProductVersionWrapper implements SCProductVersion,
 	@Override
 	public SCProductVersion getWrappedModel() {
 		return _scProductVersion;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _scProductVersion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _scProductVersion.isFinderCacheEnabled();
 	}
 
 	@Override

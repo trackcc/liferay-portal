@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,8 @@
 <%@ include file="/html/portlet/layouts_admin/init_attributes.jspf" %>
 
 <%
+String cmd = ParamUtil.getString(request, Constants.CMD);
+
 boolean incomplete = ParamUtil.getBoolean(request, "incomplete", true);
 
 String treeLoading = PortalUtil.generateRandomKey(request, "treeLoading");
@@ -50,22 +52,24 @@ if (!selectableTree) {
 	var STR_CHILDREN = 'children';
 
 	var TREE_CSS_CLASSES = {
-		pages: {
-			iconCheck: 'tree-icon icon-check',
-			iconCollapsed: 'icon-file',
-			iconExpanded: 'icon-file',
-			iconHitAreaCollapsed: 'tree-hitarea icon-plus',
-			iconHitAreaExpanded: 'tree-hitarea icon-minus',
-			iconLeaf: 'icon-leaf',
-			iconLoading: 'icon-refresh',
-			iconUncheck: 'icon-check'
-		}
+		iconCheck: 'tree-icon icon-check',
+		iconCollapsed: 'icon-file',
+		iconExpanded: 'icon-file',
+		iconHitAreaCollapsed: 'tree-hitarea icon-plus',
+		iconHitAreaExpanded: 'tree-hitarea icon-minus',
+		iconLeaf: 'icon-leaf',
+		iconLoading: 'icon-refresh',
+		iconUncheck: 'icon-check'
 	};
 
 	<%
 	JSONArray checkedNodesJSONArray = JSONFactoryUtil.createJSONArray();
 
 	String checkedLayoutIds = SessionTreeJSClicks.getOpenNodes(request, treeId + "SelectedNode");
+
+	if (cmd.equals(Constants.UPDATE)) {
+		checkedLayoutIds = ParamUtil.getString(request, "selectedLayoutIds");
+	}
 
 	if (Validator.isNotNull(checkedLayoutIds)) {
 		for (long checkedLayoutId : StringUtil.split(checkedLayoutIds, 0L)) {
@@ -129,6 +133,14 @@ if (!selectableTree) {
 				className += ' ' + data.cssClass;
 			}
 
+			if (!data.uuid) {
+				data.uuid = "";
+			}
+
+			if (!data.id) {
+				data.id = "";
+			}
+
 			if (<%= checkContentDisplayPage %> && !data.contentDisplayPage) {
 				className += ' layout-page-invalid';
 			}
@@ -141,7 +153,7 @@ if (!selectableTree) {
 				}
 			);
 
-			return '<a class="' + className + '" data-uuid="' + data.uuid + '" href="' + href + '" id="' + data.id + '" title="' + data.title + '">' + data.label + '</a>';
+			return '<a class="' + className + '" data-uuid="' + Util.escapeHTML(data.uuid) + '" href="' + href + '" id="' + Util.escapeHTML(data.id) + '" title="' + data.title + '">' + data.label + '</a>';
 		},
 
 		extractGroupId: function(node) {
@@ -176,7 +188,7 @@ if (!selectableTree) {
 						(nodeType === 'link_to_layout') ||
 						(nodeType === 'url')) {
 
-						cssIcons.pages = {
+						cssIcons = {
 							iconCollapsed: iconCssClassName,
 							iconExpanded: iconCssClassName,
 							iconLeaf: iconCssClassName
@@ -217,7 +229,7 @@ if (!selectableTree) {
 								childrenChange: function(event) {
 									var target = event.target;
 
-									target.set('alwaysShowHitArea', event.newVal.length > 0);
+									target.set('alwaysShowHitArea', (event.newVal.length > 0));
 
 									target.eachChildren(TreeUtil.restoreSelectedNode);
 
@@ -244,7 +256,9 @@ if (!selectableTree) {
 							checked: true,
 						</c:if>
 
-						cssClasses: A.merge(TREE_CSS_CLASSES, cssIcons),
+						cssClasses: {
+							pages: A.merge(TREE_CSS_CLASSES, cssIcons)
+						},
 						draggable: node.sortable,
 						expanded: expanded,
 						id: TreeUtil.createListItemId(node.groupId, node.layoutId, node.plid),
@@ -252,9 +266,14 @@ if (!selectableTree) {
 							cfg: {
 								data: function(node) {
 									return {
+										cmd: 'get',
+										controlPanelCategory: 'current_site.pages',
+										doAsGroupId: themeDisplay.getScopeGroupId(),
 										groupId: TreeUtil.extractGroupId(node),
 										incomplete: <%= incomplete %>,
 										p_auth: Liferay.authToken,
+										p_l_id: themeDisplay.getPlid(),
+										p_p_id: '88',
 										parentLayoutId: TreeUtil.extractLayoutId(node),
 										privateLayout: <%= privateLayout %>,
 										selPlid: '<%= selPlid %>',
@@ -396,7 +415,11 @@ if (!selectableTree) {
 					data: A.mix(
 						data,
 						{
-							p_auth: Liferay.authToken
+							controlPanelCategory: 'current_site.pages',
+							doAsGroupId: themeDisplay.getScopeGroupId(),
+							p_auth: Liferay.authToken,
+							p_l_id: themeDisplay.getPlid(),
+							p_p_id: '88'
 						}
 					)
 				}
@@ -419,6 +442,7 @@ if (!selectableTree) {
 				A.mix(
 					data,
 					{
+						p_auth: Liferay.authToken,
 						useHttpSession: true
 					}
 				);
@@ -596,7 +620,9 @@ if (!selectableTree) {
 			%>
 
 			children: TreeUtil.formatJSONResults(<%= layoutsJSON %>),
-			cssClasses: TREE_CSS_CLASSES,
+			cssClasses: {
+				pages: TREE_CSS_CLASSES
+			},
 			draggable: false,
 
 			<c:choose>
@@ -638,9 +664,14 @@ if (!selectableTree) {
 				cfg: {
 					data: function(node) {
 						return {
+							cmd: 'get',
+							controlPanelCategory: 'current_site.pages',
+							doAsGroupId: themeDisplay.getScopeGroupId(),
 							groupId: TreeUtil.extractGroupId(node),
 							incomplete: <%= incomplete %>,
 							p_auth: Liferay.authToken,
+							p_l_id: themeDisplay.getPlid(),
+							p_p_id: '88',
 							parentLayoutId: TreeUtil.extractLayoutId(node),
 							privateLayout: <%= privateLayout %>,
 							selPlid: '<%= selPlid %>',
@@ -682,15 +713,6 @@ if (!selectableTree) {
 					},
 				</c:if>
 
-				'drop:hit': function(event) {
-					var dropNode = event.drop.get('node').get('parentNode');
-
-					var dropTreeNode = dropNode.getData('tree-node');
-
-					if (!dropTreeNode.get('draggable')) {
-						event.halt();
-					}
-				},
 				dropAppend: function(event) {
 					var tree = event.tree;
 

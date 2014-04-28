@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,11 +16,15 @@ package com.liferay.portlet.documentlibrary.service;
 
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.util.GroupTestUtil;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.util.RoleTestUtil;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
+import com.liferay.portlet.documentlibrary.service.permission.DLPermission;
 import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
 
 import org.junit.After;
@@ -33,18 +37,30 @@ public abstract class BaseDLAppTestCase {
 
 	@Before
 	public void setUp() throws Exception {
+		_name = PrincipalThreadLocal.getName();
+
 		group = GroupTestUtil.addGroup();
 
 		parentFolder = DLAppTestUtil.addFolder(
 			group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			"Test Folder", true);
+
+		RoleTestUtil.addResourcePermission(
+			RoleConstants.GUEST, DLPermission.RESOURCE_NAME,
+			ResourceConstants.SCOPE_GROUP, String.valueOf(group.getGroupId()),
+			ActionKeys.VIEW);
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		PrincipalThreadLocal.setName(TestPropsValues.getUserId());
+		PrincipalThreadLocal.setName(_name);
 
 		GroupLocalServiceUtil.deleteGroup(group);
+
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.GUEST, DLPermission.RESOURCE_NAME,
+			ResourceConstants.SCOPE_GROUP, String.valueOf(group.getGroupId()),
+			ActionKeys.VIEW);
 	}
 
 	protected static final String CONTENT =
@@ -52,5 +68,7 @@ public abstract class BaseDLAppTestCase {
 
 	protected Group group;
 	protected Folder parentFolder;
+
+	private String _name;
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,9 +28,12 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ClassName;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.impl.ClassNameModelImpl;
+import com.liferay.portal.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
@@ -40,6 +43,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -57,6 +61,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ClassNamePersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<ClassName> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -78,6 +91,10 @@ public class ClassNamePersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<ClassName> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -113,16 +130,34 @@ public class ClassNamePersistenceTest {
 
 		ClassName newClassName = _persistence.create(pk);
 
+		newClassName.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newClassName.setValue(ServiceTestUtil.randomString());
 
 		_persistence.update(newClassName);
 
 		ClassName existingClassName = _persistence.findByPrimaryKey(newClassName.getPrimaryKey());
 
+		Assert.assertEquals(existingClassName.getMvccVersion(),
+			newClassName.getMvccVersion());
 		Assert.assertEquals(existingClassName.getClassNameId(),
 			newClassName.getClassNameId());
 		Assert.assertEquals(existingClassName.getValue(),
 			newClassName.getValue());
+	}
+
+	@Test
+	public void testCountByValue() {
+		try {
+			_persistence.countByValue(StringPool.BLANK);
+
+			_persistence.countByValue(StringPool.NULL);
+
+			_persistence.countByValue((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -159,8 +194,8 @@ public class ClassNamePersistenceTest {
 	}
 
 	protected OrderByComparator getOrderByComparator() {
-		return OrderByComparatorFactoryUtil.create("ClassName_", "classNameId",
-			true, "value", true);
+		return OrderByComparatorFactoryUtil.create("ClassName_", "mvccVersion",
+			true, "classNameId", true, "value", true);
 	}
 
 	@Test
@@ -185,16 +220,18 @@ public class ClassNamePersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new ClassNameActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = ClassNameLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					ClassName className = (ClassName)object;
 
 					Assert.assertNotNull(className);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -295,6 +332,8 @@ public class ClassNamePersistenceTest {
 
 		ClassName className = _persistence.create(pk);
 
+		className.setMvccVersion(ServiceTestUtil.nextLong());
+
 		className.setValue(ServiceTestUtil.randomString());
 
 		_persistence.update(className);
@@ -303,6 +342,7 @@ public class ClassNamePersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ClassNamePersistenceTest.class);
+	private ModelListener<ClassName>[] _modelListeners;
 	private ClassNamePersistence _persistence = (ClassNamePersistence)PortalBeanLocatorUtil.locate(ClassNamePersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

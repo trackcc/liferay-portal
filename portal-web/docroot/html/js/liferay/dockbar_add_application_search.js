@@ -5,6 +5,8 @@ AUI.add(
 
 		var AddSearch = Dockbar.AddSearch;
 
+		var CSS_LFR_CONTENT_ITEM_SELECTOR = '.lfr-content-item';
+
 		var CSS_LFR_CATEGORY_CONTAINER = 'lfr-add-content';
 
 		var CSS_LFR_CATEGORY_CONTAINER_SELECTOR = '.' + CSS_LFR_CATEGORY_CONTAINER;
@@ -45,15 +47,32 @@ AUI.add(
 			_bindUISearch: function() {
 				var instance = this;
 
-				instance._search.on('results', instance._updateList, instance);
+				instance._eventHandles = instance._eventHandles || [];
 
-				instance.get('inputNode').on('keydown', instance._onSearchInputKeyDown, instance);
+				instance._eventHandles.push(
+					instance._search.on('results', instance._updateList, instance),
+					instance.get('inputNode').on('keydown', instance._onSearchInputKeyDown, instance)
+				);
 			},
 
 			_onSearchInputKeyDown: function(event) {
 				if (event.isKey('ENTER')) {
 					event.halt();
 				}
+			},
+
+			_setItemsVisibility: function(visible) {
+				var instance = this;
+
+				instance.get(STR_NODES).each(
+					function(item, index, collection) {
+						var contentItem = item.ancestor(CSS_LFR_CONTENT_ITEM_SELECTOR);
+
+						if (contentItem) {
+							contentItem.toggle(visible);
+						}
+					}
+				);
 			},
 
 			_updateList: function(event) {
@@ -80,7 +99,7 @@ AUI.add(
 				if (!query) {
 					instance._categoryContainers.show();
 
-					instance.get(STR_NODES).show();
+					instance._setItemsVisibility(true);
 
 					if (instance._collapsedCategories) {
 						A.each(
@@ -105,19 +124,19 @@ AUI.add(
 					if (query === '*') {
 						instance._categoryContainers.show();
 
-						instance.get(STR_NODES).show();
+						instance._setItemsVisibility(true);
 					}
 					else {
 						instance._categoryContainers.hide();
 
-						instance.get(STR_NODES).hide();
+						instance._setItemsVisibility(false);
 
 						A.each(
 							event.results,
 							function(item, index, collection) {
 								var node = item.raw.node;
 
-								node.show();
+								node.ancestor(CSS_LFR_CONTENT_ITEM_SELECTOR).show();
 
 								var contentParent = node.ancestorsByClassName(CSS_LFR_CATEGORY_CONTAINER);
 

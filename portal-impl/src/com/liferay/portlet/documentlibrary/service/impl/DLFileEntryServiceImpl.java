@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -79,7 +79,9 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		throws PortalException, SystemException {
 
 		try {
-			if (!hasFileEntryLock(fileEntryId)) {
+			if (!hasFileEntryLock(fileEntryId) &&
+				!_hasOverrideCheckoutPermission(fileEntryId)) {
+
 				throw new PrincipalException();
 			}
 		}
@@ -96,7 +98,9 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		throws PortalException, SystemException {
 
 		try {
-			if (!hasFileEntryLock(fileEntryId)) {
+			if (!hasFileEntryLock(fileEntryId) &&
+				!_hasOverrideCheckoutPermission(fileEntryId)) {
+
 				throw new PrincipalException();
 			}
 		}
@@ -111,6 +115,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	 *             String, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public void checkInFileEntry(long fileEntryId, String lockUuid)
 		throws PortalException, SystemException {
@@ -124,7 +129,9 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		throws PortalException, SystemException {
 
 		try {
-			if (!hasFileEntryLock(fileEntryId)) {
+			if (!hasFileEntryLock(fileEntryId) &&
+				!_hasOverrideCheckoutPermission(fileEntryId)) {
+
 				throw new PrincipalException();
 			}
 		}
@@ -139,6 +146,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public DLFileEntry checkOutFileEntry(long fileEntryId)
 		throws PortalException, SystemException {
@@ -160,6 +168,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	 *             String, long, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public DLFileEntry checkOutFileEntry(
 			long fileEntryId, String owner, long expirationTime)
@@ -341,7 +350,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		QueryDefinition queryDefinition = new QueryDefinition(
 			WorkflowConstants.STATUS_IN_TRASH, true, start, end, obc);
 
-		return dlFileEntryFinder.findByG_U_F_M(
+		return dlFileEntryFinder.filterFindByG_U_F_M(
 			groupId, 0, folderIds, mimeTypes, queryDefinition);
 	}
 
@@ -383,7 +392,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 
 		folderIds.add(folderId);
 
-		return dlFileEntryFinder.countByG_U_F_M(
+		return dlFileEntryFinder.filterCountByG_U_F_M(
 			groupId, 0, folderIds, mimeTypes,
 			new QueryDefinition(WorkflowConstants.STATUS_ANY));
 	}
@@ -471,7 +480,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		List<Long> folderIds = dlFolderService.getFolderIds(
 			groupId, rootFolderId);
 
-		if (folderIds.size() == 0) {
+		if (folderIds.isEmpty()) {
 			return Collections.emptyList();
 		}
 		else if (userId <= 0) {
@@ -487,28 +496,47 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 
 	@Override
 	public List<DLFileEntry> getGroupFileEntries(
-			long groupId, long userId, long rootFolderId, String[] mimeTypes,
-			int status, int start, int end, OrderByComparator obc)
+			long groupId, long userId, long repositoryId, long rootFolderId,
+			String[] mimeTypes, int status, int start, int end,
+			OrderByComparator obc)
 		throws PortalException, SystemException {
+
+		List<Long> repositoryIds = new ArrayList<Long>();
+
+		if (repositoryId != 0) {
+			repositoryIds.add(repositoryId);
+		}
 
 		QueryDefinition queryDefinition = new QueryDefinition(
 			status, start, end, obc);
 
 		if (rootFolderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			return dlFileEntryFinder.findByG_U_F_M(
-				groupId, userId, new ArrayList<Long>(), mimeTypes,
-				queryDefinition);
+			return dlFileEntryFinder.filterFindByG_U_R_F_M(
+				groupId, userId, repositoryIds, new ArrayList<Long>(),
+				mimeTypes, queryDefinition);
 		}
 
 		List<Long> folderIds = dlFolderService.getFolderIds(
 			groupId, rootFolderId);
 
-		if (folderIds.size() == 0) {
+		if (folderIds.isEmpty()) {
 			return Collections.emptyList();
 		}
 
-		return dlFileEntryFinder.findByG_U_F_M(
-			groupId, userId, folderIds, mimeTypes, queryDefinition);
+		return dlFileEntryFinder.filterFindByG_U_R_F_M(
+			groupId, userId, repositoryIds, folderIds, mimeTypes,
+			queryDefinition);
+	}
+
+	@Override
+	public List<DLFileEntry> getGroupFileEntries(
+			long groupId, long userId, long rootFolderId, String[] mimeTypes,
+			int status, int start, int end, OrderByComparator obc)
+		throws PortalException, SystemException {
+
+		return getGroupFileEntries(
+			groupId, userId, 0, rootFolderId, mimeTypes, status, start, end,
+			obc);
 	}
 
 	@Override
@@ -519,7 +547,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		List<Long> folderIds = dlFolderService.getFolderIds(
 			groupId, rootFolderId);
 
-		if (folderIds.size() == 0) {
+		if (folderIds.isEmpty()) {
 			return 0;
 		}
 		else if (userId <= 0) {
@@ -534,25 +562,42 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 
 	@Override
 	public int getGroupFileEntriesCount(
-			long groupId, long userId, long rootFolderId, String[] mimeTypes,
-			int status)
+			long groupId, long userId, long repositoryId, long rootFolderId,
+			String[] mimeTypes, int status)
 		throws PortalException, SystemException {
 
+		List<Long> repositoryIds = new ArrayList<Long>();
+
+		if (repositoryId != 0) {
+			repositoryIds.add(repositoryId);
+		}
+
 		if (rootFolderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			return dlFileEntryFinder.countByG_U_F_M(
-				groupId, userId, new ArrayList<Long>(), mimeTypes,
-				new QueryDefinition(status));
+			return dlFileEntryFinder.filterCountByG_U_R_F_M(
+				groupId, userId, repositoryIds, new ArrayList<Long>(),
+				mimeTypes, new QueryDefinition(status));
 		}
 
 		List<Long> folderIds = dlFolderService.getFolderIds(
 			groupId, rootFolderId);
 
-		if (folderIds.size() == 0) {
+		if (folderIds.isEmpty()) {
 			return 0;
 		}
 
-		return dlFileEntryFinder.countByG_U_F_M(
-			groupId, userId, folderIds, mimeTypes, new QueryDefinition(status));
+		return dlFileEntryFinder.filterCountByG_U_R_F_M(
+			groupId, userId, repositoryIds, folderIds, mimeTypes,
+			new QueryDefinition(status));
+	}
+
+	@Override
+	public int getGroupFileEntriesCount(
+			long groupId, long userId, long rootFolderId, String[] mimeTypes,
+			int status)
+		throws PortalException, SystemException {
+
+		return getGroupFileEntriesCount(
+			groupId, userId, 0, rootFolderId, mimeTypes, status);
 	}
 
 	@Override
@@ -571,13 +616,6 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 			(folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
 
 			hasLock = dlFolderService.hasInheritableLock(folderId);
-		}
-
-		if (DLFileEntryPermission.contains(
-				getPermissionChecker(), fileEntryId,
-				ActionKeys.OVERRIDE_CHECKOUT)) {
-
-			hasLock = true;
 		}
 
 		return hasLock;
@@ -680,6 +718,13 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 
 		return dlFileEntryLocalService.verifyFileEntryLock(
 			fileEntryId, lockUuid);
+	}
+
+	private boolean _hasOverrideCheckoutPermission(long fileEntryId)
+		throws PortalException, SystemException {
+
+		return DLFileEntryPermission.contains(
+			getPermissionChecker(), fileEntryId, ActionKeys.OVERRIDE_CHECKOUT);
 	}
 
 }

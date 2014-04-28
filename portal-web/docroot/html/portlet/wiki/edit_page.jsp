@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,15 +18,6 @@
 
 <%
 String redirect = ParamUtil.getString(request, "redirect");
-
-String originalRedirect = ParamUtil.getString(request, "originalRedirect", StringPool.BLANK);
-
-if (originalRedirect.equals(StringPool.BLANK)) {
-	originalRedirect = redirect;
-}
-else {
-	redirect = originalRedirect;
-}
 
 boolean followRedirect = false;
 
@@ -177,7 +168,6 @@ if (Validator.isNull(redirect)) {
 <aui:form action="<%= editPageActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "savePage();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
-	<aui:input name="originalRedirect" type="hidden" value="<%= originalRedirect %>" />
 	<aui:input name="nodeId" type="hidden" value="<%= nodeId %>" />
 	<aui:input name="newPage" type="hidden" value="<%= newPage %>" />
 
@@ -247,9 +237,7 @@ if (Validator.isNull(redirect)) {
 				</c:if>
 
 				<c:if test="<%= Validator.isNotNull(parentTitle) %>">
-					<aui:field-wrapper label="parent">
-						<liferay-ui:input-resource url="<%= parentTitle %>" />
-					</aui:field-wrapper>
+					<aui:input name="parent" type="resource" value="<%= parentTitle %>" />
 				</c:if>
 
 				<c:choose>
@@ -464,7 +452,7 @@ if (Validator.isNull(redirect)) {
 					Format dateFormatDate = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
 					%>
 
-					<%= LanguageUtil.format(pageContext, "this-page-cannot-be-edited-because-user-x-is-modifying-it-and-the-results-have-not-been-published-yet", new Object[] {wikiPage.getUserName(), dateFormatDate.format(wikiPage.getModifiedDate())}) %>
+					<%= LanguageUtil.format(pageContext, "this-page-cannot-be-edited-because-user-x-is-modifying-it-and-the-results-have-not-been-published-yet", new Object[] {HtmlUtil.escape(wikiPage.getUserName()), dateFormatDate.format(wikiPage.getModifiedDate())}, false) %>
 				</div>
 			</c:if>
 		</c:otherwise>
@@ -491,7 +479,7 @@ if (Validator.isNull(redirect)) {
 			document.<portlet:namespace />fm.<portlet:namespace />content.value = window.<portlet:namespace />editor.getHTML();
 		}
 
-		submitForm(document.<portlet:namespace />fm);
+		submitForm(document.<portlet:namespace />fm, null, null, false);
 	}
 
 	function <portlet:namespace />discardDraftPage() {
@@ -501,22 +489,18 @@ if (Validator.isNull(redirect)) {
 	}
 
 	function <portlet:namespace />getSuggestionsContent() {
-		var content = '';
-
-		content += document.<portlet:namespace />fm.<portlet:namespace />title.value + ' ';
-		content += window.<portlet:namespace />editor.getHTML();
-
-		return content;
+		return document.<portlet:namespace />fm.<portlet:namespace />title.value + ' ' + window.<portlet:namespace />editor.getHTML();
 	}
 
 	function <portlet:namespace />moveToTrashPage() {
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.MOVE_TO_TRASH %>";
+
 		<portlet:renderURL var="nodeURL">
 			<portlet:param name="struts_action" value="/wiki/view" />
 			<portlet:param name="title" value="<%= WikiPageConstants.FRONT_PAGE %>" />
 			<portlet:param name="tag" value="<%= StringPool.BLANK %>" />
 		</portlet:renderURL>
 
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.MOVE_TO_TRASH %>";
 		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = "<%= nodeURL.toString() %>";
 
 		submitForm(document.<portlet:namespace />fm);

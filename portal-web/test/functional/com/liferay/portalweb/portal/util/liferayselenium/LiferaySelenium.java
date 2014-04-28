@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,21 +21,34 @@ import com.thoughtworks.selenium.Selenium;
  */
 public interface LiferaySelenium extends Selenium {
 
+	public void antCommand(String fileName, String target) throws Exception;
+
 	public void assertAlert(String pattern) throws Exception;
+
+	public void assertAlertNotPresent() throws Exception;
 
 	public void assertChecked(String pattern) throws Exception;
 
 	public void assertConfirmation(String pattern) throws Exception;
 
+	public void assertConsoleTextNotPresent(String text) throws Exception;
+
+	public void assertConsoleTextPresent(String text) throws Exception;
+
 	public void assertElementNotPresent(String locator) throws Exception;
 
 	public void assertElementPresent(String locator) throws Exception;
 
-	public void assertEmailContent(String index, String content)
+	public void assertEmailBody(String index, String body)
 		throws Exception;
 
 	public void assertEmailSubject(String index, String subject)
 		throws Exception;
+
+	public void assertJavaScriptErrors(String ignoreJavaScriptError)
+		throws Exception;
+
+	public void assertLiferayErrors() throws Exception;
 
 	public void assertLocation(String pattern);
 
@@ -96,7 +109,9 @@ public interface LiferaySelenium extends Selenium {
 
 	public String getCurrentYear();
 
-	public String getEmailContent(String index) throws Exception;
+	public String getDependenciesDirName();
+
+	public String getEmailBody(String index) throws Exception;
 
 	public String getEmailSubject(String index) throws Exception;
 
@@ -108,15 +123,21 @@ public interface LiferaySelenium extends Selenium {
 
 	public String getNumberIncrement(String value);
 
+	public String getOutputDirName();
+
 	public String getPrimaryTestSuiteName();
 
-	public String getProjectDir();
+	public String getProjectDirName();
+
+	public String getSikuliImagesDirName();
 
 	public void goBackAndWait();
 
 	public boolean isConfirmation(String pattern);
 
 	public boolean isElementNotPresent(String locator);
+
+	public boolean isElementPresentAfterWait(String locator) throws Exception;
 
 	public boolean isNotChecked(String locator);
 
@@ -148,28 +169,40 @@ public interface LiferaySelenium extends Selenium {
 
 	public void makeVisible(String locator);
 
+	public void mouseRelease();
+
 	public void paste(String locator);
 
 	public void pause(String waitTime) throws Exception;
 
+	public void pauseLoggerCheck() throws Exception;
+
 	public void refreshAndWait();
 
-	public void replyToEmail(String to, String content) throws Exception;
+	public void replyToEmail(String to, String body) throws Exception;
 
-	public void saveScreenshot(String fileName) throws Exception;
+	public void saveScreenshot() throws Exception;
 
 	public void saveScreenshotAndSource() throws Exception;
 
 	public void selectAndWait(String selectLocator, String optionLocator);
 
+	public void sendActionDescriptionLogger(String description);
+
 	public boolean sendActionLogger(String command, String[] params);
 
-	public void sendEmail(String to, String subject, String content)
+	public void sendEmail(String to, String subject, String body)
 		throws Exception;
 
 	public void sendKeys(String locator, String value);
 
 	public void sendLogger(String id, String status);
+
+	public void sendMacroDescriptionLogger(String description);
+
+	public void sendTestCaseCommandLogger(String command);
+
+	public void sendTestCaseHeaderLogger(String command);
 
 	public void setDefaultTimeout();
 
@@ -179,11 +212,25 @@ public interface LiferaySelenium extends Selenium {
 
 	public void setTimeoutImplicit(String timeout);
 
+	public void sikuliClick(String image) throws Exception;
+
+	public void sikuliType(String image, String value) throws Exception;
+
+	public void sikuliUploadCommonFile(String image, String value)
+		throws Exception;
+
+	public void sikuliUploadTempFile(String image, String value)
+		throws Exception;
+
 	public void startLogger();
 
 	public void stopLogger();
 
+	public void typeAceEditor(String locator, String value);
+
 	public void typeFrame(String locator, String value);
+
+	public void typeKeys(String locator, String value, boolean typeAceEditor);
 
 	public void uploadCommonFile(String locator, String value);
 

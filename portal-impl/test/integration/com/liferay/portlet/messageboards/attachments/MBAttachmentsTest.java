@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.User;
 import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
-import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
@@ -40,8 +39,6 @@ import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.model.MBMessageConstants;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
 import com.liferay.portlet.messageboards.util.MBTestUtil;
-import com.liferay.portlet.trash.model.TrashEntry;
-import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
 import com.liferay.portlet.trash.service.TrashEntryServiceUtil;
 
 import java.io.InputStream;
@@ -66,6 +63,7 @@ import org.junit.runner.RunWith;
 		TransactionalExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
+@Transactional
 public class MBAttachmentsTest {
 
 	@Before
@@ -78,12 +76,10 @@ public class MBAttachmentsTest {
 	@After
 	public void tearDown() throws Exception {
 		_category = null;
-		_group = null;
 		_message = null;
 	}
 
 	@Test
-	@Transactional
 	public void testDeleteAttachmentsWhenDeletingMessage() throws Exception {
 		int initialFileEntriesCount =
 			DLFileEntryLocalServiceUtil.getFileEntriesCount();
@@ -108,7 +104,6 @@ public class MBAttachmentsTest {
 	}
 
 	@Test
-	@Transactional
 	public void testDeleteAttachmentsWhenDeletingRootMessage()
 		throws Exception {
 
@@ -129,7 +124,6 @@ public class MBAttachmentsTest {
 	}
 
 	@Test
-	@Transactional
 	public void testFoldersCountWhenAddingAttachmentsToSameMessage()
 		throws Exception {
 
@@ -149,7 +143,6 @@ public class MBAttachmentsTest {
 	}
 
 	@Test
-	@Transactional
 	public void testFoldersCountWhenAddingMessage() throws Exception {
 		int initialFoldersCount = DLFolderLocalServiceUtil.getDLFoldersCount();
 
@@ -164,7 +157,6 @@ public class MBAttachmentsTest {
 	}
 
 	@Test
-	@Transactional
 	public void testFoldersCountWhenAddingMessageAttachment() throws Exception {
 		int initialFoldersCount = DLFolderLocalServiceUtil.getDLFoldersCount();
 
@@ -176,7 +168,6 @@ public class MBAttachmentsTest {
 	}
 
 	@Test
-	@Transactional
 	public void testFoldersCountWhenAddingMessageAttachments()
 		throws Exception {
 
@@ -219,7 +210,6 @@ public class MBAttachmentsTest {
 	}
 
 	@Test
-	@Transactional
 	public void testFoldersCountWhenAddingRootMessage() throws Exception {
 		int initialFoldersCount = DLFolderLocalServiceUtil.getDLFoldersCount();
 
@@ -230,7 +220,6 @@ public class MBAttachmentsTest {
 	}
 
 	@Test
-	@Transactional
 	public void testFoldersCountWhenDeletingMessageWithAttachments()
 		throws Exception {
 
@@ -256,7 +245,6 @@ public class MBAttachmentsTest {
 	}
 
 	@Test
-	@Transactional
 	public void testFoldersCountWhenDeletingMessageWithoutAttachments()
 		throws Exception {
 
@@ -278,7 +266,6 @@ public class MBAttachmentsTest {
 	}
 
 	@Test
-	@Transactional
 	public void testFoldersCountWhenDeletingRootMessageWithAttachments()
 		throws Exception {
 
@@ -298,7 +285,6 @@ public class MBAttachmentsTest {
 	}
 
 	@Test
-	@Transactional
 	public void testFoldersCountWhenDeletingRootMessageWithoutAttachments()
 		throws Exception {
 
@@ -320,8 +306,6 @@ public class MBAttachmentsTest {
 		addMessageAttachment();
 
 		_trashMBAttachments(false);
-
-		GroupLocalServiceUtil.deleteGroup(_group);
 	}
 
 	@Test
@@ -329,8 +313,6 @@ public class MBAttachmentsTest {
 		addMessageAttachment();
 
 		_trashMBAttachments(true);
-
-		GroupLocalServiceUtil.deleteGroup(_group);
 	}
 
 	protected void addCategory() throws Exception {
@@ -451,10 +433,8 @@ public class MBAttachmentsTest {
 			_message.getDeletedAttachmentsFileEntriesCount());
 
 		if (restore) {
-			TrashEntry trashEntry = TrashEntryLocalServiceUtil.getEntry(
+			TrashEntryServiceUtil.restoreEntry(
 				DLFileEntryConstants.getClassName(), fileEntryId);
-
-			TrashEntryServiceUtil.restoreEntry(trashEntry.getEntryId());
 
 			Assert.assertEquals(
 				initialNotInTrashCount + 1,

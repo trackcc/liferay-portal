@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.trash.service;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.trash.service.impl.TrashVersionLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class TrashVersionLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -201,6 +204,11 @@ public class TrashVersionLocalServiceUtil {
 		return getService().getTrashVersion(versionId);
 	}
 
+	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getActionableDynamicQuery();
+	}
+
 	public static com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -269,9 +277,18 @@ public class TrashVersionLocalServiceUtil {
 	}
 
 	public static void addTrashVersion(long trashEntryId,
-		java.lang.String className, long classPK, int status)
+		java.lang.String className, long classPK, int status,
+		com.liferay.portal.kernel.util.UnicodeProperties typeSettingsProperties)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		getService().addTrashVersion(trashEntryId, className, classPK, status);
+		getService()
+			.addTrashVersion(trashEntryId, className, classPK, status,
+			typeSettingsProperties);
+	}
+
+	public static com.liferay.portlet.trash.model.TrashVersion deleteTrashVersion(
+		java.lang.String className, long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().deleteTrashVersion(className, classPK);
 	}
 
 	public static com.liferay.portlet.trash.model.TrashVersion fetchVersion(
@@ -292,20 +309,6 @@ public class TrashVersionLocalServiceUtil {
 		return getService().getVersions(entryId, className);
 	}
 
-	/**
-	* Returns all the trash versions associated with the trash entry.
-	*
-	* @param className the class name of the trash entity
-	* @param classPK the primary key of the trash entity
-	* @return all the trash versions associated with the trash entry
-	* @throws SystemException if a system exception occurred
-	*/
-	public static java.util.List<com.liferay.portlet.trash.model.TrashVersion> getVersions(
-		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getVersions(className, classPK);
-	}
-
 	public static TrashVersionLocalService getService() {
 		if (_service == null) {
 			_service = (TrashVersionLocalService)PortalBeanLocatorUtil.locate(TrashVersionLocalService.class.getName());
@@ -320,6 +323,7 @@ public class TrashVersionLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(TrashVersionLocalService service) {
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.mobiledevicerules.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
@@ -23,6 +25,7 @@ import com.liferay.portal.service.ServiceWrapper;
  * @see MDRRuleGroupLocalService
  * @generated
  */
+@ProviderType
 public class MDRRuleGroupLocalServiceWrapper implements MDRRuleGroupLocalService,
 	ServiceWrapper<MDRRuleGroupLocalService> {
 	public MDRRuleGroupLocalServiceWrapper(
@@ -239,6 +242,19 @@ public class MDRRuleGroupLocalServiceWrapper implements MDRRuleGroupLocalService
 	}
 
 	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mdrRuleGroupLocalService.getActionableDynamicQuery();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		com.liferay.portal.kernel.lar.PortletDataContext portletDataContext)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mdrRuleGroupLocalService.getExportActionableDynamicQuery(portletDataContext);
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -437,6 +453,7 @@ public class MDRRuleGroupLocalServiceWrapper implements MDRRuleGroupLocalService
 	* @deprecated As of 6.2.0, replaced by {@link #search(long, String,
 	LinkedHashMap, boolean, int, int)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup> search(
 		long groupId, java.lang.String name, boolean andOperator, int start,
@@ -459,6 +476,7 @@ public class MDRRuleGroupLocalServiceWrapper implements MDRRuleGroupLocalService
 	* @deprecated As of 6.2.0, replaced by {@link #searchByKeywords(long,
 	String, LinkedHashMap, boolean, int, int)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup> searchByKeywords(
 		long groupId, java.lang.String keywords, boolean andOperator,
@@ -482,6 +500,7 @@ public class MDRRuleGroupLocalServiceWrapper implements MDRRuleGroupLocalService
 	* @deprecated As of 6.2.0, replaced by {@link #searchByKeywordsCount(long,
 	String, LinkedHashMap, boolean)}
 	*/
+	@Deprecated
 	@Override
 	public int searchByKeywordsCount(long groupId, java.lang.String keywords,
 		boolean andOperator)
@@ -503,6 +522,7 @@ public class MDRRuleGroupLocalServiceWrapper implements MDRRuleGroupLocalService
 	* @deprecated As of 6.2.0, replaced by {@link #searchCount(long, String,
 	LinkedHashMap, boolean)}
 	*/
+	@Deprecated
 	@Override
 	public int searchCount(long groupId, java.lang.String name,
 		boolean andOperator)
@@ -534,6 +554,7 @@ public class MDRRuleGroupLocalServiceWrapper implements MDRRuleGroupLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MDRRuleGroupLocalService getWrappedMDRRuleGroupLocalService() {
 		return _mdrRuleGroupLocalService;
 	}
@@ -541,6 +562,7 @@ public class MDRRuleGroupLocalServiceWrapper implements MDRRuleGroupLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMDRRuleGroupLocalService(
 		MDRRuleGroupLocalService mdrRuleGroupLocalService) {
 		_mdrRuleGroupLocalService = mdrRuleGroupLocalService;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,6 +35,7 @@ public class ScriptingUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link #eval(Set, Map, Set, String,
 	 *             String, String...)}
 	 */
+	@Deprecated
 	public static Map<String, Object> eval(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
 			Set<String> outputNames, String language, String script,
@@ -61,6 +62,7 @@ public class ScriptingUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link #exec(Set, Map, String,
 	 *             String, String...)}
 	 */
+	@Deprecated
 	public static void exec(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
 			String language, String script, ClassLoader... classLoaders)

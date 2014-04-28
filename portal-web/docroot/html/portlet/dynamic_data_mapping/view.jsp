@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,15 +29,19 @@ portletURL.setParameter("tabs1", tabs1);
 %>
 
 <liferay-ui:error exception="<%= RequiredStructureException.class %>">
-	<liferay-ui:message key="required-structures-could-not-be-deleted" />
 
 	<%
 	RequiredStructureException rse = (RequiredStructureException)errorException;
 	%>
 
-	<c:if test="<%= rse.getType() == RequiredStructureException.REFERENCED_TEMPLATE %>">
-		<liferay-ui:message key="they-are-referenced-by-templates" />
-	</c:if>
+	<c:choose>
+		<c:when test="<%= rse.getType() == RequiredStructureException.REFERENCED_TEMPLATE %>">
+			<liferay-ui:message key="required-structures-could-not-be-deleted.-they-are-referenced-by-templates" />
+		</c:when>
+		<c:otherwise>
+			<liferay-ui:message key="required-structures-could-not-be-deleted" />
+		</c:otherwise>
+	</c:choose>
 </liferay-ui:error>
 
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
@@ -70,6 +74,11 @@ portletURL.setParameter("tabs1", tabs1);
 	>
 
 		<c:if test="<%= showToolbar %>">
+
+			<%
+			request.setAttribute(WebKeys.SEARCH_CONTAINER, searchContainer);
+			%>
+
 			<liferay-util:include page="/html/portlet/dynamic_data_mapping/toolbar.jsp">
 				<liferay-util:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 			</liferay-util:include>
@@ -172,7 +181,7 @@ portletURL.setParameter("tabs1", tabs1);
 			{
 				id: '<portlet:namespace />copyStructure',
 				refreshWindow: window,
-				title: '<%= UnicodeLanguageUtil.format(pageContext, "copy-x", ddmDisplay.getStructureName(locale)) %>',
+				title: '<%= UnicodeLanguageUtil.format(pageContext, "copy-x", ddmDisplay.getStructureName(locale), false) %>',
 				uri: uri
 			}
 		);

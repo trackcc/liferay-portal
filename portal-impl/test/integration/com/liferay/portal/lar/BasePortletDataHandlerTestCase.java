@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataContextFactoryUtil;
 import com.liferay.portal.kernel.lar.PortletDataHandler;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
-import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.LongWrapper;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.xml.Element;
@@ -42,12 +41,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.powermock.api.mockito.PowerMockito;
-
 /**
  * @author Zsolt Berentey
  */
-public abstract class BasePortletDataHandlerTestCase extends PowerMockito {
+public abstract class BasePortletDataHandlerTestCase {
 
 	@Before
 	public void setUp() throws Exception {
@@ -65,7 +62,6 @@ public abstract class BasePortletDataHandlerTestCase extends PowerMockito {
 	}
 
 	@Test
-	@Transactional
 	public void testPrepareManifestSummary() throws Exception {
 		initExport();
 
@@ -142,7 +138,7 @@ public abstract class BasePortletDataHandlerTestCase extends PowerMockito {
 		}
 
 		Assert.assertEquals(
-			modelAdditionCounters.size(), expectedModelAdditionCountersSize);
+			expectedModelAdditionCountersSize, modelAdditionCounters.size());
 	}
 
 	protected abstract PortletDataHandler createPortletDataHandler();

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -237,7 +237,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 			category.getGroupId(), category.getCategoryId());
 
 		for (MBCategory curCategory : categories) {
-			if (includeTrashedEntries || !curCategory.isInTrash()) {
+			if (includeTrashedEntries || !curCategory.isInTrashExplicitly()) {
 				deleteCategory(curCategory, includeTrashedEntries);
 			}
 		}
@@ -282,8 +282,14 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		// Trash
 
-		trashEntryLocalService.deleteEntry(
-			MBCategory.class.getName(), category.getCategoryId());
+		if (category.isInTrashExplicitly()) {
+			trashEntryLocalService.deleteEntry(
+				MBCategory.class.getName(), category.getCategoryId());
+		}
+		else {
+			trashVersionLocalService.deleteTrashVersion(
+				MBCategory.class.getName(), category.getCategoryId());
+		}
 
 		// Category
 
@@ -327,6 +333,21 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 	@Override
 	public List<MBCategory> getCategories(
+			long groupId, long excludedCategoryId, long parentCategoryId,
+			int status, int start, int end)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.findByNotC_G_P(
+				excludedCategoryId, groupId, parentCategoryId, start, end);
+		}
+
+		return mbCategoryPersistence.findByNotC_G_P_S(
+			excludedCategoryId, groupId, parentCategoryId, status, start, end);
+	}
+
+	@Override
+	public List<MBCategory> getCategories(
 			long groupId, long[] parentCategoryIds, int start, int end)
 		throws SystemException {
 
@@ -347,6 +368,22 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		return mbCategoryPersistence.findByG_P_S(
 			groupId, parentCategoryIds, status, start, end);
+	}
+
+	@Override
+	public List<MBCategory> getCategories(
+			long groupId, long[] excludedCategoryIds, long[] parentCategoryIds,
+			int status, int start, int end)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.findByNotC_G_P(
+				excludedCategoryIds, groupId, parentCategoryIds, start, end);
+		}
+
+		return mbCategoryPersistence.findByNotC_G_P_S(
+			excludedCategoryIds, groupId, parentCategoryIds, status, start,
+			end);
 	}
 
 	@Override
@@ -402,6 +439,21 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 	}
 
 	@Override
+	public int getCategoriesCount(
+			long groupId, long excludedCategoryId, long parentCategoryId,
+			int status)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.countByNotC_G_P(
+				excludedCategoryId, groupId, parentCategoryId);
+		}
+
+		return mbCategoryPersistence.countByNotC_G_P_S(
+			excludedCategoryId, groupId, parentCategoryId, status);
+	}
+
+	@Override
 	public int getCategoriesCount(long groupId, long[] parentCategoryIds)
 		throws SystemException {
 
@@ -419,6 +471,21 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		return mbCategoryPersistence.countByG_P_S(
 			groupId, parentCategoryIds, status);
+	}
+
+	@Override
+	public int getCategoriesCount(
+			long groupId, long[] excludedCategoryIds, long[] parentCategoryIds,
+			int status)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.countByNotC_G_P(
+				excludedCategoryIds, groupId, parentCategoryIds);
+		}
+
+		return mbCategoryPersistence.countByNotC_G_P_S(
+			excludedCategoryIds, groupId, parentCategoryIds, status);
 	}
 
 	@Override
@@ -545,14 +612,14 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 		MBCategory category = mbCategoryPersistence.findByPrimaryKey(
 			categoryId);
 
-		TrashEntry trashEntry = category.getTrashEntry();
-
-		if (trashEntry.isTrashEntry(MBCategory.class, categoryId)) {
+		if (category.isInTrashExplicitly()) {
 			restoreCategoryFromTrash(userId, categoryId);
 		}
 		else {
 
 			// Category
+
+			TrashEntry trashEntry = category.getTrashEntry();
 
 			TrashVersion trashVersion =
 				trashVersionLocalService.fetchVersion(
@@ -884,7 +951,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		mbCategoryPersistence.update(toCategory);
 
-		deleteCategory(fromCategory);
+		mbCategoryLocalService.deleteCategory(fromCategory);
 	}
 
 	protected void moveDependentsToTrash(
@@ -913,7 +980,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 				if (oldStatus != WorkflowConstants.STATUS_APPROVED) {
 					trashVersionLocalService.addTrashVersion(
 						trashEntryId, MBThread.class.getName(),
-						thread.getThreadId(), oldStatus);
+						thread.getThreadId(), oldStatus, null);
 				}
 
 				// Threads
@@ -949,7 +1016,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 				if (oldStatus != WorkflowConstants.STATUS_APPROVED) {
 					trashVersionLocalService.addTrashVersion(
 						trashEntryId, MBCategory.class.getName(),
-						category.getCategoryId(), oldStatus);
+						category.getCategoryId(), oldStatus, null);
 				}
 
 				// Categories and threads

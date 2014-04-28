@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.kernel.nio.intraband;
+
+import java.io.IOException;
 
 import java.nio.channels.Channel;
 import java.nio.channels.GatheringByteChannel;
@@ -55,15 +57,42 @@ public class MockIntraband extends BaseIntraband {
 			scatteringByteChannel, gatheringByteChannel);
 	}
 
+	public void setIOException(IOException ioException) {
+		_ioException = ioException;
+	}
+
 	@Override
 	protected void doSendDatagram(
 		RegistrationReference registrationReference, Datagram datagram) {
 
 		_registrationReference = registrationReference;
 		_datagram = datagram;
+
+		CompletionHandler<?> completionHandler =
+			DatagramHelper.getCompletionHandler(datagram);
+
+		if (completionHandler == null) {
+			return;
+		}
+
+		if (_ioException == null) {
+			Datagram responseDatagram = processDatagram(datagram);
+
+			if (responseDatagram != null) {
+				completionHandler.replied(null, responseDatagram);
+			}
+		}
+		else {
+			completionHandler.failed(null, _ioException);
+		}
+	}
+
+	protected Datagram processDatagram(Datagram datagram) {
+		return null;
 	}
 
 	private Datagram _datagram;
+	private IOException _ioException;
 	private RegistrationReference _registrationReference;
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,20 @@
 
 package com.liferay.portal.tools.sourceformatter;
 
-import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Tuple;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Before;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * @author Hugo Huijser
@@ -32,57 +36,84 @@ public class BaseSourceProcessorTestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		_sourceFormatter = SourceFormatterUtil.create(
+		sourceFormatter = SourceFormatterUtil.create(
 			false, false, false, false);
 	}
 
 	protected void test(String fileName) throws Exception {
-		test(fileName, null, -1);
+		test(fileName, new String[0]);
 	}
 
 	protected void test(String fileName, String expectedErrorMessage)
 		throws Exception {
 
-		test(fileName, expectedErrorMessage, -1);
+		test(fileName, new String[] {expectedErrorMessage});
 	}
 
 	protected void test(
 			String fileName, String expectedErrorMessage, int lineNumber)
 		throws Exception {
 
+		test(
+			fileName, new String[] {expectedErrorMessage},
+			new Integer[] {lineNumber});
+	}
+
+	protected void test(String fileName, String[] expectedErrorMessages)
+		throws Exception {
+
+		test(fileName, expectedErrorMessages, null);
+	}
+
+	protected void test(
+			String fileName, String[] expectedErrorMessages,
+			Integer[] lineNumbers)
+		throws Exception {
+
 		String fullFileName = _DIR_NAME + StringPool.SLASH + fileName;
 
-		String[] result = _sourceFormatter.format(fullFileName);
+		Tuple tuple = sourceFormatter.format(fullFileName);
 
-		if (result == null) {
+		if (tuple == null) {
 			return;
 		}
 
-		String actualErrorMessage = result[1];
+		List<String> errorMessages = (List<String>)tuple.getObject(1);
 
-		if (Validator.isNotNull(actualErrorMessage) ||
-			Validator.isNotNull(expectedErrorMessage)) {
+		if (!errorMessages.isEmpty() || (expectedErrorMessages.length > 0)) {
+			Assert.assertEquals(
+				expectedErrorMessages.length, errorMessages.size());
 
-			StringBundler sb = new StringBundler(5);
+			for (int i = 0; i < errorMessages.size(); i++) {
+				String actualErrorMessage = errorMessages.get(i);
+				String expectedErrorMessage = expectedErrorMessages[i];
 
-			sb.append(expectedErrorMessage);
-			sb.append(StringPool.SPACE);
-			sb.append(fullFileName);
+				StringBundler sb = new StringBundler(5);
 
-			if (lineNumber > 0) {
+				sb.append(expectedErrorMessage);
 				sb.append(StringPool.SPACE);
-				sb.append(lineNumber);
-			}
+				sb.append(fullFileName);
 
-			Assert.assertEquals(sb.toString(), actualErrorMessage);
+				if (lineNumbers != null) {
+					sb.append(StringPool.SPACE);
+					sb.append(lineNumbers[i]);
+				}
+
+				Assert.assertEquals(sb.toString(), actualErrorMessage);
+			}
 		}
 		else {
-			String actualFormattedContent = result[0];
+			String actualFormattedContent = (String)tuple.getObject(0);
 
 			try {
 				File file = new File(_DIR_NAME + "/expected/" + fileName);
 
-				String expectedFormattedContent = FileUtil.read(file.getPath());
+				String expectedFormattedContent = FileUtils.readFileToString(
+					file, StringPool.UTF8);
+
+				expectedFormattedContent = StringUtil.replace(
+					expectedFormattedContent, StringPool.RETURN_NEW_LINE,
+					StringPool.NEW_LINE);
 
 				Assert.assertEquals(
 					expectedFormattedContent, actualFormattedContent);
@@ -93,10 +124,10 @@ public class BaseSourceProcessorTestCase {
 		}
 	}
 
+	protected SourceFormatter sourceFormatter;
+
 	private static final String _DIR_NAME =
 		"portal-impl/test/integration/com/liferay/portal/tools/" +
 			"sourceformatter/dependencies";
-
-	private SourceFormatter _sourceFormatter;
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,10 +28,13 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.IntegerWrapper;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.VirtualHost;
 import com.liferay.portal.model.impl.VirtualHostModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.VirtualHostLocalServiceUtil;
 import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
@@ -40,6 +43,7 @@ import com.liferay.portal.util.PropsValues;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -57,6 +61,15 @@ import java.util.Set;
 	PersistenceExecutionTestListener.class})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class VirtualHostPersistenceTest {
+	@Before
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<VirtualHost> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
 	@After
 	public void tearDown() throws Exception {
 		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
@@ -78,6 +91,10 @@ public class VirtualHostPersistenceTest {
 		}
 
 		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<VirtualHost> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
@@ -113,6 +130,8 @@ public class VirtualHostPersistenceTest {
 
 		VirtualHost newVirtualHost = _persistence.create(pk);
 
+		newVirtualHost.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newVirtualHost.setCompanyId(ServiceTestUtil.nextLong());
 
 		newVirtualHost.setLayoutSetId(ServiceTestUtil.nextLong());
@@ -123,6 +142,8 @@ public class VirtualHostPersistenceTest {
 
 		VirtualHost existingVirtualHost = _persistence.findByPrimaryKey(newVirtualHost.getPrimaryKey());
 
+		Assert.assertEquals(existingVirtualHost.getMvccVersion(),
+			newVirtualHost.getMvccVersion());
 		Assert.assertEquals(existingVirtualHost.getVirtualHostId(),
 			newVirtualHost.getVirtualHostId());
 		Assert.assertEquals(existingVirtualHost.getCompanyId(),
@@ -131,6 +152,33 @@ public class VirtualHostPersistenceTest {
 			newVirtualHost.getLayoutSetId());
 		Assert.assertEquals(existingVirtualHost.getHostname(),
 			newVirtualHost.getHostname());
+	}
+
+	@Test
+	public void testCountByHostname() {
+		try {
+			_persistence.countByHostname(StringPool.BLANK);
+
+			_persistence.countByHostname(StringPool.NULL);
+
+			_persistence.countByHostname((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_L() {
+		try {
+			_persistence.countByC_L(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_L(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -169,8 +217,8 @@ public class VirtualHostPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("VirtualHost",
-			"virtualHostId", true, "companyId", true, "layoutSetId", true,
-			"hostname", true);
+			"mvccVersion", true, "virtualHostId", true, "companyId", true,
+			"layoutSetId", true, "hostname", true);
 	}
 
 	@Test
@@ -195,16 +243,18 @@ public class VirtualHostPersistenceTest {
 	public void testActionableDynamicQuery() throws Exception {
 		final IntegerWrapper count = new IntegerWrapper();
 
-		ActionableDynamicQuery actionableDynamicQuery = new VirtualHostActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = VirtualHostLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
 				@Override
-				protected void performAction(Object object) {
+				public void performAction(Object object) {
 					VirtualHost virtualHost = (VirtualHost)object;
 
 					Assert.assertNotNull(virtualHost);
 
 					count.increment();
 				}
-			};
+			});
 
 		actionableDynamicQuery.performActions();
 
@@ -312,6 +362,8 @@ public class VirtualHostPersistenceTest {
 
 		VirtualHost virtualHost = _persistence.create(pk);
 
+		virtualHost.setMvccVersion(ServiceTestUtil.nextLong());
+
 		virtualHost.setCompanyId(ServiceTestUtil.nextLong());
 
 		virtualHost.setLayoutSetId(ServiceTestUtil.nextLong());
@@ -324,6 +376,7 @@ public class VirtualHostPersistenceTest {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(VirtualHostPersistenceTest.class);
+	private ModelListener<VirtualHost>[] _modelListeners;
 	private VirtualHostPersistence _persistence = (VirtualHostPersistence)PortalBeanLocatorUtil.locate(VirtualHostPersistence.class.getName());
 	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }
